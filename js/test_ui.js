@@ -1,5 +1,44 @@
 document.addEventListener('DOMContentLoaded', function() {
     var gridContainer = document.getElementById('test-grid-container');
+   // test_ui.js
+
+// Guide Logic
+(function() {
+    var guideKey = 'practice_guide_shown_v1';
+    if (!localStorage.getItem(guideKey)) {
+        var overlay = document.getElementById('guide-overlay');
+        var message = document.getElementById('guide-message');
+        var titleLink = document.querySelector('.title a');
+        
+        if (overlay && titleLink && message) {
+            // Show overlay
+            overlay.style.display = 'block';
+            
+            // Highlight Link
+            titleLink.classList.add('guide-highlight');
+            
+            // Position Message
+            var rect = titleLink.getBoundingClientRect();
+            // Position below the title roughly
+            message.style.top = (rect.bottom + 15) + 'px';
+            message.style.left = (rect.left + 20) + 'px';
+            
+            // Dismiss Function
+            function dismiss() {
+                overlay.style.display = 'none';
+                titleLink.classList.remove('guide-highlight');
+                localStorage.setItem(guideKey, 'true');
+            }
+            
+            // Bind Events
+            overlay.addEventListener('click', dismiss);
+            titleLink.addEventListener('click', function() {
+                dismiss();
+            });
+        }
+    }
+})();
+
     var selectionGrid = document.getElementById('selection-grid');
     
     // Default value

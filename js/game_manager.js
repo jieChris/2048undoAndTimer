@@ -97,7 +97,11 @@ GameManager.prototype.setup = function (inputSeed) {
   var sub16k = document.getElementById("timer16384-sub");
   if (sub16k) sub16k.textContent = "";
   var subContainer = document.getElementById("timer32k-sub-container");
+  var subContainer = document.getElementById("timer32k-sub-container");
   if (subContainer) subContainer.style.display = "none";
+  // Reset Timer Rows Visibility
+  if (document.getElementById("timer-row-16")) document.getElementById("timer-row-16").style.display = "block";
+  if (document.getElementById("timer-row-32")) document.getElementById("timer-row-32").style.display = "block";
 
   // Add the initial tiles
   this.addStartTiles();
@@ -397,6 +401,10 @@ GameManager.prototype.move = function (direction) {
              // Show sub-timer container
              var subContainer = document.getElementById("timer32k-sub-container");
              if (subContainer) subContainer.style.display = "block";
+             
+             // Hide 16 and 32 to save space (Limit to 12 items)
+             if (document.getElementById("timer-row-16")) document.getElementById("timer-row-16").style.display = "none";
+             if (document.getElementById("timer-row-32")) document.getElementById("timer-row-32").style.display = "none";
           }
 
         } else {
@@ -633,6 +641,11 @@ GameManager.prototype.insertCustomTile = function(x, y, value) {
         // Show sub-timer container
         var subContainer = document.getElementById("timer32k-sub-container");
         if (subContainer) subContainer.style.display = "block";
+        
+        // Hide 16 and 32 to save space
+         if (document.getElementById("timer-row-16")) document.getElementById("timer-row-16").style.display = "none";
+         if (document.getElementById("timer-row-32")) document.getElementById("timer-row-32").style.display = "none";
+        
         
         // Ensure 32768 timer has text if empty
         if (value === 32768) {

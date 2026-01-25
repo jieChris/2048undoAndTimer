@@ -139,44 +139,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // DEV Test 32k Button
-    var devTestBtn = document.getElementById('dev-test-32k-btn');
-    if (devTestBtn) {
-        devTestBtn.addEventListener('click', function() {
-            if (!window.game_manager) return;
-            var gm = window.game_manager;
-            
-            if (confirm("这将重置当前游戏并设置测试环境：\n1. 开启 '已达成32k' 标记\n2. 模拟 8192 已有记录\n3. 放置两个 4096 供合成\n\n确定继续吗？")) {
-                // 1. Set Flag
-                gm.reached32k = true;
-                
-                // 2. Mock previous record
-                var t8k = document.getElementById("timer8192");
-                if (t8k) t8k.textContent = "00:10.00";
-                
-                // Clear subs
-                var s8k = document.getElementById("timer8192-sub");
-                if (s8k) s8k.textContent = "";
-                var s16k = document.getElementById("timer16384-sub");
-                if (s16k) s16k.textContent = "";
-                var subContainer = document.getElementById("timer32k-sub-container");
-                if (subContainer) subContainer.style.display = "block";
-                
-                // 3. Clear Grid
-                gm.grid.eachCell(function(x, y, tile) {
-                    if (tile) gm.grid.removeTile(tile);
-                });
-                
-                // 4. Setup 4096s
-                gm.grid.insertTile(new Tile({x: 0, y: 0}, 4096));
-                gm.grid.insertTile(new Tile({x: 0, y: 1}, 4096)); // Vertical merge (Up/Down)
-                
-                // 5. Refresh
-                gm.actuate();
-                
-                alert("环境已就绪！\n请按【上】或【下】键合并出 8192。\n观察右侧/下方 8192 计时器是否追加了当前时间。");
-            }
-        });
-    }
+
 
 });
