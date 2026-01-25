@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <title>2048-undo</title>
 
-  <link href="style/main.css?v=10" rel="stylesheet" type="text/css">
-  <link rel="shortcut icon" href="favicon.ico?v=10">
-  <link rel="apple-touch-icon" href="meta/apple-touch-icon.png?v=10">
+  <link href="style/main.css?v=22" rel="stylesheet" type="text/css">
+  <link rel="shortcut icon" href="favicon.ico?v=22">
+  <link rel="apple-touch-icon" href="meta/apple-touch-icon.png?v=22">
   <meta name="apple-mobile-web-app-capable" content="yes">
 
   <meta name="HandheldFriendly" content="True">
@@ -37,48 +37,46 @@
 
     <div id="timerbox">
         <div id="timer"></div>
-        <div class="timertile" style="color: #f9f6f2; font-size: 22px; background: #f59563">16</div>
-        <div class="timertile" id="timer16" style="margin-left:6px; width:159px"></div>
-        <br><br>
-        <div class="timertile" style="color: #f9f6f2; font-size: 22px; background: #f67c5f">32</div>
+
+        <div class="timertile timer-legend-32" style="color: #f9f6f2; font-size: 22px;">32</div>
         <div class="timertile" id="timer32" style="margin-left:6px; width:159px"></div>
         <br><br>
-        <div class="timertile" style="color: #f9f6f2; font-size: 22px; background: #f65e3b">64</div>
+        <div class="timertile timer-legend-64" style="color: #f9f6f2; font-size: 22px;">64</div>
         <div class="timertile" id="timer64" style="margin-left:6px; width:159px"></div>
         <br><br>
-        <div class="timertile" style="color: #f9f6f2; font-size: 18px; background: #edcf72">128</div>
+        <div class="timertile timer-legend-128" style="color: #f9f6f2; font-size: 18px;">128</div>
         <div class="timertile" id="timer128" style="margin-left:6px; width:159px"></div>
         <br><br>
-        <div class="timertile" style="color: #f9f6f2; font-size: 18px; background: #edcc61">256</div>
+        <div class="timertile timer-legend-256" style="color: #f9f6f2; font-size: 18px;">256</div>
         <div class="timertile" id="timer256" style="margin-left:6px; width:159px"></div>
         <br><br>
-        <div class="timertile" style="color: #f9f6f2; font-size: 18px; background: #edc850">512</div>
+        <div class="timertile timer-legend-512" style="color: #f9f6f2; font-size: 18px;">512</div>
         <div class="timertile" id="timer512" style="margin-left:6px; width:159px"></div>
         <br><br>
-        <div class="timertile" style="color: #f9f6f2; font-size: 14px; background: #edc53f">1024</div>
+        <div class="timertile timer-legend-1024" style="color: #f9f6f2; font-size: 14px;">1024</div>
         <div class="timertile" id="timer1024" style="margin-left:6px; width:159px"></div>
         <br><br>
-        <div class="timertile" style="color: #f9f6f2; font-size: 14px; background: #edc22e">2048</div>
+        <div class="timertile timer-legend-2048" style="color: #f9f6f2; font-size: 14px;">2048</div>
         <div class="timertile" id="timer2048" style="margin-left:6px; width:159px"></div>
         <br><br>
-        <div class="timertile" style="color: #f9f6f2; font-size: 14px; background: #3c3a32">4096</div>
+        <div class="timertile timer-legend-4096" style="color: #f9f6f2; font-size: 14px;">4096</div>
         <div class="timertile" id="timer4096" style="margin-left:6px; width:159px"></div>
         <br><br>
-        <div class="timertile" style="color: #f9f6f2; font-size: 14px; background: #3c3a32">8192</div>
+        <div class="timertile timer-legend-8192" style="color: #f9f6f2; font-size: 14px;">8192</div>
         <div class="timertile" id="timer8192" style="margin-left:6px; width:159px"></div>
         <br><br>
-        <div class="timertile" style="color: #f9f6f2; font-size: 13px; background: #3c3a32">16384</div>
+        <div class="timertile timer-legend-16384" style="color: #f9f6f2; font-size: 13px;">16384</div>
         <div class="timertile" id="timer16384" style="margin-left:6px; width:159px"></div>
         <br><br>
-        <div class="timertile" style="color: #f9f6f2; font-size: 13px; background: #3c3a32">32768</div>
+        <div class="timertile timer-legend-32768" style="color: #f9f6f2; font-size: 13px;">32768</div>
         <div class="timertile" id="timer32768" style="margin-left:6px; width:159px"></div>
         <br><br>
         <!-- Sub-timers for 32k+ -->
         <div id="timer32k-sub-container" style="display:none;">
-            <div class="timertile" style="color: #f9f6f2; font-size: 12px; background: #3c3a32; margin-left: 25px; width: 40px;">8192</div>
+            <div class="timertile timer-legend-8192" style="color: #f9f6f2; font-size: 12px; margin-left: 25px; width: 40px;">8192</div>
             <div class="timertile" id="timer8192-sub" style="margin-left:6px; width:134px;"></div>
             <br><br>
-            <div class="timertile" style="color: #f9f6f2; font-size: 12px; background: #3c3a32; margin-left: 25px; width: 40px;">16384</div>
+            <div class="timertile timer-legend-16384" style="color: #f9f6f2; font-size: 12px; margin-left: 25px; width: 40px;">16384</div>
             <div class="timertile" id="timer16384-sub" style="margin-left:6px; width:134px;"></div>
         </div>
     </div>
@@ -164,16 +162,16 @@
     </div>
   </div>
 
-  <script src="js/seedrandom.js?v=10"></script>
-  <script src="js/animframe_polyfill.js?v=10"></script>
-  <script src="js/keyboard_input_manager.js?v=10"></script>
-  <script src="js/html_actuator.js?v=10"></script>
-  <script src="js/grid.js?v=10"></script>
-  <script src="js/tile.js?v=10"></script>
-  <script src="js/local_score_manager.js?v=10"></script>
-  <script src="js/game_manager.js?v=10"></script>
-  <script src="js/application.js?v=10"></script>
-  <script src="js/index_ui.js?v=10"></script>
+  <script src="js/seedrandom.js?v=22"></script>
+  <script src="js/animframe_polyfill.js?v=22"></script>
+  <script src="js/keyboard_input_manager.js?v=22"></script>
+  <script src="js/html_actuator.js?v=22"></script>
+  <script src="js/grid.js?v=22"></script>
+  <script src="js/tile.js?v=22"></script>
+  <script src="js/local_score_manager.js?v=22"></script>
+  <script src="js/game_manager.js?v=22"></script>
+  <script src="js/application.js?v=22"></script>
+  <script src="js/index_ui.js?v=22"></script>
 
 </body>
 </html>

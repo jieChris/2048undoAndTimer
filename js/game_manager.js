@@ -339,9 +339,6 @@ GameManager.prototype.move = function (direction) {
 
           // Milestone Logic (Ported)
           var timeStr = self.pretty(self.time);
-          if (merged.value === 16 && document.getElementById("timer16") && document.getElementById("timer16").innerHTML === "") {
-             document.getElementById("timer16").textContent = timeStr;
-          }
           if (merged.value === 32 && document.getElementById("timer32") && document.getElementById("timer32").innerHTML === "") {
              document.getElementById("timer32").textContent = timeStr;
           }
@@ -620,12 +617,30 @@ GameManager.prototype.insertCustomTile = function(x, y, value) {
     // Invalidate timers below this value
     this.invalidateTimers(value);
     
+    // Check for 32k+ visibility
+    if (value >= 32768) {
+        this.reached32k = true;
+        
+        // Show sub-timer container
+        var subContainer = document.getElementById("timer32k-sub-container");
+        if (subContainer) subContainer.style.display = "block";
+        
+        // Ensure 32768 timer has text if empty
+        if (value === 32768) {
+             var timeStr = this.pretty(this.time);
+             var timer32k = document.getElementById("timer32768");
+             if (timer32k && timer32k.textContent === "") {
+                 timer32k.textContent = timeStr;
+             }
+        }
+    }
+    
     // Refresh
     this.actuate();
 };
 
 GameManager.prototype.invalidateTimers = function(limit) {
-    var milestones = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768];
+    var milestones = [32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768];
     milestones.forEach(function(val) {
         if (val <= limit) {
              var el = document.getElementById("timer" + val);
@@ -639,13 +654,16 @@ GameManager.prototype.invalidateTimers = function(limit) {
     });
     
     // 8k/16k sub-timers logic
-    if (8192 <= limit) {
-        var sub8k = document.getElementById("timer8192-sub");
-        if (sub8k) sub8k.textContent = "---------";
-    }
-    if (16384 <= limit) {
-        var sub16k = document.getElementById("timer16384-sub");
-        if (sub16k) sub16k.textContent = "---------";
+    // Only invalidate sub-timers if we have actually reached the 32k phase.
+    if (this.reached32k) {
+        if (8192 <= limit && limit !== 32768) {
+            var sub8k = document.getElementById("timer8192-sub");
+            if (sub8k) sub8k.textContent = "---------";
+        }
+        if (16384 <= limit && limit !== 32768) {
+            var sub16k = document.getElementById("timer16384-sub");
+            if (sub16k) sub16k.textContent = "---------";
+        }
     }
 };
 

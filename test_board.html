@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <title>2048 Test Board</title>
 
-  <link href="style/main.css?v=16" rel="stylesheet" type="text/css">
-  <link rel="shortcut icon" href="favicon.ico?v=16">
-  <link rel="apple-touch-icon" href="meta/apple-touch-icon.png?v=16">
+  <link href="style/main.css?v=26" rel="stylesheet" type="text/css">
+  <link rel="shortcut icon" href="favicon.ico?v=26">
+  <link rel="apple-touch-icon" href="meta/apple-touch-icon.png?v=26">
   <meta name="apple-mobile-web-app-capable" content="yes">
 
   <meta name="HandheldFriendly" content="True">
@@ -16,19 +16,37 @@
   
   <style>
       /* Test Board Specific Styles */
-      .test-controls {
-          background: #bbada0;
-          padding: 15px;
+      .dashboard-container {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 20px;
+          margin-top: 10px;
+      }
+      .dashboard-box {
+          background: #bbada0; /* Box bg */
+          padding: 10px;
           border-radius: 6px;
-          margin-top: 20px;
-          text-align: center;
           color: white;
+          box-sizing: border-box;
+          min-height: 120px; /* Ensure height alignment */
       }
-      .test-controls label {
+      .dashboard-stats {
+          width: 30%;
+      }
+      .dashboard-controls {
+          width: 68%;
+          text-align: center;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+      }
+      .dashboard-controls label {
           font-weight: bold;
-          margin-right: 10px;
+          display: block;
+          margin-bottom: 5px;
       }
-      .test-controls select {
+      .dashboard-controls select {
           padding: 5px;
           border-radius: 3px;
           border: none;
@@ -37,11 +55,7 @@
           font-weight: bold;
           font-size: 16px;
           cursor: pointer;
-      }
-      .test-controls p {
-          margin: 10px 0 0;
-          font-size: 14px;
-          color: #eee4da;
+          width: 80%;
       }
       .grid-cell {
           cursor: pointer; /* Indicate clickable */
@@ -54,18 +68,45 @@
 </head>
 <body>
   <div class="container">
-    <div class="stats-left">
-      <div id="stats-4-rate">4率: 10%</div>
-      <div id="stats-total">总步数: 0</div>
-      <div id="stats-moves">移动步数: 0</div>
-      <div id="stats-undo">撤回步数: 0</div>
+    <!-- Dashboard Layout (Two Boxes at Top) -->
+    <div class="dashboard-container">
+        <!-- Box 1: Stats -->
+        <div class="dashboard-box dashboard-stats">
+            <div class="dashboard-stats-grid">
+                <div id="stats-4-rate">4率: 10%</div>
+                <div id="stats-total">总步数: 0</div>
+                <div id="stats-moves">移动步数: 0</div>
+                <div id="stats-undo">撤回步数: 0</div>
+                <div id="stats-ips">IPS: 0</div>
+            </div>
+        </div>
+
+        <!-- Box 2: Controls -->
+        <div class="dashboard-box dashboard-controls">
+            <label for="test-tile-value">选择要插入的方块:</label>
+            <select id="test-tile-value">
+                <option value="2">2</option>
+                <option value="4">4</option>
+                <option value="8">8</option>
+                <option value="16">16</option>
+                <option value="32">32</option>
+                <option value="64">64</option>
+                <option value="128">128</option>
+                <option value="256">256</option>
+                <option value="512">512</option>
+                <option value="1024">1024</option>
+                <option value="2048">2048</option>
+                <option value="4096">4096</option>
+                <option value="8192">8192</option>
+                <option value="16384">16384</option>
+                <option value="32768">32768</option>
+                <option value="65536">65536</option>
+            </select>
+        </div>
     </div>
-
-
-    <div class="stats-right" id="stats-ips">IPS: 0</div>
     <div class="heading">
-      <h1 class="title">Test 2048</h1>
-      <div class="scores-container">
+      <h1 class="title" style="float: left;"><a href="index.html" style="text-decoration: none; color: inherit; cursor: pointer;">Test 2048</a></h1>
+      <div class="scores-container" style="float: right;">
         <div class="score-container">0</div>
         <div class="best-container">0</div>
       </div>
@@ -77,48 +118,46 @@
 
     <div id="timerbox">
         <div id="timer"></div>
-        <div class="timertile" style="color: #f9f6f2; font-size: 22px; background: #f59563">16</div>
-        <div class="timertile" id="timer16" style="margin-left:6px; width:159px"></div>
-        <br><br>
-        <div class="timertile" style="color: #f9f6f2; font-size: 22px; background: #f67c5f">32</div>
+
+        <div class="timertile timer-legend-32" style="color: #f9f6f2; font-size: 22px;">32</div>
         <div class="timertile" id="timer32" style="margin-left:6px; width:159px"></div>
         <br><br>
-        <div class="timertile" style="color: #f9f6f2; font-size: 22px; background: #f65e3b">64</div>
+        <div class="timertile timer-legend-64" style="color: #f9f6f2; font-size: 22px;">64</div>
         <div class="timertile" id="timer64" style="margin-left:6px; width:159px"></div>
         <br><br>
-        <div class="timertile" style="color: #f9f6f2; font-size: 18px; background: #edcf72">128</div>
+        <div class="timertile timer-legend-128" style="color: #f9f6f2; font-size: 18px;">128</div>
         <div class="timertile" id="timer128" style="margin-left:6px; width:159px"></div>
         <br><br>
-        <div class="timertile" style="color: #f9f6f2; font-size: 18px; background: #edcc61">256</div>
+        <div class="timertile timer-legend-256" style="color: #f9f6f2; font-size: 18px;">256</div>
         <div class="timertile" id="timer256" style="margin-left:6px; width:159px"></div>
         <br><br>
-        <div class="timertile" style="color: #f9f6f2; font-size: 18px; background: #edc850">512</div>
+        <div class="timertile timer-legend-512" style="color: #f9f6f2; font-size: 18px;">512</div>
         <div class="timertile" id="timer512" style="margin-left:6px; width:159px"></div>
         <br><br>
-        <div class="timertile" style="color: #f9f6f2; font-size: 14px; background: #edc53f">1024</div>
+        <div class="timertile timer-legend-1024" style="color: #f9f6f2; font-size: 14px;">1024</div>
         <div class="timertile" id="timer1024" style="margin-left:6px; width:159px"></div>
         <br><br>
-        <div class="timertile" style="color: #f9f6f2; font-size: 14px; background: #edc22e">2048</div>
+        <div class="timertile timer-legend-2048" style="color: #f9f6f2; font-size: 14px;">2048</div>
         <div class="timertile" id="timer2048" style="margin-left:6px; width:159px"></div>
         <br><br>
-        <div class="timertile" style="color: #f9f6f2; font-size: 14px; background: #3c3a32">4096</div>
+        <div class="timertile timer-legend-4096" style="color: #f9f6f2; font-size: 14px;">4096</div>
         <div class="timertile" id="timer4096" style="margin-left:6px; width:159px"></div>
         <br><br>
-        <div class="timertile" style="color: #f9f6f2; font-size: 14px; background: #3c3a32">8192</div>
+        <div class="timertile timer-legend-8192" style="color: #f9f6f2; font-size: 14px;">8192</div>
         <div class="timertile" id="timer8192" style="margin-left:6px; width:159px"></div>
         <br><br>
-        <div class="timertile" style="color: #f9f6f2; font-size: 13px; background: #3c3a32">16384</div>
+        <div class="timertile timer-legend-16384" style="color: #f9f6f2; font-size: 13px;">16384</div>
         <div class="timertile" id="timer16384" style="margin-left:6px; width:159px"></div>
         <br><br>
-        <div class="timertile" style="color: #f9f6f2; font-size: 13px; background: #3c3a32">32768</div>
+        <div class="timertile timer-legend-32768" style="color: #f9f6f2; font-size: 13px;">32768</div>
         <div class="timertile" id="timer32768" style="margin-left:6px; width:159px"></div>
         <br><br>
         <!-- Sub-timers for 32k+ -->
         <div id="timer32k-sub-container" style="display:none;">
-            <div class="timertile" style="color: #f9f6f2; font-size: 12px; background: #3c3a32; margin-left: 25px; width: 40px;">8192</div>
+            <div class="timertile timer-legend-8192" style="color: #f9f6f2; font-size: 12px; margin-left: 25px; width: 40px;">8192</div>
             <div class="timertile" id="timer8192-sub" style="margin-left:6px; width:134px;"></div>
             <br><br>
-            <div class="timertile" style="color: #f9f6f2; font-size: 12px; background: #3c3a32; margin-left: 25px; width: 40px;">16384</div>
+            <div class="timertile timer-legend-16384" style="color: #f9f6f2; font-size: 12px; margin-left: 25px; width: 40px;">16384</div>
             <div class="timertile" id="timer16384-sub" style="margin-left:6px; width:134px;"></div>
         </div>
     </div>
@@ -169,45 +208,19 @@
     
     </div>
 
-    <!-- Test Controls -->
-    <div class="test-controls" style="clear: both; margin-top: 30px; width: 500px; margin-left: auto; margin-right: auto;">
-        <label for="test-tile-value">选择要插入的方块:</label>
-        <select id="test-tile-value">
-            <option value="2">2</option>
-            <option value="4">4</option>
-            <option value="8">8</option>
-            <option value="16">16</option>
-            <option value="32">32</option>
-            <option value="64">64</option>
-            <option value="128">128</option>
-            <option value="256">256</option>
-            <option value="512">512</option>
-            <option value="1024">1024</option>
-            <option value="2048">2048</option>
-            <option value="4096">4096</option>
-            <option value="8192">8192</option>
-            <option value="16384">16384</option>
-            <option value="32768">32768</option>
-            <option value="65536">65536</option>
-        </select>
-        <p>选中数字后，点击棋盘上任意位置即可插入。</p>
-        <p style="color: #f59563; font-size: 13px;">注意：插入大数字会导致该数字以下（包含）的计时失效。</p>
-    </div>
+
     
-    <div style="text-align: center; margin-top: 30px;">
-        <a href="index.html" style="font-weight: bold; text-decoration: underline; color: #776e65;">返回主游戏</a>
-    </div>
   </div>
 
-  <script src="js/seedrandom.js?v=16"></script>
-  <script src="js/animframe_polyfill.js?v=16"></script>
-  <script src="js/keyboard_input_manager.js?v=16"></script>
-  <script src="js/html_actuator.js?v=16"></script>
-  <script src="js/grid.js?v=16"></script>
-  <script src="js/tile.js?v=16"></script>
-  <script src="js/local_score_manager.js?v=16"></script>
-  <script src="js/game_manager.js?v=16"></script>
-  <script src="js/application.js?v=16"></script>
+  <script src="js/seedrandom.js?v=26"></script>
+  <script src="js/animframe_polyfill.js?v=24"></script>
+  <script src="js/keyboard_input_manager.js?v=24"></script>
+  <script src="js/html_actuator.js?v=24"></script>
+  <script src="js/grid.js?v=24"></script>
+  <script src="js/tile.js?v=24"></script>
+  <script src="js/local_score_manager.js?v=24"></script>
+  <script src="js/game_manager.js?v=24"></script>
+  <script src="js/application.js?v=24"></script>
   <script src="js/index_ui.js?v=16"></script>
   
   <!-- Test UI Logic -->
