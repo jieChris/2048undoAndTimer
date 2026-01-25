@@ -154,6 +154,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 var t8k = document.getElementById("timer8192");
                 if (t8k) t8k.textContent = "00:10.00";
                 
+                // Clear subs
+                var s8k = document.getElementById("timer8192-sub");
+                if (s8k) s8k.textContent = "";
+                var s16k = document.getElementById("timer16384-sub");
+                if (s16k) s16k.textContent = "";
+                var subContainer = document.getElementById("timer32k-sub-container");
+                if (subContainer) subContainer.style.display = "block";
+                
                 // 3. Clear Grid
                 gm.grid.eachCell(function(x, y, tile) {
                     if (tile) gm.grid.removeTile(tile);

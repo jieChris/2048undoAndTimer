@@ -67,7 +67,10 @@ GameManager.prototype.setup = function (inputSeed) {
   this.lastSpawn = null; // To capture spawn during play
   this.forcedSpawn = null; // To force spawn during replay v2
   
+  this.forcedSpawn = null; // To force spawn during replay v2
+  
   this.reached32k = false; // Flag for extended timer logic
+  this.isTestMode = false; // Flag for Test Board
 
   this.timerStatus = 0; // 0 = no, 1 = running (reference logic)
   this.startTime = null;
@@ -88,6 +91,13 @@ GameManager.prototype.setup = function (inputSeed) {
       var el = document.getElementById("timer" + val);
       if (el) el.textContent = "";
   });
+  // Clear sub timers
+  var sub8k = document.getElementById("timer8192-sub");
+  if (sub8k) sub8k.textContent = "";
+  var sub16k = document.getElementById("timer16384-sub");
+  if (sub16k) sub16k.textContent = "";
+  var subContainer = document.getElementById("timer32k-sub-container");
+  if (subContainer) subContainer.style.display = "none";
 
   // Add the initial tiles
   this.addStartTiles();
@@ -358,24 +368,25 @@ GameManager.prototype.move = function (direction) {
              document.getElementById("timer4096").textContent = timeStr;
           }
           if (merged.value === 8192) {
-             var el = document.getElementById("timer8192");
-             if (el) {
-                 if (el.innerHTML === "") {
-                     el.textContent = timeStr;
-                 } else if (self.reached32k && el.innerHTML.indexOf("|") === -1) {
-                     // If 32k reached, allow one more record
-                     el.textContent = el.textContent + " | " + timeStr;
-                 }
+             if (self.reached32k) {
+                 // Sub timer logic
+                 var sub = document.getElementById("timer8192-sub");
+                 if (sub && sub.textContent === "") sub.textContent = timeStr;
+             } else {
+                 // Normal timer logic
+                 var el = document.getElementById("timer8192");
+                 if (el && el.textContent === "") el.textContent = timeStr;
              }
           }
           if (merged.value === 16384) {
-             var el = document.getElementById("timer16384");
-             if (el) {
-                 if (el.innerHTML === "") {
-                     el.textContent = timeStr;
-                 } else if (self.reached32k && el.innerHTML.indexOf("|") === -1) {
-                     el.textContent = el.textContent + " | " + timeStr;
-                 }
+             if (self.reached32k) {
+                 // Sub timer logic
+                 var sub = document.getElementById("timer16384-sub");
+                 if (sub && sub.textContent === "") sub.textContent = timeStr;
+             } else {
+                 // Normal timer logic
+                 var el = document.getElementById("timer16384");
+                 if (el && el.textContent === "") el.textContent = timeStr;
              }
           }
           if (merged.value === 32768) {
@@ -383,6 +394,9 @@ GameManager.prototype.move = function (direction) {
              if (document.getElementById("timer32768") && document.getElementById("timer32768").innerHTML === "") {
                  document.getElementById("timer32768").textContent = timeStr;
              }
+             // Show sub-timer container
+             var subContainer = document.getElementById("timer32k-sub-container");
+             if (subContainer) subContainer.style.display = "block";
           }
 
         } else {
@@ -589,6 +603,50 @@ GameManager.prototype.pretty = function(time) {
     if (mins < 10 && hours > 0) {s = "0" + s;}
     if (hours > 0) {s = hours + ":" + s;}
   return s;
+};
+
+
+
+// Insert a custom tile (Test Board)
+GameManager.prototype.insertCustomTile = function(x, y, value) {
+    if (this.grid.cellContent({ x: x, y: y })) {
+        // Remove existing if needed? Or just overwrite?
+        this.grid.removeTile(this.grid.cellContent({ x: x, y: y }));
+    }
+    
+    var tile = new Tile({ x: x, y: y }, value);
+    this.grid.insertTile(tile);
+    
+    // Invalidate timers below this value
+    this.invalidateTimers(value);
+    
+    // Refresh
+    this.actuate();
+};
+
+GameManager.prototype.invalidateTimers = function(limit) {
+    var milestones = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768];
+    milestones.forEach(function(val) {
+        if (val <= limit) {
+             var el = document.getElementById("timer" + val);
+             if (el) {
+                 el.textContent = "---------";
+                 // Also ensure it doesn't get overwritten later? 
+                 // The move logic checks 'if (el.innerHTML === "")'. 
+                 // Now it is "---------", so it won't be overwritten. Correct.
+             }
+        }
+    });
+    
+    // 8k/16k sub-timers logic
+    if (8192 <= limit) {
+        var sub8k = document.getElementById("timer8192-sub");
+        if (sub8k) sub8k.textContent = "---------";
+    }
+    if (16384 <= limit) {
+        var sub16k = document.getElementById("timer16384-sub");
+        if (sub16k) sub16k.textContent = "---------";
+    }
 };
 
 GameManager.prototype.serialize = function () {
