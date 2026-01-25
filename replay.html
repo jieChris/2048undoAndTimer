@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>2048-Replay</title>
+
+  <link href="style/main.css?v=4" rel="stylesheet" type="text/css">
+  <link rel="shortcut icon" href="favicon.ico?v=4">
+  <link rel="apple-touch-icon" href="meta/apple-touch-icon.png?v=4">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0, maximum-scale=1, user-scalable=no, minimal-ui">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.google-analytics.com; style-src 'self' 'unsafe-inline';">
+</head>
+<body>
+  <div class="container">
+    <div class="heading" style="float: none; margin: 0 auto;">
+      <h1 class="title">2048 回放</h1>
+      <div class="scores-container">
+        <div class="score-container">0</div>
+        <div class="best-container">0</div>
+      </div>
+    </div>
+    <p class="game-intro" style="float: none; width: 500px; margin: 0 auto; text-align: right; box-sizing: border-box;">
+        <a href="index.html" style="font-weight: bold; text-decoration: underline; cursor: pointer;">返回游戏</a>
+    </p>
+
+    <div class="game-container game-container-replay" style="float: none; margin: 20px auto 0;">
+      <div class="game-message">
+        <p></p>
+      </div>
+
+      <div class="grid-container">
+        <div class="grid-row">
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+        </div>
+        <div class="grid-row">
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+        </div>
+        <div class="grid-row">
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+        </div>
+        <div class="grid-row">
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+        </div>
+      </div>
+
+      <div class="tile-container">
+
+      </div>
+    </div>
+    
+    <!-- Replay Controls -->
+    <div class="replay-controls-panel" style="margin-top: 30px; background: #faf8ef; padding: 10px; border-radius: 6px;">
+        <div class="replay-progress-container" style="margin-bottom: 15px;">
+            <input type="range" id="replay-progress" min="0" max="100" value="0" style="width: 100%; cursor: pointer;">
+        </div>
+        <div class="replay-buttons-row" style="display: flex; justify-content: center; gap: 10px; align-items: center;">
+            <button class="replay-control-btn" id="btn-rewind-10">⏪ -10 步</button>
+            <button class="replay-control-btn" id="btn-rewind-1">◀ -1 步</button>
+            <button class="replay-control-btn" id="replay-pause-btn">⏯ 暂停</button>
+            <button class="replay-control-btn" id="btn-forward-1">+1 步 ▶</button>
+            <button class="replay-control-btn" id="btn-forward-10">+10 步 ⏩</button>
+            
+            <select id="replay-speed" style="height: 30px; border-radius: 3px; border: 1px solid #d8d4d0; background: #faf8ef; color: #776e65; font-weight: bold; cursor: pointer; margin-left: 10px;">
+                <option value="0.5">0.5x</option>
+                <option value="1" selected>1x</option>
+                <option value="2">2x</option>
+                <option value="4">4x</option>
+            </select>
+        </div>
+        <div style="margin-top: 15px; text-align: center;">
+            <a class="import-replay-button" style="display: inline-block; cursor: pointer; background: #8f7a66; color: white; padding: 10px 20px; border-radius: 3px;">导入回放</a>
+        </div>
+    </div>
+
+  </div>
+
+  <div id="replay-modal" class="replay-modal-overlay" style="display: none;">
+    <div class="replay-modal-content">
+      <h3 id="replay-modal-title">回放</h3>
+      <textarea id="replay-textarea" class="replay-textarea"></textarea>
+      <div class="replay-modal-actions">
+        <button id="replay-action-btn" class="replay-button">执行</button>
+        <button class="replay-button">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/seedrandom.js?v=4"></script>
+  <script src="js/animframe_polyfill.js?v=4"></script>
+  <script src="js/replay_input_manager.js?v=4"></script>
+  <script src="js/html_actuator.js?v=4"></script>
+  <script src="js/grid.js?v=4"></script>
+  <script src="js/tile.js?v=4"></script>
+  <script src="js/local_score_manager.js?v=4"></script>
+  <script src="js/game_manager.js?v=4"></script>
+  <script src="js/replay_application.js?v=4"></script>
+  <script src="js/replay_ui.js?v=4"></script>
+</body>
+</html>

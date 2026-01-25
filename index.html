@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>2048-undo</title>
+
+  <link href="style/main.css?v=5" rel="stylesheet" type="text/css">
+  <link rel="shortcut icon" href="favicon.ico?v=5">
+  <link rel="apple-touch-icon" href="meta/apple-touch-icon.png?v=5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0, maximum-scale=1, user-scalable=no, minimal-ui">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.google-analytics.com; style-src 'self' 'unsafe-inline';">
+</head>
+<body>
+  <div class="container">
+    <div class="stats-left">
+      <div id="stats-4-rate">4率: 10%</div>
+      <div id="stats-total">总步数: 0</div>
+      <div id="stats-moves">移动步数: 0</div>
+      <div id="stats-undo">撤回步数: 0</div>
+    </div>
+    <div class="stats-right" id="stats-ips">IPS: 0</div>
+    <div class="heading">
+      <h1 class="title">2048</h1>
+      <div class="scores-container">
+        <div class="score-container">0</div>
+        <div class="best-container">0</div>
+      </div>
+      <div class="above-game" style="clear: both; padding-top: 15px;">
+      <p class="game-intro">合并数字，合成 <strong>2048 方块！</strong> 按 'Z' 键 <a href="#" id="undo-link">撤回</a>。</p>
+      <a class="restart-button">新游戏</a>
+      </div>
+    </div>
+
+    <div id="timerbox">
+        <div id="timer"></div>
+        <div class="timertile" style="color: #f9f6f2; font-size: 22px; background: #f59563">16</div>
+        <div class="timertile" id="timer16" style="margin-left:6px; width:159px"></div>
+        <br><br>
+        <div class="timertile" style="color: #f9f6f2; font-size: 22px; background: #f67c5f">32</div>
+        <div class="timertile" id="timer32" style="margin-left:6px; width:159px"></div>
+        <br><br>
+        <div class="timertile" style="color: #f9f6f2; font-size: 22px; background: #f65e3b">64</div>
+        <div class="timertile" id="timer64" style="margin-left:6px; width:159px"></div>
+        <br><br>
+        <div class="timertile" style="color: #f9f6f2; font-size: 18px; background: #edcf72">128</div>
+        <div class="timertile" id="timer128" style="margin-left:6px; width:159px"></div>
+        <br><br>
+        <div class="timertile" style="color: #f9f6f2; font-size: 18px; background: #edcc61">256</div>
+        <div class="timertile" id="timer256" style="margin-left:6px; width:159px"></div>
+        <br><br>
+        <div class="timertile" style="color: #f9f6f2; font-size: 18px; background: #edc850">512</div>
+        <div class="timertile" id="timer512" style="margin-left:6px; width:159px"></div>
+        <br><br>
+        <div class="timertile" style="color: #f9f6f2; font-size: 14px; background: #edc53f">1024</div>
+        <div class="timertile" id="timer1024" style="margin-left:6px; width:159px"></div>
+        <br><br>
+        <div class="timertile" style="color: #f9f6f2; font-size: 14px; background: #edc22e">2048</div>
+        <div class="timertile" id="timer2048" style="margin-left:6px; width:159px"></div>
+        <br><br>
+        <div class="timertile" style="color: #f9f6f2; font-size: 14px; background: #3c3a32">4096</div>
+        <div class="timertile" id="timer4096" style="margin-left:6px; width:159px"></div>
+        <br><br>
+        <div class="timertile" style="color: #f9f6f2; font-size: 14px; background: #3c3a32">8192</div>
+        <div class="timertile" id="timer8192" style="margin-left:6px; width:159px"></div>
+        <br><br>
+        <div class="timertile" style="color: #f9f6f2; font-size: 13px; background: #3c3a32">16384</div>
+        <div class="timertile" id="timer16384" style="margin-left:6px; width:159px"></div>
+        <br><br>
+        <div class="timertile" style="color: #f9f6f2; font-size: 13px; background: #3c3a32">32768</div>
+        <div class="timertile" id="timer32768" style="margin-left:6px; width:159px"></div>
+    </div>
+
+
+
+    <div class="game-container">
+      <div class="game-message">
+        <p></p>
+        <div class="lower">
+	        <a class="keep-playing-button">继续游戏</a>
+          <a class="undo-button" id="undo-btn-gameover">撤销</a>
+          <a class="retry-button">重试</a>
+        </div>
+      </div>
+
+
+      <div class="grid-container">
+        <div class="grid-row">
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+        </div>
+        <div class="grid-row">
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+        </div>
+        <div class="grid-row">
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+        </div>
+        <div class="grid-row">
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+        </div>
+      </div>
+
+      <div class="tile-container">
+      </div>
+    </div>
+    
+    <div class="replay-controls" style="margin-top: 20px; text-align: center;">
+      <div style="margin-bottom: 15px;margin-top: 20px;">
+        <a class="export-replay-button">导出回放</a>
+      </div>
+      <div>
+          <a href="replay.html" style="color: #776e65; text-decoration: underline; cursor: pointer;">前往高级回放页面</a>
+      </div>
+    </div>
+    <hr>
+    <p class="game-explanation">
+      <strong class="important">玩法说明：</strong> 使用 <strong>方向键</strong>、<strong>WASD</strong>、<strong>KHJL</strong> 移动方块。按 <strong>Z</strong> 键撤销上一步操作,按 <strong>R</strong> 键重开游戏。当两个相同数字的方块接触时，它们会 <strong>合并成一个！
+
+    </p>
+    <hr>
+    <p>
+    项目由Gemini基于几个项目整合改版，原作者 <a href="http://gabrielecirulli.com" target="_blank">Gabriele Cirulli.</a> 基于 <a href="https://itunes.apple.com/us/app/1024!/id823499224" target="_blank">Veewo Studio 的 1024</a> 且概念受 <a href="http://asherv.com/threes/" target="_blank">Asher Vollmer 的 Threes</a> 启发。
+    撤销 Mod 由 <a href="http://quaxio.com/">Alok Menghrajani</a> 制作，<a href="https://github.com/alokmenghrajani/2048">源代码</a>。项目改自<a href="https://github.com/alokmenghrajani/2048?tab=readme-ov-file">2048</a>。计时器参考<a href="https://github.com/neiunderscore/2048-timer?tab=readme-ov-file">2048-timer</a>。
+    </p>
+    <div style="text-align: center;">
+        <button id="dev-test-32k-btn" style="margin-top: 10px; background: #f65e3b; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px;">[DEV] 测试 32k 后续计时</button>
+    </div>
+  </div>
+
+   <div id="replay-modal" class="replay-modal-overlay" style="display: none;">
+    <div class="replay-modal-content">
+      <h3 id="replay-modal-title">回放</h3>
+      <textarea id="replay-textarea" class="replay-textarea"></textarea>
+      <div class="replay-modal-actions">
+        <button id="replay-action-btn" class="replay-button">执行</button>
+        <button class="replay-button">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/seedrandom.js?v=5"></script>
+  <script src="js/animframe_polyfill.js?v=5"></script>
+  <script src="js/keyboard_input_manager.js?v=5"></script>
+  <script src="js/html_actuator.js?v=5"></script>
+  <script src="js/grid.js?v=5"></script>
+  <script src="js/tile.js?v=5"></script>
+  <script src="js/local_score_manager.js?v=5"></script>
+  <script src="js/game_manager.js?v=5"></script>
+  <script src="js/application.js?v=5"></script>
+  <script src="js/index_ui.js?v=5"></script>
+
+</body>
+</html>
