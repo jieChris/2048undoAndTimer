@@ -1,5 +1,44 @@
 // Logic extracted from replay.html
 
+// Guide Logic
+(function() {
+    var guideKey = 'replay_guide_shown_v1';
+    if (!localStorage.getItem(guideKey)) {
+        // Wait for DOMContentLoaded is handled by script load order or event, but let's be safe inside the main listener or check if body exists
+        // Since replay_ui.js is loaded at end of body, elements should exist.
+        var overlay = document.getElementById('guide-overlay');
+        var message = document.getElementById('guide-message');
+        var titleLink = document.querySelector('.title a');
+        
+        if (overlay && titleLink && message) {
+            // Show overlay
+            overlay.style.display = 'block';
+            
+            // Highlight Link
+            titleLink.classList.add('guide-highlight');
+            
+            // Position Message
+            var rect = titleLink.getBoundingClientRect();
+            // Position below the title roughly
+            message.style.top = (rect.bottom + 15) + 'px';
+            message.style.left = (rect.left + 20) + 'px';
+            
+            // Dismiss Function
+            function dismiss() {
+                overlay.style.display = 'none';
+                titleLink.classList.remove('guide-highlight');
+                localStorage.setItem(guideKey, 'true');
+            }
+            
+            // Bind Events
+            overlay.addEventListener('click', dismiss);
+            titleLink.addEventListener('click', function() {
+                dismiss();
+            });
+        }
+    }
+})();
+
 function showReplayModal(title, content, actionName, actionCallback) {
   var modal = document.getElementById('replay-modal');
   var titleEl = document.getElementById('replay-modal-title');
