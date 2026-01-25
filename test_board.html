@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <title>2048 Test Board</title>
 
-  <link href="style/main.css?v=26" rel="stylesheet" type="text/css">
-  <link rel="shortcut icon" href="favicon.ico?v=26">
-  <link rel="apple-touch-icon" href="meta/apple-touch-icon.png?v=26">
+  <link href="style/main.css?v=36" rel="stylesheet" type="text/css">
+  <link rel="shortcut icon" href="favicon.ico?v=36">
+  <link rel="apple-touch-icon" href="meta/apple-touch-icon.png?v=36">
   <meta name="apple-mobile-web-app-capable" content="yes">
 
   <meta name="HandheldFriendly" content="True">
@@ -31,13 +31,16 @@
           min-height: 120px; /* Ensure height alignment */
       }
       .dashboard-stats {
-          width: 30%;
+          width: 25%;
       }
       .dashboard-controls {
           width: 68%;
           text-align: center;
           display: flex;
-          flex-direction: column;
+          width: 71%;
+          text-align: center;
+          /* Center content */
+          display: flex;
           justify-content: center;
           align-items: center;
       }
@@ -53,16 +56,74 @@
           background: #faf8ef;
           color: #776e65;
           font-weight: bold;
-          font-size: 16px;
-          cursor: pointer;
-          width: 80%;
       }
+      .selection-grid {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 4px;
+          margin-top: 5px;
+          width: 100%;
+      }
+      .selection-tile {
+          /* Simulate game tile but static */
+          position: relative !important;
+          width: 55px !important;
+          height: 55px !important;
+          border-radius: 3px;
+          cursor: pointer;
+          transition: transform 0.1s;
+      }
+      .selection-tile .tile-inner {
+          width: 100% !important;
+          height: 100% !important;
+          line-height: 53px !important;
+          font-size: 20px !important;
+          border-radius: 3px;
+      }
+      /* Adjust fonts for larger numbers */
+      .selection-tile.tile-128 .tile-inner,
+      .selection-tile.tile-256 .tile-inner,
+      .selection-tile.tile-512 .tile-inner { font-size: 18px !important; }
+      
+      .selection-tile.tile-1024 .tile-inner,
+      .selection-tile.tile-2048 .tile-inner,
+      .selection-tile.tile-4096 .tile-inner,
+      .selection-tile.tile-8192 .tile-inner { font-size: 14px !important; }
+      
+      .selection-tile.tile-16384 .tile-inner,
+      .selection-tile.tile-32768 .tile-inner { font-size: 12px !important; }
+
+      .selection-tile:hover {
+          transform: scale(1.1);
+          z-index: 5;
+      }
+      .selection-tile.selected {
+          transform: scale(1.15);
+          box-shadow: 0 0 5px 2px rgba(255, 255, 0, 0.8); /* Highlight glow */
+          z-index: 10;
+          border: 2px solid #8f7a66; /* Border */
+      }
+      
+      /* Special style for 0 */
+      /* Special style for 0 */
+      .selection-tile.tile-0 .tile-inner {
+          background: rgba(238, 228, 218, 0.35);
+          color: #776e65;
+          text-align: center;
+          line-height: 55px !important;
+          font-weight: bold;
+      }
+      
       .grid-cell {
           cursor: pointer; /* Indicate clickable */
       }
       /* Hover effect for cleaner UI */
       .grid-cell:hover {
           background: rgba(238, 228, 218, 0.35);
+      }
+      .tile-container {
+          pointer-events: none;
       }
   </style>
 </head>
@@ -83,25 +144,27 @@
 
         <!-- Box 2: Controls -->
         <div class="dashboard-box dashboard-controls">
-            <label for="test-tile-value">选择要插入的方块:</label>
-            <select id="test-tile-value">
-                <option value="2">2</option>
-                <option value="4">4</option>
-                <option value="8">8</option>
-                <option value="16">16</option>
-                <option value="32">32</option>
-                <option value="64">64</option>
-                <option value="128">128</option>
-                <option value="256">256</option>
-                <option value="512">512</option>
-                <option value="1024">1024</option>
-                <option value="2048">2048</option>
-                <option value="4096">4096</option>
-                <option value="8192">8192</option>
-                <option value="16384">16384</option>
-                <option value="32768">32768</option>
-                <option value="65536">65536</option>
-            </select>
+            <div class="selection-grid" id="selection-grid">
+                <!-- Row 1: 0-128 (8 items) -->
+                <div class="selection-tile tile-0" data-value="0"><div class="tile-inner">0</div></div>
+                <div class="selection-tile tile tile-2 selected" data-value="2"><div class="tile-inner">2</div></div>
+                <div class="selection-tile tile tile-4" data-value="4"><div class="tile-inner">4</div></div>
+                <div class="selection-tile tile tile-8" data-value="8"><div class="tile-inner">8</div></div>
+                <div class="selection-tile tile tile-16" data-value="16"><div class="tile-inner">16</div></div>
+                <div class="selection-tile tile tile-32" data-value="32"><div class="tile-inner">32</div></div>
+                <div class="selection-tile tile tile-64" data-value="64"><div class="tile-inner">64</div></div>
+                <div class="selection-tile tile tile-128" data-value="128"><div class="tile-inner">128</div></div>
+                
+                <!-- Row 2: 256-32k (8 items) -->
+                <div class="selection-tile tile tile-256" data-value="256"><div class="tile-inner">256</div></div>
+                <div class="selection-tile tile tile-512" data-value="512"><div class="tile-inner">512</div></div>
+                <div class="selection-tile tile tile-1024" data-value="1024"><div class="tile-inner">1024</div></div>
+                <div class="selection-tile tile tile-2048" data-value="2048"><div class="tile-inner">2048</div></div>
+                <div class="selection-tile tile tile-4096" data-value="4096"><div class="tile-inner">4096</div></div>
+                <div class="selection-tile tile tile-8192" data-value="8192"><div class="tile-inner">8192</div></div>
+                <div class="selection-tile tile tile-16384" data-value="16384"><div class="tile-inner">16384</div></div>
+                <div class="selection-tile tile tile-32768" data-value="32768"><div class="tile-inner">32768</div></div>
+            </div>
         </div>
     </div>
     <div class="heading">
@@ -119,6 +182,9 @@
     <div id="timerbox">
         <div id="timer"></div>
 
+        <div class="timertile timer-legend-16" style="color: #f9f6f2; font-size: 22px;">16</div>
+        <div class="timertile" id="timer16" style="margin-left:6px; width:159px"></div>
+        <br><br>
         <div class="timertile timer-legend-32" style="color: #f9f6f2; font-size: 22px;">32</div>
         <div class="timertile" id="timer32" style="margin-left:6px; width:159px"></div>
         <br><br>
@@ -212,19 +278,19 @@
     
   </div>
 
-  <script src="js/seedrandom.js?v=26"></script>
-  <script src="js/animframe_polyfill.js?v=24"></script>
-  <script src="js/keyboard_input_manager.js?v=24"></script>
-  <script src="js/html_actuator.js?v=24"></script>
-  <script src="js/grid.js?v=24"></script>
-  <script src="js/tile.js?v=24"></script>
-  <script src="js/local_score_manager.js?v=24"></script>
-  <script src="js/game_manager.js?v=24"></script>
-  <script src="js/application.js?v=24"></script>
-  <script src="js/index_ui.js?v=16"></script>
+  <script src="js/seedrandom.js?v=27"></script>
+  <script src="js/animframe_polyfill.js?v=27"></script>
+  <script src="js/keyboard_input_manager.js?v=27"></script>
+  <script src="js/html_actuator.js?v=27"></script>
+  <script src="js/grid.js?v=27"></script>
+  <script src="js/tile.js?v=27"></script>
+  <script src="js/local_score_manager.js?v=27"></script>
+  <script src="js/game_manager.js?v=27"></script>
+  <script src="js/application.js?v=27"></script>
+  <script src="js/index_ui.js?v=27"></script>
   
   <!-- Test UI Logic -->
-  <script src="js/test_ui.js?v=16"></script>
+  <script src="js/test_ui.js?v=27"></script>
 
 </body>
 </html>

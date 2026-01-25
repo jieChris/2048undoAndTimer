@@ -339,6 +339,9 @@ GameManager.prototype.move = function (direction) {
 
           // Milestone Logic (Ported)
           var timeStr = self.pretty(self.time);
+          if (merged.value === 16 && document.getElementById("timer16") && document.getElementById("timer16").innerHTML === "") {
+             document.getElementById("timer16").textContent = timeStr;
+          }
           if (merged.value === 32 && document.getElementById("timer32") && document.getElementById("timer32").innerHTML === "") {
              document.getElementById("timer32").textContent = timeStr;
           }
@@ -611,6 +614,12 @@ GameManager.prototype.insertCustomTile = function(x, y, value) {
         this.grid.removeTile(this.grid.cellContent({ x: x, y: y }));
     }
     
+    // If value is 0, we just want to clear the tile.
+    if (value === 0) {
+        this.actuate();
+        return;
+    }
+    
     var tile = new Tile({ x: x, y: y }, value);
     this.grid.insertTile(tile);
     
@@ -640,7 +649,7 @@ GameManager.prototype.insertCustomTile = function(x, y, value) {
 };
 
 GameManager.prototype.invalidateTimers = function(limit) {
-    var milestones = [32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768];
+    var milestones = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768];
     milestones.forEach(function(val) {
         if (val <= limit) {
              var el = document.getElementById("timer" + val);
