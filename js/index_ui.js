@@ -131,12 +131,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 window.game_manager.move(-1);
             }
         });
-        undoBtnGameOver.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (window.game_manager) {
-                window.game_manager.move(-1);
-            }
-        });
     }
     
 
