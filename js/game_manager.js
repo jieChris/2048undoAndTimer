@@ -3,7 +3,7 @@ function GameManager(size, InputManager, Actuator, ScoreManager) {
   this.inputManager = new InputManager;
   this.scoreManager = new ScoreManager;
   this.actuator     = new Actuator;
-  this.timerContainer = document.querySelector(".timer-container");
+  this.timerContainer = document.querySelector(".timer-container") || document.getElementById("timer");
 
   this.startTiles   = 2;
   this.maxTile       = Infinity; // Default: no cap. Set to 2048 for capped mode.
@@ -57,17 +57,13 @@ GameManager.prototype.setup = function (inputSeed) {
   this.keepPlaying = false;
   
   // Replay logic
-  this.initialSeed = inputSeed || Math.random();
+  var hasInputSeed = typeof inputSeed !== "undefined";
+  this.initialSeed = hasInputSeed ? inputSeed : Math.random();
   this.seed        = this.initialSeed;
   this.moveHistory = [];
-  this.moveHistory = [];
-  this.replayMode  = !!inputSeed; // If seed is provided externally, we might be in replay mode (or just restoring)
+  this.replayMode  = hasInputSeed; // If seed is provided externally, we might be in replay mode (or just restoring)
   this.replayLog = ""; // For v2 replay
   this.lastSpawn = null; // To capture spawn during play
-  this.replayLog = ""; // For v2 replay
-  this.lastSpawn = null; // To capture spawn during play
-  this.forcedSpawn = null; // To force spawn during replay v2
-  
   this.forcedSpawn = null; // To force spawn during replay v2
   
   this.reached32k = false; // Flag for extended timer logic
@@ -98,7 +94,6 @@ GameManager.prototype.setup = function (inputSeed) {
   if (sub8k) sub8k.textContent = "";
   var sub16k = document.getElementById("timer16384-sub");
   if (sub16k) sub16k.textContent = "";
-  var subContainer = document.getElementById("timer32k-sub-container");
   var subContainer = document.getElementById("timer32k-sub-container");
   if (subContainer) subContainer.style.display = "none";
   // Reset Timer Rows Visibility
@@ -797,6 +792,9 @@ GameManager.prototype.import = function (replayString) {
         
         for (var i=0; i < logString.length; i++) {
             var code = logString.charCodeAt(i) - 33;
+            if (code < 0 || code > 128) {
+                throw "Invalid replay char at index " + i;
+            }
             if (code === 128) {
                 // Undo
                 this.replayMoves.push(-1);
@@ -854,7 +852,7 @@ GameManager.prototype.resume = function () {
       var move = self.replayMoves[self.replayIndex];
       
       // Inject Forced Spawn if v2
-      if (self.replaySpawns && self.replaySpawns[self.replayIndex]) {
+      if (self.replaySpawns) {
           self.forcedSpawn = self.replaySpawns[self.replayIndex];
       }
       
@@ -886,6 +884,9 @@ GameManager.prototype.seek = function (targetIndex) {
     // Fast forward to target
     while (this.replayIndex < targetIndex) {
         var move = this.replayMoves[this.replayIndex];
+        if (this.replaySpawns) {
+            this.forcedSpawn = this.replaySpawns[this.replayIndex];
+        }
         // We perform move without animation delays if possible, but move() is synchronous here logic-wise.
         // However, we want to skip the "move()" triggers that might slow things down? 
         // Actually move() is fast enough.

@@ -51,7 +51,6 @@ KeyboardInputManager.prototype.listen = function () {
       }
 
       if (event.which === 32) self.restart.bind(self)(event);
-      if (event.which === 32) self.restart.bind(self)(event);
       if (event.key === 'r' || event.key === 'R' || event.code === 'KeyR' || event.which === 82) self.restart.bind(self)(event);
     }
   });
