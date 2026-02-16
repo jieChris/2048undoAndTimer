@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>2048封顶</title>
+
+  <link href="style/main.css?v=42" rel="stylesheet" type="text/css">
+  <link rel="shortcut icon" href="favicon.ico?v=42">
+  <link rel="apple-touch-icon" href="meta/apple-touch-icon.png?v=42">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0, maximum-scale=1, user-scalable=no, minimal-ui">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.google-analytics.com; style-src 'self' 'unsafe-inline';">
+  <style>
+    #guide-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 2000;
+        display: none;
+    }
+    #guide-message {
+        position: absolute;
+        color: white;
+        font-weight: bold;
+        font-size: 24px;
+        z-index: 2002;
+        pointer-events: none;
+    }
+    #guide-arrow {
+        font-size: 40px;
+        display: block;
+        line-height: 1;
+        margin-bottom: 5px;
+    }
+    .guide-highlight {
+        position: relative;
+        z-index: 2001;
+        background: #faf8ef;
+        box-shadow: 0 0 0 5px #faf8ef, 0 0 20px 10px rgba(255, 255, 255, 0.5);
+        border-radius: 4px;
+    }
+    .timer-scroll-btn {
+        display: inline-block;
+        background: #eee4da;
+        border-radius: 3px;
+        padding: 0 14px;
+        text-decoration: none;
+        color: #776e65;
+        height: 32px;
+        line-height: 32px;
+        font-size: 13px;
+        font-weight: bold;
+        cursor: pointer;
+        user-select: none;
+        margin: 0 3px;
+        font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+    }
+    .timer-scroll-btn:hover {
+        background: #ded4c8;
+        color: #5a534c;
+    }
+    #timer-scroll-controls {
+        display: none;
+        text-align: center;
+        clear: both;
+        padding-top: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div id="guide-overlay">
+      <div id="guide-message">
+          <span id="guide-arrow">↑</span>
+          点击这里返回首页
+      </div>
+  </div>
+  <div class="container">
+    <div class="stats-left">
+      <div id="stats-4-rate">4率: 10%</div>
+      <div id="stats-total">总步数: 0</div>
+      <div id="stats-moves">移动步数: 0</div>
+      <div id="stats-ips">IPS: 0</div>
+    </div>
+    <div class="stats-right" id="stats-ips-right"></div>
+    <div class="heading">
+      <h1 class="title"><a href="index.html" style="text-decoration: none; color: inherit; cursor: pointer;">2048</a>封顶</h1>
+      <div class="scores-container">
+        <div class="score-container">0</div>
+        <div class="best-container">0</div>
+      </div>
+      <div class="above-game" style="clear: both; padding-top: 15px;">
+      <p class="game-intro">2048为最大方块，无法继续合并、无撤回。</p>
+      <a class="restart-button">新游戏</a>
+      </div>
+    </div>
+
+    <div id="timerbox">
+        <div id="timer"></div>
+
+        <div id="timer-rows-wrapper">
+            <div class="timer-row-item" id="timer-row-16">
+                <div class="timertile timer-legend-16" style="color: #f9f6f2; font-size: 22px;">16</div>
+                <div class="timertile" id="timer16" style="margin-left:6px; width:159px"></div>
+                <br><br>
+            </div>
+            <div class="timer-row-item" id="timer-row-32">
+                <div class="timertile timer-legend-32" style="color: #f9f6f2; font-size: 22px;">32</div>
+                <div class="timertile" id="timer32" style="margin-left:6px; width:159px"></div>
+                <br><br>
+            </div>
+            <div class="timer-row-item">
+                <div class="timertile timer-legend-64" style="color: #f9f6f2; font-size: 22px;">64</div>
+                <div class="timertile" id="timer64" style="margin-left:6px; width:159px"></div>
+                <br><br>
+            </div>
+            <div class="timer-row-item">
+                <div class="timertile timer-legend-128" style="color: #f9f6f2; font-size: 18px;">128</div>
+                <div class="timertile" id="timer128" style="margin-left:6px; width:159px"></div>
+                <br><br>
+            </div>
+            <div class="timer-row-item">
+                <div class="timertile timer-legend-256" style="color: #f9f6f2; font-size: 18px;">256</div>
+                <div class="timertile" id="timer256" style="margin-left:6px; width:159px"></div>
+                <br><br>
+            </div>
+            <div class="timer-row-item">
+                <div class="timertile timer-legend-512" style="color: #f9f6f2; font-size: 18px;">512</div>
+                <div class="timertile" id="timer512" style="margin-left:6px; width:159px"></div>
+                <br><br>
+            </div>
+            <div class="timer-row-item">
+                <div class="timertile timer-legend-1024" style="color: #f9f6f2; font-size: 14px;">1024</div>
+                <div class="timertile" id="timer1024" style="margin-left:6px; width:159px"></div>
+                <br><br>
+            </div>
+            <div class="timer-row-item">
+                <div class="timertile timer-legend-2048" style="color: #f9f6f2; font-size: 14px;">2048</div>
+                <div class="timertile" id="timer2048" style="margin-left:6px; width:159px"></div>
+                <br><br>
+            </div>
+            <!-- Dynamic 2048 milestone rows appended here -->
+            <div id="capped-timer-container"></div>
+        </div>
+
+        <div id="timer-scroll-controls">
+            <a class="timer-scroll-btn" onclick="cappedTimerScroll(-1)">▲ 上移</a>
+            <a class="timer-scroll-btn" onclick="cappedTimerScroll(1)">▼ 下移</a>
+        </div>
+    </div>
+
+
+
+    <div class="game-container">
+      <div class="game-message">
+        <p></p>
+        <div class="lower">
+          <a class="retry-button">重试</a>
+        </div>
+      </div>
+
+
+      <div class="grid-container">
+        <div class="grid-row">
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+        </div>
+        <div class="grid-row">
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+        </div>
+        <div class="grid-row">
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+        </div>
+        <div class="grid-row">
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+          <div class="grid-cell"></div>
+        </div>
+      </div>
+
+      <div class="tile-container">
+      </div>
+    </div>
+
+  </div>
+
+  <script src="js/seedrandom.js?v=42"></script>
+  <script src="js/animframe_polyfill.js?v=42"></script>
+  <script src="js/capped_input_manager.js?v=42"></script>
+  <script src="js/html_actuator.js?v=42"></script>
+  <script src="js/grid.js?v=42"></script>
+  <script src="js/tile.js?v=42"></script>
+  <script src="js/local_score_manager.js?v=42"></script>
+  <script src="js/game_manager.js?v=42"></script>
+  <script src="js/capped_application.js?v=42"></script>
+  <script>
+  // === Guide overlay ===
+  (function() {
+      var guideKey = 'capped_guide_shown_v1';
+      if (!localStorage.getItem(guideKey)) {
+          var overlay = document.getElementById('guide-overlay');
+          var message = document.getElementById('guide-message');
+          var titleLink = document.querySelector('.title a');
+          if (overlay && titleLink && message) {
+              overlay.style.display = 'block';
+              titleLink.classList.add('guide-highlight');
+              var rect = titleLink.getBoundingClientRect();
+              message.style.top = (rect.bottom + 15) + 'px';
+              message.style.left = (rect.left + 20) + 'px';
+              function dismiss() {
+                  overlay.style.display = 'none';
+                  titleLink.classList.remove('guide-highlight');
+                  localStorage.setItem(guideKey, 'true');
+              }
+              overlay.addEventListener('click', dismiss);
+              titleLink.addEventListener('click', function() { dismiss(); });
+          }
+      }
+  })();
+
+  // === Timer scroll navigation ===
+  var _timerScrollOffset = 0;
+  var TIMER_MAX_VISIBLE = 11;
+
+  function getAllTimerRows() {
+      // Collect fixed rows (.timer-row-item) + dynamic rows inside #capped-timer-container
+      var rows = [];
+      var wrapper = document.getElementById('timer-rows-wrapper');
+      if (!wrapper) return rows;
+      // Fixed rows
+      var fixed = wrapper.querySelectorAll(':scope > .timer-row-item');
+      for (var i = 0; i < fixed.length; i++) rows.push(fixed[i]);
+      // Dynamic rows
+      var container = document.getElementById('capped-timer-container');
+      if (container) {
+          var dynamic = container.querySelectorAll('.timer-row-item');
+          for (var j = 0; j < dynamic.length; j++) rows.push(dynamic[j]);
+      }
+      return rows;
+  }
+
+  function updateTimerScroll() {
+      var rows = getAllTimerRows();
+      var total = rows.length;
+      var maxOffset = Math.max(0, total - TIMER_MAX_VISIBLE);
+
+      // Clamp offset
+      if (_timerScrollOffset > maxOffset) _timerScrollOffset = maxOffset;
+      if (_timerScrollOffset < 0) _timerScrollOffset = 0;
+
+      // Show/hide rows
+      for (var i = 0; i < rows.length; i++) {
+          if (i >= _timerScrollOffset && i < _timerScrollOffset + TIMER_MAX_VISIBLE) {
+              rows[i].style.display = '';
+          } else {
+              rows[i].style.display = 'none';
+          }
+      }
+
+      // Show/hide scroll controls container
+      var controls = document.getElementById('timer-scroll-controls');
+      if (total > TIMER_MAX_VISIBLE) {
+          if (controls) controls.style.display = 'block';
+      } else {
+          if (controls) controls.style.display = 'none';
+      }
+  }
+
+  function cappedTimerScroll(dir) {
+      _timerScrollOffset += dir;
+      updateTimerScroll();
+  }
+
+  // Auto-scroll to bottom when new rows are added
+  function cappedTimerAutoScroll() {
+      var rows = getAllTimerRows();
+      var total = rows.length;
+      if (total > TIMER_MAX_VISIBLE) {
+          _timerScrollOffset = total - TIMER_MAX_VISIBLE;
+      }
+      updateTimerScroll();
+  }
+
+  // Reset scroll on new game
+  function cappedTimerReset() {
+      _timerScrollOffset = 0;
+      updateTimerScroll();
+  }
+
+  // Expose globally for game_manager.js to call
+  window.updateTimerScroll = updateTimerScroll;
+  window.cappedTimerScroll = cappedTimerScroll;
+  window.cappedTimerAutoScroll = cappedTimerAutoScroll;
+  window.cappedTimerReset = cappedTimerReset;
+
+  // Initial update
+  updateTimerScroll();
+  </script>
+
+</body>
+</html>

@@ -6,6 +6,7 @@ function GameManager(size, InputManager, Actuator, ScoreManager) {
   this.timerContainer = document.querySelector(".timer-container");
 
   this.startTiles   = 2;
+  this.maxTile       = Infinity; // Default: no cap. Set to 2048 for capped mode.
 
   this.inputManager.on("move", this.move.bind(this));
   this.inputManager.on("restart", this.restart.bind(this));
@@ -71,6 +72,7 @@ GameManager.prototype.setup = function (inputSeed) {
   
   this.reached32k = false; // Flag for extended timer logic
   this.isTestMode = false; // Flag for Test Board
+  this.cappedMilestoneCount = 0; // Track how many times maxTile has been merged in capped mode
 
   this.timerStatus = 0; // 0 = no, 1 = running (reference logic)
   this.startTime = null;
@@ -102,6 +104,11 @@ GameManager.prototype.setup = function (inputSeed) {
   // Reset Timer Rows Visibility
   if (document.getElementById("timer-row-16")) document.getElementById("timer-row-16").style.display = "block";
   if (document.getElementById("timer-row-32")) document.getElementById("timer-row-32").style.display = "block";
+
+  // Reset capped mode dynamic timers
+  var cappedContainer = document.getElementById("capped-timer-container");
+  if (cappedContainer) cappedContainer.innerHTML = "";
+  if (typeof window.cappedTimerReset === "function") window.cappedTimerReset();
 
   // Add the initial tiles
   this.addStartTiles();
@@ -325,7 +332,7 @@ GameManager.prototype.move = function (direction) {
         var next      = self.grid.cellContent(positions.next);
 
         // Only one merger per row traversal?
-        if (next && next.value === tile.value && !next.mergedFrom) {
+        if (next && next.value === tile.value && !next.mergedFrom && tile.value * 2 <= self.maxTile) {
           // We need to save tile since it will get removed
           undo.tiles.push(tile.save(positions.next));
 
@@ -364,9 +371,56 @@ GameManager.prototype.move = function (direction) {
           if (merged.value === 1024 && document.getElementById("timer1024") && document.getElementById("timer1024").innerHTML === "") {
              document.getElementById("timer1024").textContent = timeStr;
           }
-          if (merged.value === 2048 && document.getElementById("timer2048") && document.getElementById("timer2048").innerHTML === "") {
-             self.won = true;
-             document.getElementById("timer2048").textContent = timeStr;
+          if (merged.value === 2048) {
+              // Capped mode: track each 2048 merge individually
+              if (self.maxTile === 2048) {
+                  self.cappedMilestoneCount++;
+                  var circled = ["\u2460","\u2461","\u2462","\u2463","\u2464","\u2465","\u2466","\u2467","\u2468","\u2469","\u246a","\u246b","\u246c","\u246d","\u246e","\u246f","\u2470","\u2471","\u2472","\u2473"];
+                  var container = document.getElementById("capped-timer-container");
+
+                  if (self.cappedMilestoneCount === 1) {
+                      // First 2048: fill the original timer row
+                      var t2048 = document.getElementById("timer2048");
+                      if (t2048 && t2048.textContent === "") t2048.textContent = timeStr;
+                  } else {
+                      // Fill the pending row that was created last time
+                      var pendingVal = document.getElementById("capped-timer-pending");
+                      if (pendingVal) {
+                          pendingVal.textContent = timeStr;
+                          pendingVal.removeAttribute("id"); // Remove pending marker
+                      }
+                  }
+
+                  // Always create the NEXT empty timer row as a target
+                  if (container) {
+                      var nextIdx = self.cappedMilestoneCount + 1;
+                      var nextLabel = "2048" + (circled[nextIdx - 1] || "(" + nextIdx + ")");
+                      var rowDiv = document.createElement("div");
+                      rowDiv.className = "timer-row-item";
+                      var legend = document.createElement("div");
+                      legend.className = "timertile timer-legend-2048";
+                      legend.style.cssText = "color: #f9f6f2; font-size: 13px;";
+                      legend.textContent = nextLabel;
+                      var val = document.createElement("div");
+                      val.className = "timertile";
+                      val.id = "capped-timer-pending";
+                      val.style.cssText = "margin-left:6px; width:159px;";
+                      val.textContent = "";
+                      rowDiv.appendChild(legend);
+                      rowDiv.appendChild(val);
+                      rowDiv.appendChild(document.createElement("br"));
+                      rowDiv.appendChild(document.createElement("br"));
+                      container.appendChild(rowDiv);
+                      // Auto-scroll to show the latest timer row
+                      if (typeof window.cappedTimerAutoScroll === "function") window.cappedTimerAutoScroll();
+                  }
+                  // No self.won = true: capped mode continues without "you win" prompt
+              } else {
+                  if (document.getElementById("timer2048") && document.getElementById("timer2048").innerHTML === "") {
+                      self.won = true;
+                      document.getElementById("timer2048").textContent = timeStr;
+                  }
+              }
           }
           if (merged.value === 4096 && document.getElementById("timer4096") && document.getElementById("timer4096").innerHTML === "") {
              document.getElementById("timer4096").textContent = timeStr;
@@ -530,7 +584,7 @@ GameManager.prototype.tileMatchesAvailable = function () {
 
           var other  = self.grid.cellContent(cell);
 
-          if (other && other.value === tile.value) {
+          if (other && other.value === tile.value && tile.value * 2 <= self.maxTile) {
             return true; // These two tiles can be merged
           }
         }

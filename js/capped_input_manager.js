@@ -1,0 +1,115 @@
+// Input manager for capped 2048 mode (no undo)
+function CappedInputManager() {
+  this.events = {};
+  this.listen();
+}
+
+CappedInputManager.prototype.on = function (event, callback) {
+  if (!this.events[event]) {
+    this.events[event] = [];
+  }
+  this.events[event].push(callback);
+};
+
+CappedInputManager.prototype.emit = function (event, data) {
+  var callbacks = this.events[event];
+  if (callbacks) {
+    callbacks.forEach(function (callback) {
+      callback(data);
+    });
+  }
+};
+
+CappedInputManager.prototype.listen = function () {
+  var self = this;
+
+  var map = {
+    38: 0, // Up
+    39: 1, // Right
+    40: 2, // Down
+    37: 3, // Left
+    75: 0, // vim keybindings
+    76: 1,
+    74: 2,
+    72: 3,
+    87: 0, // W
+    68: 1, // D
+    83: 2, // S
+    65: 3  // A
+    // No Z key (undo) mapping
+  };
+
+  document.addEventListener("keydown", function (event) {
+    var modifiers = event.altKey || event.ctrlKey || event.metaKey ||
+                    event.shiftKey;
+    var mapped    = map[event.which];
+
+    if (!modifiers) {
+      if (mapped !== undefined) {
+        event.preventDefault();
+        self.emit("move", mapped);
+      }
+
+      if (event.key === 'r' || event.key === 'R' || event.code === 'KeyR' || event.which === 82) self.restart.bind(self)(event);
+    }
+  });
+
+  var retry = document.querySelector(".retry-button");
+  if (retry) {
+    retry.addEventListener("click", this.restart.bind(this));
+    retry.addEventListener("touchend", this.restart.bind(this));
+  }
+
+  var restart = document.querySelector(".restart-button");
+  if (restart) {
+    restart.addEventListener("click", this.restart.bind(this));
+    restart.addEventListener("touchend", this.restart.bind(this));
+  }
+
+  var keepPlaying = document.querySelector(".keep-playing-button");
+  if (keepPlaying) {
+    keepPlaying.addEventListener("click", this.keepPlaying.bind(this));
+    keepPlaying.addEventListener("touchend", this.keepPlaying.bind(this));
+  }
+
+  // Listen to swipe events
+  var touchStartClientX, touchStartClientY;
+  var gameContainer = document.getElementsByClassName("game-container")[0];
+
+  gameContainer.addEventListener("touchstart", function (event) {
+    if (event.touches.length > 1) return;
+
+    touchStartClientX = event.touches[0].clientX;
+    touchStartClientY = event.touches[0].clientY;
+    event.preventDefault();
+  });
+
+  gameContainer.addEventListener("touchmove", function (event) {
+    event.preventDefault();
+  });
+
+  gameContainer.addEventListener("touchend", function (event) {
+    if (event.touches.length > 0) return;
+
+    var dx = event.changedTouches[0].clientX - touchStartClientX;
+    var absDx = Math.abs(dx);
+
+    var dy = event.changedTouches[0].clientY - touchStartClientY;
+    var absDy = Math.abs(dy);
+
+    if (Math.max(absDx, absDy) > 10) {
+      // (right : left) : (down : up)
+      self.emit("move", absDx > absDy ? (dx > 0 ? 1 : 3) : (dy > 0 ? 2 : 0));
+    }
+  });
+};
+
+CappedInputManager.prototype.restart = function (event) {
+  event.preventDefault();
+  this.emit("restart");
+};
+
+CappedInputManager.prototype.keepPlaying = function (event) {
+  event.preventDefault();
+  this.emit("keepPlaying");
+};
