@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>2048 排行榜</title>
+  <link href="style/main.css?v=43" rel="stylesheet" type="text/css">
+  <link rel="shortcut icon" href="favicon.ico?v=42">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' http://127.0.0.1:3001 http://localhost:3001; script-src 'self'; style-src 'self' 'unsafe-inline';">
+</head>
+<body>
+  <div class="container portal-container">
+    <div class="portal-header">
+      <h1 class="title"><a href="index.html" style="text-decoration:none;color:inherit;">2048</a> 排行榜</h1>
+      <div class="portal-nav">
+        <a href="account.html">账号</a>
+        <a href="history.html">历史</a>
+        <a href="modes.html">模式</a>
+      </div>
+    </div>
+
+    <div class="portal-card">
+      <div class="portal-actions-inline">
+        <label>模式</label>
+        <select id="leaderboard-mode" class="settings-select portal-inline-select">
+          <option value="standard">标准版（无撤回）</option>
+          <option value="classic_undo">经典版（可撤回）</option>
+          <option value="capped">封顶版（2048）</option>
+        </select>
+
+        <label>周期</label>
+        <select id="leaderboard-period" class="settings-select portal-inline-select">
+          <option value="all">总榜</option>
+          <option value="week">周榜</option>
+        </select>
+
+        <button class="replay-button" id="leaderboard-refresh-btn">刷新</button>
+      </div>
+      <div id="leaderboard-status" class="portal-status"></div>
+
+      <div class="portal-table-wrap">
+        <table class="portal-table">
+          <thead>
+            <tr>
+              <th>排名</th>
+              <th>用户</th>
+              <th>分数</th>
+              <th>最大块</th>
+              <th>时长</th>
+              <th>结束时间</th>
+              <th>回放</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/theme_manager.js?v=4"></script>
+  <script src="js/api_client.js?v=3"></script>
+  <script src="js/leaderboard_page.js?v=3"></script>
+</body>
+</html>

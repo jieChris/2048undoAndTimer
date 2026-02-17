@@ -136,6 +136,47 @@ function updateReplayUI() {
     }
 }
 
+async function loadReplayFromSessionId() {
+    var params = new URLSearchParams(window.location.search);
+    var sessionId = params.get("session_id");
+    if (!sessionId || !window.ApiClient) return;
+    if (!window.game_manager) {
+        setTimeout(loadReplayFromSessionId, 60);
+        return;
+    }
+
+    try {
+        var session = await window.ApiClient.getSession(sessionId);
+        if (!session || !session.replay) return;
+        if (session.mode_key && !session.replay.mode_key) {
+            session.replay.mode_key = session.mode_key;
+        }
+        if (session.board_width && session.replay.board_width === undefined) {
+            session.replay.board_width = session.board_width;
+        }
+        if (session.board_height && session.replay.board_height === undefined) {
+            session.replay.board_height = session.board_height;
+        }
+        if (session.ruleset && !session.replay.ruleset) {
+            session.replay.ruleset = session.ruleset;
+        }
+        if (session.undo_enabled !== undefined && session.replay.undo_enabled === undefined) {
+            session.replay.undo_enabled = !!session.undo_enabled;
+        }
+
+        var replayPayload = JSON.stringify(session.replay);
+        window.game_manager.import(replayPayload);
+
+        var title = document.querySelector(".heading .title");
+        if (title) {
+            title.innerHTML = "<a href='index.html' style='text-decoration: none; color: inherit; cursor: pointer;'>2048</a> 回放 - " + session.username;
+        }
+        updateReplayUI();
+    } catch (error) {
+        alert("加载服务端回放失败: " + (error.message || "unknown"));
+    }
+}
+
 // Periodic UI update
 setInterval(updateReplayUI, 200);
 
@@ -191,4 +232,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     var modalCloseBtn = document.querySelector('#replay-modal .replay-modal-actions button:last-child');
     if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeReplayModal);
+
+    loadReplayFromSessionId();
 });

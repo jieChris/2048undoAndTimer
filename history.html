@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>2048 历史记录</title>
+  <link href="style/main.css?v=43" rel="stylesheet" type="text/css">
+  <link rel="shortcut icon" href="favicon.ico?v=42">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' http://127.0.0.1:3001 http://localhost:3001; script-src 'self'; style-src 'self' 'unsafe-inline';">
+</head>
+<body>
+  <div class="container portal-container">
+    <div class="portal-header">
+      <h1 class="title"><a href="index.html" style="text-decoration:none;color:inherit;">2048</a> 对局历史</h1>
+      <div class="portal-nav">
+        <a href="account.html">账号</a>
+        <a href="leaderboard.html">排行榜</a>
+        <a href="modes.html">模式</a>
+      </div>
+    </div>
+
+    <div class="portal-card">
+      <div class="portal-actions-inline">
+        <label>用户名</label>
+        <input id="history-username" class="portal-inline-input" placeholder="输入用户名">
+
+        <label>模式</label>
+        <select id="history-mode" class="settings-select portal-inline-select">
+          <option value="">全部</option>
+        </select>
+
+        <button class="replay-button" id="history-load-btn">加载历史</button>
+      </div>
+      <div id="history-status" class="portal-status"></div>
+    </div>
+
+    <h2 id="history-title" class="portal-section-title">历史对局</h2>
+    <div id="history-list"></div>
+  </div>
+
+  <script src="js/theme_manager.js?v=4"></script>
+  <script src="js/api_client.js?v=3"></script>
+  <script src="js/mode_catalog.js?v=2"></script>
+  <script src="js/history_page.js?v=4"></script>
+</body>
+</html>

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <title>2048练习板</title>
 
-  <link href="style/main.css?v=42" rel="stylesheet" type="text/css">
+  <link href="style/main.css?v=44" rel="stylesheet" type="text/css">
   <link rel="shortcut icon" href="favicon.ico?v=42">
   <link rel="apple-touch-icon" href="meta/apple-touch-icon.png?v=42">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -12,7 +12,7 @@
   <meta name="HandheldFriendly" content="True">
   <meta name="MobileOptimized" content="320">
   <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0, maximum-scale=1, user-scalable=no, minimal-ui">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.google-analytics.com; style-src 'self' 'unsafe-inline';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' http://127.0.0.1:3001 http://localhost:3001; script-src 'self' https://www.google-analytics.com; style-src 'self' 'unsafe-inline';">
   
   <style>
       /* Test Board Specific Styles */
@@ -160,13 +160,14 @@
       }
   </style>
 </head>
-<body>
+<body data-mode-id="practice_legacy">
   <div id="guide-overlay">
       <div id="guide-message">
           <span id="guide-arrow">↑</span>
           点击这里返回首页
       </div>
   </div>
+  <a class="top-action-btn floating-settings-btn" id="top-settings-btn">设置</a>
   <div class="container">
     <!-- Dashboard Layout (Two Boxes at Top) -->
     <div class="dashboard-container">
@@ -321,16 +322,36 @@
     
   </div>
 
+  <div id="settings-modal" class="replay-modal-overlay" style="display: none;">
+    <div class="replay-modal-content settings-modal-content">
+      <h3>设置</h3>
+      <div class="settings-row">
+        <label for="undo-enabled-toggle">撤回功能</label>
+        <label class="settings-switch-row">
+          <input id="undo-enabled-toggle" type="checkbox">
+          <span>启用撤回（Z键/撤销按钮）</span>
+        </label>
+        <div id="undo-settings-note" class="settings-note"></div>
+      </div>
+      <div class="replay-modal-actions">
+        <button id="settings-close-btn" class="replay-button">关闭</button>
+      </div>
+    </div>
+  </div>
+
   <script src="js/seedrandom.js?v=42"></script>
   <script src="js/animframe_polyfill.js?v=42"></script>
   <script src="js/keyboard_input_manager.js?v=42"></script>
-  <script src="js/html_actuator.js?v=42"></script>
+  <script src="js/theme_manager.js?v=4"></script>
+  <script src="js/mode_catalog.js?v=2"></script>
+  <script src="js/html_actuator.js?v=47"></script>
   <script src="js/grid.js?v=42"></script>
   <script src="js/tile.js?v=42"></script>
   <script src="js/local_score_manager.js?v=42"></script>
-  <script src="js/game_manager.js?v=42"></script>
-  <script src="js/application.js?v=42"></script>
-  <script src="js/index_ui.js?v=42"></script>
+  <script src="js/api_client.js?v=3"></script>
+  <script src="js/game_manager.js?v=54"></script>
+  <script src="js/application.js?v=44"></script>
+  <script src="js/index_ui.js?v=45"></script>
   
   <!-- Test UI Logic -->
   <script src="js/test_ui.js?v=42"></script>

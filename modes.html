@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>2048 模式选择</title>
+
+  <link href="style/main.css?v=44" rel="stylesheet" type="text/css">
+  <link rel="shortcut icon" href="favicon.ico?v=42">
+  <link rel="apple-touch-icon" href="meta/apple-touch-icon.png?v=42">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0, maximum-scale=1, user-scalable=no, minimal-ui">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' http://127.0.0.1:3001 http://localhost:3001; script-src 'self'; style-src 'self' 'unsafe-inline';">
+  <style>
+    .mode-hub {
+      margin-top: 24px;
+      background: #faf8ef;
+      border: 1px solid #d8d4d0;
+      border-radius: 8px;
+      padding: 22px;
+    }
+    .mode-hub h2 {
+      margin: 0 0 14px;
+      color: #776e65;
+      font-size: 26px;
+    }
+    .mode-hub p {
+      margin: 0 0 18px;
+      color: #8a8178;
+    }
+    .mode-group-title {
+      margin: 18px 0 10px;
+      color: #776e65;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    .mode-hub-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .mode-hub-btn {
+      display: inline-block;
+      min-width: 180px;
+      text-align: center;
+      background: #8f7a66;
+      color: #f9f6f2;
+      border-radius: 4px;
+      text-decoration: none;
+      padding: 10px 16px;
+      font-weight: bold;
+    }
+    .mode-hub-btn:hover {
+      background: #7f6a56;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="heading" style="float:none; width:100%; margin-bottom:10px;">
+      <h1 class="title"><a href="index.html" style="text-decoration: none; color: inherit; cursor: pointer;">2048</a> 模式选择</h1>
+    </div>
+    <div style="clear: both;"></div>
+
+    <div class="mode-hub">
+      <h2>选择你要进入的模式</h2>
+      <p>首页固定为标准无撤回版。排行榜仅统计标准无撤回、经典有撤回、封顶无撤回三类。</p>
+
+      <div class="mode-group-title">可进榜模式（三桶）</div>
+      <div class="mode-hub-actions">
+        <a class="mode-hub-btn" href="index.html">标准版 4x4（无撤回）</a>
+        <a class="mode-hub-btn" href="undo_2048.html">经典版 4x4（可撤回）</a>
+        <a class="mode-hub-btn" href="capped_2048.html">封顶版 4x4（2048 无撤回）</a>
+      </div>
+
+      <div class="mode-group-title">一期扩展（仅历史，不进榜）</div>
+      <div class="mode-hub-actions">
+        <a class="mode-hub-btn" href="play.html?mode_key=board_3x3_pow2_undo">3x3（可撤回）</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=board_3x3_pow2_no_undo">3x3（无撤回）</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=board_3x4_pow2_undo">4x3（可撤回）</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=board_3x4_pow2_no_undo">4x3（无撤回）</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=board_2x4_pow2_undo">4x2（可撤回）</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=board_2x4_pow2_no_undo">4x2（无撤回）</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=fib_4x4_undo">Fibonacci 4x4（可撤回）</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=fib_4x4_no_undo">Fibonacci 4x4（无撤回）</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=fib_3x3_undo">Fibonacci 3x3（可撤回）</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=fib_3x3_no_undo">Fibonacci 3x3（无撤回）</a>
+      </div>
+
+      <div class="mode-group-title">其他入口</div>
+      <div class="mode-hub-actions">
+        <a class="mode-hub-btn" href="Practice_board.html">练习板（Legacy）</a>
+        <a class="mode-hub-btn" href="leaderboard.html">排行榜</a>
+        <a class="mode-hub-btn" href="history.html">历史</a>
+        <a class="mode-hub-btn" href="account.html">账号</a>
+      </div>
+    </div>
+  </div>
+  <script src="js/theme_manager.js?v=4"></script>
+</body>
+</html>

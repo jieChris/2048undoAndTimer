@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>2048 账号</title>
+  <link href="style/main.css?v=43" rel="stylesheet" type="text/css">
+  <link rel="shortcut icon" href="favicon.ico?v=42">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' http://127.0.0.1:3001 http://localhost:3001; script-src 'self'; style-src 'self' 'unsafe-inline';">
+</head>
+<body>
+  <div class="container portal-container">
+    <div class="portal-header">
+      <h1 class="title"><a href="index.html" style="text-decoration:none;color:inherit;">2048</a> 账号中心</h1>
+      <div class="portal-nav">
+        <a href="leaderboard.html">排行榜</a>
+        <a href="history.html">历史</a>
+        <a href="modes.html">模式</a>
+      </div>
+    </div>
+
+    <div class="portal-card">
+      <div id="account-user-panel"><strong>当前未登录</strong></div>
+      <div id="account-queue-info" class="portal-muted"></div>
+      <div id="account-last-submit" class="portal-muted"></div>
+      <div id="account-status" class="portal-status"></div>
+      <div class="portal-actions-inline">
+        <button class="replay-button" id="logout-btn">退出登录</button>
+        <button class="replay-button" id="flush-queue-btn">补传离线对局</button>
+      </div>
+    </div>
+
+    <div class="portal-card">
+      <h3>API 连接设置</h3>
+      <div class="portal-actions-inline portal-api-row">
+        <label for="api-base-input">API Base</label>
+        <input id="api-base-input" class="portal-inline-input portal-api-input" placeholder="http://127.0.0.1:3001/api/v1">
+        <button class="replay-button" id="save-api-btn" type="button">保存地址</button>
+        <button class="replay-button" id="test-api-btn" type="button">测试连接</button>
+      </div>
+      <div class="portal-muted">本地开发建议：`http://127.0.0.1:3001/api/v1`</div>
+      <div id="account-api-status" class="portal-status"></div>
+    </div>
+
+    <div class="portal-grid-2">
+      <div class="portal-card">
+        <h3>登录</h3>
+        <form id="login-form" class="portal-form">
+          <label>用户名</label>
+          <input id="login-username" autocomplete="username" required>
+          <label>密码</label>
+          <input id="login-password" type="password" autocomplete="current-password" required>
+          <button type="submit" class="replay-button">登录</button>
+        </form>
+      </div>
+
+      <div class="portal-card">
+        <h3>注册</h3>
+        <form id="register-form" class="portal-form">
+          <label>用户名（3-20，仅字母数字下划线）</label>
+          <input id="reg-username" autocomplete="username" required>
+          <label>密码（>=8，需包含字母和数字）</label>
+          <input id="reg-password" type="password" autocomplete="new-password" required>
+          <button type="submit" class="replay-button">注册并登录</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/theme_manager.js?v=4"></script>
+  <script src="js/api_client.js?v=3"></script>
+  <script src="js/account_page.js?v=3"></script>
+</body>
+</html>

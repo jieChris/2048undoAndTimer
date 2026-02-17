@@ -1,0 +1,81 @@
+import { pool } from "../db.js";
+import { weekStartMonday } from "../utils/week.js";
+import { isAllowedLeaderboardBucket } from "../modes/catalog.js";
+
+function parsePositiveInt(value, fallback, max) {
+  const n = Number.parseInt(value, 10);
+  if (!Number.isFinite(n) || n < 0) return fallback;
+  if (typeof max === "number" && n > max) return max;
+  return n;
+}
+
+export async function leaderboardRoutes(fastify) {
+  fastify.get("/leaderboards/:bucket", async (request, reply) => {
+    const { bucket } = request.params;
+    const period = request.query.period === "week" ? "week" : "all";
+    const limit = parsePositiveInt(request.query.limit, 50, 100);
+    const offset = parsePositiveInt(request.query.offset, 0, 10_000);
+
+    if (!isAllowedLeaderboardBucket(bucket)) {
+      return reply.code(400).send({ error: "invalid bucket" });
+    }
+
+    const params = [bucket];
+    let weekClause = "";
+    if (period === "week") {
+      const weekStart = weekStartMonday(new Date());
+      params.push(weekStart);
+      weekClause = " AND gs.week_start = ?";
+    }
+
+    params.push(limit);
+    params.push(offset);
+
+    const result = await pool.query(
+      `
+        SELECT
+          u.username,
+          gs.score,
+          gs.best_tile,
+          gs.duration_ms,
+          gs.ended_at,
+          gs.id AS session_id,
+          gs.mode_key,
+          gs.board_width,
+          gs.board_height,
+          gs.ruleset,
+          gs.undo_enabled
+        FROM game_sessions gs
+        JOIN users u ON u.id = gs.user_id
+        WHERE gs.ranked_bucket = ?
+          AND gs.status = 'verified'
+          ${weekClause}
+        ORDER BY gs.score DESC, gs.created_at ASC
+        LIMIT ?
+        OFFSET ?
+      `,
+      params
+    );
+
+    return reply.send({
+      bucket,
+      period,
+      limit,
+      offset,
+      items: result.rows.map((row, idx) => ({
+        rank: offset + idx + 1,
+        username: row.username,
+        score: row.score,
+        best_tile: row.best_tile,
+        duration_ms: row.duration_ms,
+        ended_at: row.ended_at,
+        session_id: row.session_id,
+        mode_key: row.mode_key,
+        board_width: row.board_width,
+        board_height: row.board_height,
+        ruleset: row.ruleset,
+        undo_enabled: !!row.undo_enabled
+      }))
+    });
+  });
+}

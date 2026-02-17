@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>2048</title>
+  <title>2048 多玩法</title>
 
   <link href="style/main.css?v=44" rel="stylesheet" type="text/css">
   <link rel="shortcut icon" href="favicon.ico?v=42">
@@ -14,7 +14,7 @@
   <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0, maximum-scale=1, user-scalable=no, minimal-ui">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' http://127.0.0.1:3001 http://localhost:3001; script-src 'self' https://www.google-analytics.com; style-src 'self' 'unsafe-inline';">
 </head>
-<body data-mode-id="standard_4x4_pow2_no_undo">
+<body>
   <div class="container">
     <div class="stats-left">
       <div id="stats-4-rate">4率: 10%</div>
@@ -37,7 +37,7 @@
         <div class="best-container">0</div>
       </div>
       <div class="above-game" style="clear: both; padding-top: 15px;">
-      <p class="game-intro">合并数字，合成 <strong>2048 方块！</strong> 本页为无撤回版。</p>
+      <p class="game-intro" id="play-mode-intro">模式加载中...</p>
       <a class="restart-button">新游戏</a>
       </div>
     </div>
@@ -85,77 +85,42 @@
         <div class="timertile timer-legend-32768" style="color: #f9f6f2; font-size: 13px;">32768</div>
         <div class="timertile" id="timer32768" style="margin-left:6px; width:159px"></div>
         <br><br>
-        <!-- Sub-timers for 32k+ -->
-        <div id="timer32k-sub-container" style="display:none;">
-            <div class="timertile timer-legend-8192" style="color: #f9f6f2; font-size: 12px; margin-left: 25px; width: 40px;">8192</div>
-            <div class="timertile" id="timer8192-sub" style="margin-left:6px; width:134px;"></div>
-            <br><br>
-            <div class="timertile timer-legend-16384" style="color: #f9f6f2; font-size: 12px; margin-left: 25px; width: 40px;">16384</div>
-            <div class="timertile" id="timer16384-sub" style="margin-left:6px; width:134px;"></div>
-        </div>
     </div>
-
-
 
     <div class="game-container">
       <div class="game-message">
         <p></p>
         <div class="lower">
-	        <a class="keep-playing-button">继续游戏</a>
+          <a class="keep-playing-button">继续游戏</a>
           <a class="undo-button" id="undo-btn-gameover">撤销</a>
           <a class="retry-button">重试</a>
         </div>
       </div>
 
-
       <div class="grid-container">
         <div class="grid-row">
-          <div class="grid-cell"></div>
-          <div class="grid-cell"></div>
-          <div class="grid-cell"></div>
-          <div class="grid-cell"></div>
+          <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
         </div>
         <div class="grid-row">
-          <div class="grid-cell"></div>
-          <div class="grid-cell"></div>
-          <div class="grid-cell"></div>
-          <div class="grid-cell"></div>
+          <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
         </div>
         <div class="grid-row">
-          <div class="grid-cell"></div>
-          <div class="grid-cell"></div>
-          <div class="grid-cell"></div>
-          <div class="grid-cell"></div>
+          <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
         </div>
         <div class="grid-row">
-          <div class="grid-cell"></div>
-          <div class="grid-cell"></div>
-          <div class="grid-cell"></div>
-          <div class="grid-cell"></div>
+          <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
         </div>
       </div>
 
-      <div class="tile-container">
-      </div>
+      <div class="tile-container"></div>
     </div>
     <hr>
     <p class="game-explanation">
-      <strong class="important">玩法说明：</strong> 使用 <strong>方向键</strong>、<strong>WASD</strong>、<strong>KHJL</strong> 移动方块。本页不支持撤回，按 <strong>R</strong> 键重开游戏。当两个相同数字的方块接触时，它们会 <strong>合并成一个！
-
+      <strong class="important" id="play-mode-title">多玩法</strong>
     </p>
-    <hr>
-    <p>
-      在线功能：<a href="account.html">账号中心</a> ｜ <a href="leaderboard.html">排行榜</a> ｜ <a href="history.html">历史记录</a>
-    </p>
-    <hr>
-    <p>
-    项目由Gemini基于几个项目整合改版，原作者 <a href="http://gabrielecirulli.com" target="_blank">Gabriele Cirulli.</a> 基于 <a href="https://itunes.apple.com/us/app/1024!/id823499224" target="_blank">Veewo Studio 的 1024</a> 且概念受 <a href="http://asherv.com/threes/" target="_blank">Asher Vollmer 的 Threes</a> 启发。
-    撤销 Mod 由 <a href="http://quaxio.com/">Alok Menghrajani</a> 制作，<a href="https://github.com/alokmenghrajani/2048">源代码</a>。项目改自<a href="https://github.com/alokmenghrajani/2048?tab=readme-ov-file">2048</a>。计时器参考<a href="https://github.com/neiunderscore/2048-timer?tab=readme-ov-file">2048-timer</a>。
-    </p>
-
   </div>
 
-   <div id="replay-modal" class="replay-modal-overlay" style="display: none;">
+  <div id="replay-modal" class="replay-modal-overlay" style="display: none;">
     <div class="replay-modal-content">
       <h3 id="replay-modal-title">回放</h3>
       <textarea id="replay-textarea" class="replay-textarea"></textarea>
@@ -166,7 +131,7 @@
     </div>
   </div>
 
-   <div id="settings-modal" class="replay-modal-overlay" style="display: none;">
+  <div id="settings-modal" class="replay-modal-overlay" style="display: none;">
     <div class="replay-modal-content settings-modal-content">
       <h3>设置</h3>
       <div class="settings-row">
@@ -184,7 +149,6 @@
       <div class="settings-row">
         <label>配色预览（2 - 65536）</label>
         <div id="theme-preview-grid" class="theme-preview-grid"></div>
-        <div class="settings-note">霓虹主题：棋盘动态发光，计时器保持静态霓虹色。</div>
       </div>
       <div class="replay-modal-actions">
         <button id="settings-close-btn" class="replay-button">关闭</button>
@@ -203,8 +167,7 @@
   <script src="js/local_score_manager.js?v=42"></script>
   <script src="js/api_client.js?v=3"></script>
   <script src="js/game_manager.js?v=54"></script>
-  <script src="js/application.js?v=44"></script>
+  <script src="js/play_application.js?v=2"></script>
   <script src="js/index_ui.js?v=45"></script>
-
 </body>
 </html>
