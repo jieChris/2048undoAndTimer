@@ -193,7 +193,7 @@ HTMLActuator.prototype.applyTileStyle = function (wrapper, inner, position, valu
   inner.style.fontSize = fontSize + "px";
 };
 
-HTMLActuator.prototype.addTile = function (tile) {
+HTMLActuator.prototype.addTile = function (tile, isMergedInner) {
   var self = this;
 
   var wrapper = document.createElement("div");
@@ -203,6 +203,10 @@ HTMLActuator.prototype.addTile = function (tile) {
 
   var classes = ["tile", "tile-" + tile.value, positionClass];
   if (tile.value > 2048) classes.push("tile-super");
+
+  if (isMergedInner) {
+    classes.push("tile-tobe-merged");
+  }
 
   this.applyClasses(wrapper, classes);
 
@@ -221,7 +225,7 @@ HTMLActuator.prototype.addTile = function (tile) {
     this.applyClasses(wrapper, classes);
 
     tile.mergedFrom.forEach(function (merged) {
-      self.addTile(merged);
+      self.addTile(merged, true);
     });
   } else {
     classes.push("tile-new");
