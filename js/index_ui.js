@@ -167,9 +167,17 @@ function initThemeSettingsUI() {
               closeDropdown();
           });
 
-          // Interaction: Hover Preview (Temporary)
+          // Interaction: Hover Preview (Scoped)
           option.addEventListener("mouseenter", function() {
-              window.ThemeManager.applyTheme(this.dataset.value);
+              var style = document.getElementById("theme-preview-style");
+              if (!style) {
+                  style = document.createElement("style");
+                  style.id = "theme-preview-style";
+                  document.head.appendChild(style);
+              }
+              if (window.ThemeManager.getPreviewCss) {
+                  style.textContent = window.ThemeManager.getPreviewCss(this.dataset.value);
+              }
           });
 
           customOptionsContainer.appendChild(option);
@@ -191,7 +199,6 @@ function initThemeSettingsUI() {
           // Scroll to selected
           var selectedParams = customOptionsContainer.querySelector(".custom-option.selected");
           if (selectedParams) {
-              // Simple scroll helper
                customOptionsContainer.scrollTop = selectedParams.offsetTop - customOptionsContainer.offsetTop;
           }
       }
@@ -199,11 +206,9 @@ function initThemeSettingsUI() {
 
   function closeDropdown() {
       customSelect.classList.remove("open");
-      // Revert to confirmed theme when closing (e.g. clicked outside or toggled off without selection)
-      // Only necessary if current theme is different (i.e. we were hovering)
-      if (window.ThemeManager.getCurrentTheme() !== confirmedTheme) {
-           window.ThemeManager.applyTheme(confirmedTheme);
-      }
+      // Clear preview style
+      var style = document.getElementById("theme-preview-style");
+      if (style) style.textContent = "";
   }
 
   // Bind Trigger
@@ -225,11 +230,9 @@ function initThemeSettingsUI() {
   // Revert when mouse leaves the options/dropdown area
   if (!customSelect.__mouseleaveBound) {
       customSelect.addEventListener("mouseleave", function() {
-          // If dropdown is open and we leave the area, should we revert? 
-          // User requested "hover on color scheme... right side preview corresponds".
-          // Standard pattern: If mouse leaves the list, revert to confirmed.
           if (customSelect.classList.contains("open")) {
-               window.ThemeManager.applyTheme(confirmedTheme);
+               var style = document.getElementById("theme-preview-style");
+               if (style) style.textContent = "";
           }
       });
       customSelect.__mouseleaveBound = true;

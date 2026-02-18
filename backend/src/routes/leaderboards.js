@@ -1,6 +1,6 @@
 import { pool } from "../db.js";
 import { weekStartMonday } from "../utils/week.js";
-import { isAllowedLeaderboardBucket } from "../modes/catalog.js";
+import { getModeByKey, isAllowedLeaderboardBucket } from "../modes/catalog.js";
 
 function parsePositiveInt(value, fallback, max) {
   const n = Number.parseInt(value, 10);
@@ -16,11 +16,34 @@ export async function leaderboardRoutes(fastify) {
     const limit = parsePositiveInt(request.query.limit, 50, 100);
     const offset = parsePositiveInt(request.query.offset, 0, 10_000);
 
-    if (!isAllowedLeaderboardBucket(bucket)) {
-      return reply.code(400).send({ error: "invalid bucket" });
+    // Backward compatible:
+    // 1) legacy bucket: standard/classic_undo/capped
+    // 2) mode key: any no-undo mode, each mode has its own ranking list
+    let scopeType = null;
+    let modeCfg = null;
+    if (isAllowedLeaderboardBucket(bucket)) {
+      scopeType = "bucket";
+    } else {
+      modeCfg = getModeByKey(bucket);
+      if (modeCfg && modeCfg.undo_enabled === false) {
+        scopeType = "mode_key";
+      }
     }
 
-    const params = [bucket];
+    if (!scopeType) {
+      return reply.code(400).send({ error: "invalid_bucket_or_mode_key" });
+    }
+
+    const params = [];
+    let scopeClause = "";
+    if (scopeType === "mode_key") {
+      params.push(modeCfg.key);
+      scopeClause = "gs.mode_key = ?";
+    } else {
+      params.push(bucket);
+      scopeClause = "gs.ranked_bucket = ?";
+    }
+
     let weekClause = "";
     if (period === "week") {
       const weekStart = weekStartMonday(new Date());
@@ -50,7 +73,7 @@ export async function leaderboardRoutes(fastify) {
           gs.challenge_id
         FROM game_sessions gs
         JOIN users u ON u.id = gs.user_id
-        WHERE gs.ranked_bucket = ?
+        WHERE ${scopeClause}
           AND gs.status = 'verified'
           ${weekClause}
         ORDER BY gs.score DESC, gs.created_at ASC
@@ -62,6 +85,9 @@ export async function leaderboardRoutes(fastify) {
 
     return reply.send({
       bucket,
+      scope_type: scopeType,
+      mode_key: modeCfg ? modeCfg.key : null,
+      mode_label: modeCfg ? modeCfg.label : null,
       period,
       limit,
       offset,

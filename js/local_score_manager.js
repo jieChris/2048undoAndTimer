@@ -19,10 +19,16 @@ window.fakeStorage = {
 };
 
 function LocalScoreManager() {
-  this.key     = "bestScore";
+  this.keyPrefix = "bestScoreByMode:";
+  this.fallbackKey = "bestScore";
+  this.modeKey = null;
 
   var supported = this.localStorageSupported();
   this.storage = supported ? window.localStorage : window.fakeStorage;
+
+  if (typeof document !== "undefined" && document.body) {
+    this.setModeKey(document.body.getAttribute("data-mode-id"));
+  }
 }
 
 LocalScoreManager.prototype.localStorageSupported = function () {
@@ -39,10 +45,22 @@ LocalScoreManager.prototype.localStorageSupported = function () {
 };
 
 LocalScoreManager.prototype.get = function () {
-  return this.storage.getItem(this.key) || 0;
+  return this.storage.getItem(this.getKey()) || 0;
 };
 
 LocalScoreManager.prototype.set = function (score) {
-  this.storage.setItem(this.key, score);
+  this.storage.setItem(this.getKey(), score);
 };
 
+LocalScoreManager.prototype.setModeKey = function (modeKey) {
+  if (typeof modeKey === "string" && modeKey.trim()) {
+    this.modeKey = modeKey.trim();
+  } else {
+    this.modeKey = "standard_4x4_pow2_no_undo";
+  }
+};
+
+LocalScoreManager.prototype.getKey = function () {
+  if (!this.modeKey) return this.fallbackKey;
+  return this.keyPrefix + this.modeKey;
+};

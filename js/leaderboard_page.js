@@ -44,6 +44,37 @@
     }
   }
 
+  function buildModeOptions() {
+    var select = el("leaderboard-mode");
+    if (!select) return;
+
+    var modes = [];
+    if (window.ModeCatalog && typeof window.ModeCatalog.listModes === "function") {
+      modes = window.ModeCatalog.listModes();
+    }
+
+    var noUndoModes = [];
+    for (var i = 0; i < modes.length; i++) {
+      var mode = modes[i];
+      if (!mode || !mode.key) continue;
+      if (mode.undo_enabled) continue;
+      noUndoModes.push(mode);
+    }
+
+    if (!noUndoModes.length) {
+      select.innerHTML = "<option value='standard_4x4_pow2_no_undo'>标准版 4x4（无撤回）</option>";
+      return;
+    }
+
+    select.innerHTML = "";
+    for (var j = 0; j < noUndoModes.length; j++) {
+      var option = document.createElement("option");
+      option.value = noUndoModes[j].key;
+      option.textContent = noUndoModes[j].label || noUndoModes[j].key;
+      select.appendChild(option);
+    }
+  }
+
   async function loadLeaderboard() {
     var bucket = el("leaderboard-mode").value;
     var period = el("leaderboard-period").value;
@@ -60,6 +91,7 @@
 
   document.addEventListener("DOMContentLoaded", function () {
     if (!window.ApiClient) return;
+    buildModeOptions();
     el("leaderboard-refresh-btn").addEventListener("click", loadLeaderboard);
     el("leaderboard-mode").addEventListener("change", loadLeaderboard);
     el("leaderboard-period").addEventListener("change", loadLeaderboard);

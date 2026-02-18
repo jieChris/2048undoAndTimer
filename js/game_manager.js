@@ -440,6 +440,9 @@ GameManager.prototype.applyModeConfig = function (modeConfig) {
   this.specialRules = this.normalizeSpecialRules(cfg.special_rules);
   this.rankPolicy = cfg.rank_policy || (this.rankedBucket !== "none" ? "ranked" : "unranked");
   this.applySpecialRulesState();
+  if (this.scoreManager && typeof this.scoreManager.setModeKey === "function") {
+    this.scoreManager.setModeKey(cfg.key);
+  }
   if (typeof document !== "undefined" && document.body) {
     document.body.setAttribute("data-mode-id", cfg.key);
     document.body.setAttribute("data-ruleset", cfg.ruleset);

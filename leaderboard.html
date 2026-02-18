@@ -21,11 +21,9 @@
 
     <div class="portal-card">
       <div class="portal-actions-inline">
-        <label>模式</label>
+        <label>模式（无撤回）</label>
         <select id="leaderboard-mode" class="settings-select portal-inline-select">
-          <option value="standard">标准版（无撤回）</option>
-          <option value="classic_undo">经典版（可撤回）</option>
-          <option value="capped">封顶版（2048）</option>
+          <option value="standard_4x4_pow2_no_undo">标准版 4x4（无撤回）</option>
         </select>
 
         <label>周期</label>
@@ -58,7 +56,8 @@
   </div>
 
   <script src="js/theme_manager.js?v=4"></script>
+  <script src="js/mode_catalog.js?v=3"></script>
   <script src="js/api_client.js?v=4"></script>
-  <script src="js/leaderboard_page.js?v=3"></script>
+  <script src="js/leaderboard_page.js?v=4"></script>
 </body>
 </html>

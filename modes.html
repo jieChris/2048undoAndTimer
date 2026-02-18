@@ -29,11 +29,19 @@
       margin: 0 0 18px;
       color: #8a8178;
     }
+    .mode-major-title {
+      margin: 20px 0 10px;
+      color: #5f544a;
+      font-weight: bold;
+      font-size: 19px;
+      border-left: 4px solid #8f7a66;
+      padding-left: 10px;
+    }
     .mode-group-title {
-      margin: 18px 0 10px;
+      margin: 14px 0 10px;
       color: #776e65;
       font-weight: bold;
-      font-size: 16px;
+      font-size: 15px;
     }
     .mode-hub-actions {
       display: flex;
@@ -68,73 +76,95 @@
       <h2>选择你要进入的模式</h2>
       <p>排行榜主桶仅统计：标准无撤回、经典可撤回、封顶2048。其余模式默认仅进历史与回放，不进主榜。</p>
 
-      <div class="mode-group-title">可进榜模式（三桶）</div>
+      <div class="mode-major-title">可撤回模式</div>
+
+      <div class="mode-group-title">主榜/核心</div>
       <div class="mode-hub-actions">
-        <a class="mode-hub-btn" href="index.html">标准版 4x4（无撤回）</a>
         <a class="mode-hub-btn" href="undo_2048.html">经典版 4x4（可撤回）</a>
-        <a class="mode-hub-btn" href="capped_2048.html">封顶版 4x4（2048 无撤回）</a>
       </div>
 
-      <div class="mode-group-title">Phase 1 - 尺寸扩展（2幂，默认不进榜）</div>
+      <div class="mode-group-title">2幂 - 尺寸扩展</div>
       <div class="mode-hub-actions">
-        <a class="mode-hub-btn" href="play.html?mode_key=board_3x3_pow2_undo">3x3（可撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=board_3x3_pow2_no_undo">3x3（无撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=board_3x4_pow2_undo">4x3（可撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=board_3x4_pow2_no_undo">4x3（无撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=board_2x4_pow2_undo">4x2（可撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=board_2x4_pow2_no_undo">4x2（无撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=board_5x5_pow2_undo">5x5（可撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=board_5x5_pow2_no_undo">5x5（无撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=board_6x6_pow2_undo">6x6（可撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=board_6x6_pow2_no_undo">6x6（无撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=board_7x7_pow2_undo">7x7（可撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=board_7x7_pow2_no_undo">7x7（无撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=board_8x8_pow2_undo">8x8（可撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=board_8x8_pow2_no_undo">8x8（无撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=board_9x9_pow2_undo">9x9（可撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=board_9x9_pow2_no_undo">9x9（无撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=board_10x10_pow2_undo">10x10（可撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=board_10x10_pow2_no_undo">10x10（无撤回）</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=board_3x3_pow2_undo">3x3</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=board_3x4_pow2_undo">4x3</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=board_2x4_pow2_undo">4x2</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=board_5x5_pow2_undo">5x5</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=board_6x6_pow2_undo">6x6</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=board_7x7_pow2_undo">7x7</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=board_8x8_pow2_undo">8x8</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=board_9x9_pow2_undo">9x9</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=board_10x10_pow2_undo">10x10</a>
       </div>
 
-      <div class="mode-group-title">Phase 1 - Fibonacci 扩展（默认不进榜）</div>
+      <div class="mode-group-title">Fibonacci</div>
       <div class="mode-hub-actions">
-        <a class="mode-hub-btn" href="play.html?mode_key=fib_4x4_undo">Fibonacci 4x4（可撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=fib_4x4_no_undo">Fibonacci 4x4（无撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=fib_3x3_undo">Fibonacci 3x3（可撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=fib_3x3_no_undo">Fibonacci 3x3（无撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=fib_4x3_undo">Fibonacci 4x3（可撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=fib_4x3_no_undo">Fibonacci 4x3（无撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=fib_4x2_undo">Fibonacci 4x2（可撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=fib_4x2_no_undo">Fibonacci 4x2（无撤回）</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=fib_4x4_undo">Fibonacci 4x4</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=fib_3x3_undo">Fibonacci 3x3</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=fib_4x3_undo">Fibonacci 4x3</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=fib_4x2_undo">Fibonacci 4x2</a>
       </div>
 
-      <div class="mode-group-title">Phase 1 - 封顶与概率变种（默认不进榜）</div>
+      <div class="mode-group-title">概率变种</div>
       <div class="mode-hub-actions">
-        <a class="mode-hub-btn" href="play.html?mode_key=capped_4x4_pow2_1024_no_undo">封顶 1024（无撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=capped_4x4_pow2_4096_no_undo">封顶 4096（无撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=spawn95_4x4_pow2_undo">4x4 概率95/5（可撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=spawn95_4x4_pow2_no_undo">4x4 概率95/5（无撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=spawn80_4x4_pow2_undo">4x4 概率80/20（可撤回）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=spawn80_4x4_pow2_no_undo">4x4 概率80/20（无撤回）</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=spawn95_4x4_pow2_undo">4x4 概率95/5</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=spawn80_4x4_pow2_undo">4x4 概率80/20</a>
       </div>
 
-      <div class="mode-group-title">Phase 2 - 规则实验（默认不进榜）</div>
+      <div class="mode-group-title">规则实验</div>
       <div class="mode-hub-actions">
         <a class="mode-hub-btn" href="play.html?mode_key=limit3_4x4_pow2_undo">限次撤回（3次）</a>
         <a class="mode-hub-btn" href="play.html?mode_key=limit5_4x4_pow2_undo">限次撤回（5次）</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=combo_4x4_pow2_undo">连击加分模式</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=dirlock5_4x4_pow2_no_undo">方向锁模式</a>
-        <a class="mode-hub-btn" href="play.html?mode_key=obstacle_4x4_pow2_no_undo">障碍块模式</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=combo_4x4_pow2_undo">连击加分</a>
       </div>
 
-      <div class="mode-group-title">Phase 3 - 每日挑战</div>
+      <div class="mode-major-title">不可撤回模式</div>
+
+      <div class="mode-group-title">主榜/核心</div>
+      <div class="mode-hub-actions">
+        <a class="mode-hub-btn" href="index.html">标准版 4x4（无撤回）</a>
+        <a class="mode-hub-btn" href="capped_2048.html">封顶版 4x4（2048）</a>
+      </div>
+
+      <div class="mode-group-title">2幂 - 尺寸扩展</div>
+      <div class="mode-hub-actions">
+        <a class="mode-hub-btn" href="play.html?mode_key=board_3x3_pow2_no_undo">3x3</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=board_3x4_pow2_no_undo">4x3</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=board_2x4_pow2_no_undo">4x2</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=board_5x5_pow2_no_undo">5x5</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=board_6x6_pow2_no_undo">6x6</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=board_7x7_pow2_no_undo">7x7</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=board_8x8_pow2_no_undo">8x8</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=board_9x9_pow2_no_undo">9x9</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=board_10x10_pow2_no_undo">10x10</a>
+      </div>
+
+      <div class="mode-group-title">Fibonacci</div>
+      <div class="mode-hub-actions">
+        <a class="mode-hub-btn" href="play.html?mode_key=fib_4x4_no_undo">Fibonacci 4x4</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=fib_3x3_no_undo">Fibonacci 3x3</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=fib_4x3_no_undo">Fibonacci 4x3</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=fib_4x2_no_undo">Fibonacci 4x2</a>
+      </div>
+
+      <div class="mode-group-title">封顶/概率/规则实验</div>
+      <div class="mode-hub-actions">
+        <a class="mode-hub-btn" href="play.html?mode_key=capped_4x4_pow2_1024_no_undo">封顶 1024</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=capped_4x4_pow2_4096_no_undo">封顶 4096</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=spawn95_4x4_pow2_no_undo">4x4 概率95/5</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=spawn80_4x4_pow2_no_undo">4x4 概率80/20</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=dirlock5_4x4_pow2_no_undo">方向锁</a>
+        <a class="mode-hub-btn" href="play.html?mode_key=obstacle_4x4_pow2_no_undo">障碍块</a>
+      </div>
+
+      <div class="mode-major-title">特殊入口</div>
+
+      <div class="mode-group-title">挑战</div>
       <div class="mode-hub-actions">
         <a class="mode-hub-btn" id="daily-challenge-btn" href="#">进入今日挑战</a>
       </div>
       <div id="daily-challenge-status" style="color:#8a8178; margin-bottom: 10px;"></div>
 
-      <div class="mode-group-title">其他入口</div>
+      <div class="mode-group-title">其他页面</div>
       <div class="mode-hub-actions">
         <a class="mode-hub-btn" href="Practice_board.html">练习板（Legacy）</a>
         <a class="mode-hub-btn" href="leaderboard.html">排行榜</a>

@@ -90,10 +90,8 @@
       blackTiles: !!config.blackTiles,
       flashy: !!config.flashy,
       flashy: !!config.flashy,
-      flashy: !!config.flashy,
       cyberpunk: !!config.cyberpunk,
       cyberpunk: !!config.cyberpunk,
-      retro: !!config.retro,
       retro: !!config.retro,
       glass: !!config.glass,
       space: !!config.space,
@@ -104,6 +102,7 @@
       bauhaus: !!config.bauhaus,
       nordic: !!config.nordic,
       luxury: !!config.luxury,
+      horse_year: !!config.horse_year,
       timer: config.timer
     };
   }
@@ -825,6 +824,29 @@
         buttonHoverBg: "#262626",
         buttonHoverText: "#f2d378"
       }
+    }),
+    horse_year: makeTheme("horse_year", "农历马年 (Year of Horse)", [
+      "#fffaf4", "#ffe0b2", "#ffcc80", "#ffa726",
+      "#ff9800", "#f44336", "#d32f2f", "#b71c1c",
+      "#880e4f", "#5e0d16", "#ffd700", "#ffca28",
+      "#e65100", "#bf360c", "#3e2723", "#000000"
+    ], {
+      lightTextFrom: 4,
+      gradient: true,
+      neon: false,
+      horse_year: true,
+      timer: {
+        panelBg: "#5e0d16",
+        panelText: "#ffd700",
+        panelLabel: "#ffcc80",
+        cellBg: "#7a0c1e",
+        cellText: "#ffd700",
+        cellShadow: "inset 0 0 5px rgba(0,0,0,0.5), 0 0 0 1px #b71c1c",
+        buttonBg: "#b71c1c",
+        buttonText: "#ffd700",
+        buttonHoverBg: "#d32f2f",
+        buttonHoverText: "#fff"
+      }
     })
   };
 
@@ -1533,37 +1555,45 @@
        css += "h1.title { color: #3e2723 !important; text-shadow: 1px 1px 0 #d7ccc8; }\n";
        css += ".score-container, .best-container { background: #5d4037 !important; color: #fff8e1 !important; border-radius: 6px !important; box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important; }\n";
        css += ".score-container:after, .best-container:after { color: #d7ccc8 !important; }\n";
-       
-       css += ".restart-button, .game-message a { background: #6d4c41 !important; color: #fff !important; border-radius: 6px !important; box-shadow: 0 3px 0 #3e2723 !important; border: none; }\n";
        css += ".restart-button:hover, .game-message a:hover { background: #795548 !important; transform: translateY(2px); box-shadow: 0 1px 0 #3e2723 !important; }\n";
        css += ".top-action-btn { background: #efebe9 !important; color: #3e2723 !important; border: 1px solid #a1887f !important; border-radius: 6px !important; }\n";
     }
+    
+    css += pageCss(theme);
+
     if (theme.horse_year) {
-       css += "html, body { background: #801313 !important; color: #ffd700 !important; font-family: 'KaiTi', 'STKaiti', 'Microsoft YaHei', serif !important; }\n";
-       // Traditional Pattern Background
-       css += "body:before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: radial-gradient(#b71c1c 15%, transparent 16%), radial-gradient(#b71c1c 15%, transparent 16%); background-size: 60px 60px; background-position: 0 0, 30px 30px; opacity: 0.2; z-index: -1; }\n";
-       css += "body:after { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, transparent 100%); pointer-events: none; z-index: -1; }\n";
+       // --- Assets (Base64 SVGs) ---
+       var cloudPattern = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0yMCAzMGMtNS41IDAtMTAuNS00LjUtMTAuNS0xMFMyMCAxNSAyMCAxNXQxMC41IDUuNVMzMi41IDMwIDIwIDMweiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDRhZjM3IiBzdHJva2Utb3BhY2l0eT0iMC4xIiBzdHJva2Utd2lkdGg9IjEiLz4KPC9zdmc+";
        
-       css += ".game-container { background: #5c0000 !important; border: 4px solid #ffd700; border-radius: 8px !important; box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.5) !important; }\n";
-       css += ".grid-cell { background: #3e0000 !important; border: 1px solid #801313; border-radius: 4px !important; box-shadow: inset 0 0 5px rgba(0,0,0,0.5) !important; }\n";
+       // Global Fonts & Background
+       css += "html, body { background: radial-gradient(circle at 50% 30%, #a71e32, #7a0c1e) !important; color: #f2d378 !important; font-family: 'KaiTi', 'STKaiti', 'Microsoft YaHei', serif !important; }\n";
+       css += "body:before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url('" + cloudPattern + "'); opacity: 0.3; z-index: -1; }\n";
        
-       css += ".tile .tile-inner, .theme-preview-tile { border-radius: 4px !important; font-family: 'KaiTi', 'STKaiti', serif !important; font-weight: bold; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important; }\n";
-       
-       // Specific tile overrides if needed, but the palette handles most
-       css += ".tile-2048 .tile-inner, .theme-preview-tile.theme-color-2048 { background: linear-gradient(135deg, #ffd700, #ffca28) !important; color: #3e2723 !important; border: 2px solid #fff !important; box-shadow: 0 0 15px #ffd700 !important; text-shadow: none !important; }\n";
-       
-       css += "h1.title { color: #ffd700 !important; text-shadow: 2px 2px 0 #3e0000; font-weight: normal; letter-spacing: 4px; }\n";
+       // Decorate Title
+       css += "h1.title { color: #f2d378 !important; text-shadow: 0 2px 4px rgba(0,0,0,0.5); font-weight: normal; letter-spacing: 4px; }\n";
        css += "p, .game-intro, .game-explanation { color: #ffcc80 !important; }\n";
-       css += ".score-container, .best-container { background: #5c0000 !important; color: #ffd700 !important; border: 2px solid #b71c1c; border-radius: 6px !important; box-shadow: 0 4px 0 #3e0000 !important; }\n";
+
+       // Game Container (Sandalwood / Dark Red)
+       css += ".game-container { background: #5e0d16 !important; border: 4px solid #d4af37; border-radius: 8px !important; box-shadow: 0 10px 40px rgba(0,0,0,0.6), inset 0 0 30px rgba(0,0,0,0.6) !important; }\n";
+       css += ".grid-cell { background: #3e080f !important; border: 1px solid #7a0c1e; border-radius: 4px !important; box-shadow: inset 0 0 10px rgba(0,0,0,0.5) !important; border: none !important; }\n";
+
+       // UI Elements
+       css += ".score-container, .best-container { background: #5e0d16 !important; color: #f2d378 !important; border: 2px solid #d4af37; border-radius: 6px !important; box-shadow: 0 4px 10px rgba(0,0,0,0.4) !important; }\n";
        css += ".score-container:after, .best-container:after { color: #ffab91 !important; }\n";
        
-       css += ".restart-button, .game-message a { background: #b71c1c !important; color: #ffd700 !important; border: 2px solid #ffd700 !important; border-radius: 20px !important; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important; }\n";
+       css += ".restart-button, .game-message a { background: #b71c1c !important; color: #f2d378 !important; border: 2px solid #f2d378 !important; border-radius: 20px !important; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important; background-image: linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(0,0,0,0.1)); }\n";
        css += ".restart-button:hover, .game-message a:hover { background: #d32f2f !important; transform: scale(1.05); }\n";
-       css += ".top-action-btn { background: #5c0000 !important; color: #ffd700 !important; border: 1px solid #b71c1c !important; }\n";
+       css += ".top-action-btn { background: #5e0d16 !important; color: #f2d378 !important; border: 1px solid #b71c1c !important; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }\n";
     }
-    css += pageCss(theme);
-    css += tileCssForValues(theme, POW2_TILE_VALUES, "body:not([data-ruleset=\"fibonacci\"])");
-    css += tileCssForValues(theme, FIB_TILE_VALUES, "body[data-ruleset=\"fibonacci\"]");
+    
+    if (theme.horse_year) {
+         css += horseYearTileCss(theme, POW2_TILE_VALUES, "html[data-theme='horse_year']");
+         css += horseYearTileCss(theme, FIB_TILE_VALUES, "html[data-theme='horse_year']");
+    } else {
+         css += tileCssForValues(theme, POW2_TILE_VALUES, "body:not([data-ruleset=\"fibonacci\"])");
+         css += tileCssForValues(theme, FIB_TILE_VALUES, "body[data-ruleset=\"fibonacci\"]");
+    }
+    
     css += timerCss(theme);
     css += legendCss(theme);
     return css;
@@ -1618,7 +1648,121 @@
     return list;
   }
 
+  function getPreviewCss(themeId) {
+    var theme = themes[themeId];
+    if (!theme) return "";
+    var css = "";
+    var t = getUiTokens(theme);
+
+    // Default container style for preview
+    css += "#theme-preview-grid { background: " + t.gameBg + " !important; box-shadow: " + t.shadow + "; border: 1px solid " + t.border + "; }\n";
+    
+    // Theme-specific container overrides
+    // Theme-specific container overrides
+    if (theme.horse_year) {
+         css += "#theme-preview-grid { background: #5e0d16 !important; border: 2px solid #d4af37; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); }\n";
+         // Add background pattern to preview
+         var cloudPattern = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0yMCAzMGMtNS41IDAtMTAuNS00LjUtMTAuNS0xMFMyMCAxNSAyMCAxNXQxMC41IDUuNVMzMi41IDMwIDIwIDMweiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDRhZjM3IiBzdHJva2Utb3BhY2l0eT0iMC4xIiBzdHJva2Utd2lkdGg9IjEiLz4KPC9zdmc+";
+         css += "#theme-preview-grid { background-image: url('" + cloudPattern + "'); }\n";
+    }
+    if (theme.neon) {
+       // Neon container effect override
+       css += "#theme-preview-grid { box-shadow: 0 0 0 1px " + rgba(t.border, 0.6) + ",0 0 18px " + rgba(colorForIndex(theme, 0, theme.colors.length), 0.22) + ",0 10px 28px rgba(6,8,18,0.52); } \n";
+    }
+
+    // Tiles
+    if (theme.horse_year) {
+         css += horseYearTileCss(theme, POW2_TILE_VALUES, "#theme-preview-grid");
+         css += horseYearTileCss(theme, FIB_PREVIEW_VALUES, "#theme-preview-grid");
+    } else {
+         css += tileCssForValues(theme, POW2_TILE_VALUES, "#theme-preview-grid");
+         css += tileCssForValues(theme, FIB_PREVIEW_VALUES, "#theme-preview-grid");
+    }
+
+    return css;
+  }
+  
+  function horseYearTileCss(theme, values, scopeSelector) {
+      var css = "";
+      // Assets
+      var horseIcon = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzViMTAwZSI+PHBhdGggZD0iTTE4LCAzIEMxNi41LCAzLCAxNS41LCAzLjUsIDE0LjUsIDQgQzEzLjUsIDQuNSwgMTIuNSwgNSwgMTEuNSwgNSBDMTAuNSwgNSwgOS41LCA0LjUsIDguNSwgNCBDNy41LCAzLjUsIDYuNSwgMywgNSwgMyBMNSwgNSBDNiwgNSwgNywgNS41LCA4LCA2IEM5LCA2LjUsIDEwLCA3LCAxMSw3IEMxMiw3LCAxMywgNi41LCAxNCwgNiBDMTUsIDUuNSwgMTYsIDUsIDE3LCA1IEwxOCwgMyBaIE02LCA4IEM1LCA4LCA0LCA4LjUsIDMsIDkgQzIsIDkuNSwgMSwgMTAsIDAsIDEwIEwwLCAxMiBDMSwgMTIsIDIsIDExLjUsIDMsIDExIEM0LCAxMC41LCA1LCAxMCwgNiwgMTAgQzcsIDEwLCA4LCAxMC41LCA5LCAxMSBDMTAsIDExLjUsIDExLCAxMiwgMTIsIDEyIEwxMiwgMTAgQzExLCAxMCwgMTAsIDkuNSwgOSwgOSBDOCwgOC41LCA3LCA4LCA2LCA4IFogTTIwLCAxMiBDMTksIDEyLCAxOCwgMTIuNSwgMTcsIDEzIEMxNiwgMTMuNSwgMTUsIDE0LCAxNCwgMTQgQzEzLCAxNCwgMTIsIDEzLjUsIDExLCAxMyBDMTAsIDEyLjUsIDksIDEyLCA4LCAxMiBMOCwgMTQgQzksIDE0LCAxMCwgMTQuNSwgMTEsIDE1IEMxMiwgMTUuNSwgMTMsIDE2LCAxNCwgMTYgQzE1LCAxNiwgMTYsIDE1LjUsIDE3LCAxNSBDMTgsIDE0LjUsIDE5LCAxNCwgMjAsIDE0IEwyMCwgMTIgWiIvPjwvc3ZnPg==";
+      var fuWatermark = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48dGV4dCB4PSI1MCUiIHk9IjUwJSIgZm9udC1mYW1pbHk9IkthaVRpIiBmb250LXNpemU9IjI1IiBmaWxsPSJyZ2JhKDE2NywzMCw1MCwwLjA4KSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdHJhbnNmb3JtPSJyb3RhdGUoLTE1IDIwIDIwKSI+56aPPC90ZXh0Pjwvc3ZnPg==";
+
+      for (var i = 0; i < values.length; i++) {
+        var val = values[i];
+        var base = colorForIndex(theme, i, values.length);
+        var text = tileTextColor(i, theme.lightTextFrom);
+        
+        // Base selector construction
+        var tileSelector = scopeSelector ? (scopeSelector + " .tile.tile-" + val + " .tile-inner") : (".tile.tile-" + val + " .tile-inner");
+        var previewSelector = scopeSelector ? (scopeSelector + " .theme-preview-tile.theme-color-" + val) : (".theme-preview-tile.theme-color-" + val);
+        
+        var combinedSelector = tileSelector + "," + previewSelector;
+
+        css += combinedSelector + " { ";
+        css += "color: " + text + " !important;";
+        css += "border-radius: 4px !important;";
+        css += "font-family: 'KaiTi', 'STKaiti', serif !important;";
+        css += "font-weight: bold;";
+        css += "box-shadow: 0 4px 8px rgba(0,0,0,0.3) !important;";
+
+        // Special handling based on value
+        if (val <= 16) {
+            // Low values: Paper style with Watermark
+            // IMPT: Use background-color AND background-image separately to avoid shorthand overrides
+            // Increased opacity to 0.15 for better visibility
+            var visibleWatermark = fuWatermark.replace("0.08", "0.15");
+            
+            css += "background-color: #fffaf4 !important;";
+            css += "color: #b71c1c !important;"; 
+            css += "background-image: url('" + visibleWatermark + "') !important;";
+            css += "background-repeat: no-repeat !important;";
+            css += "background-position: center !important;";
+            css += "background-size: 80% !important;";
+            css += "border: 1px solid rgba(0,0,0,0.1) !important;";
+        } else if (val === 2048) {
+            // 2048: Golden Horse
+            css += "background: linear-gradient(135deg, #ffd700, #ffca28) !important;"; 
+            css += "color: #5e0d16 !important;";
+            css += "border: 2px solid #fff !important;";
+            css += "box-shadow: 0 0 25px rgba(255, 215, 0, 0.6) !important;";
+            css += "text-shadow: none !important;";
+            css += "position: relative;";
+            css += "z-index: 0;"; // Create stacking context
+        } else {
+            // Mid/High values: Standard color with gradient
+            css += "background-color: " + base + " !important;";
+             if (val >= 128) {
+                css += "border: 1px solid rgba(255,215,0, 0.3) !important;";
+             } else {
+                css += "border: 1px solid rgba(0,0,0,0.1) !important;";
+             }
+        }
+        css += "}\n"; // End of main block
+
+        // 2048 Pseudo-element for icon (needs separate rule block)
+        if (val === 2048) {
+            var afterSelector = scopeSelector ? (scopeSelector + " .tile.tile-" + val + " .tile-inner::after") : (".tile.tile-" + val + " .tile-inner::after");
+            var previewAfterSelector = scopeSelector ? (scopeSelector + " .theme-preview-tile.theme-color-" + val + "::after") : (".theme-preview-tile.theme-color-" + val + "::after");
+            
+            css += afterSelector + "," + previewAfterSelector + " { ";
+            css += "content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;";
+            css += "background-image: url('" + horseIcon + "');";
+            css += "background-repeat: no-repeat; background-position: center; background-size: 80%;";
+            css += "opacity: 0.8; z-index: -1; pointer-events: none;";
+            css += "}\n";
+            
+            // z-index adjustment for text not needed if we rely on stacking context of parent
+            // But to be safe, treat children (text) as higher
+            css += combinedSelector + " > * { position: relative; z-index: 2; }\n";
+        }
+      }
+      return css;
+  }
+
+
   window.ThemeManager = {
+    getPreviewCss: getPreviewCss,
     getThemes: getThemes,
     getTileValues: function (ruleset) {
       if (ruleset === "fibonacci") return FIB_PREVIEW_VALUES.slice();
