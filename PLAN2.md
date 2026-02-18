@@ -22,7 +22,7 @@
 2. `3x4`（有撤回/无撤回）
 3. `2x4`（有撤回/无撤回）
 4. `4x4 Fibonacci`（有撤回/无撤回）
-4. 排行榜只保留三类统计，不显示其他模式榜单。
+4. 排行榜只保留三类统计，不显示其他模式榜单。https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/AdminJ/.vscode/extensions/openai.chatgpt-0.4.74-win32-x64/webview/#
 5. 历史记录保留所有模式（包括不进榜模式）。
 
 ### 二期交付范围（明确排期）

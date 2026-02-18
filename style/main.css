@@ -171,6 +171,106 @@ h1.title {
   margin-bottom: 45px;
 }
 
+#timerbox.timerbox-leaderboard-mode > :not(.timerbox-leaderboard-panel) {
+  display: none !important;
+}
+
+.timerbox-leaderboard-panel {
+  display: none;
+  width: 250px;
+  min-height: 520px;
+}
+
+#timerbox.timerbox-leaderboard-mode .timerbox-leaderboard-panel {
+  display: block;
+}
+
+.timerbox-leaderboard-header {
+  background: #bbada0;
+  color: #f9f6f2;
+  border-radius: 3px;
+  margin-top: 8px;
+  margin-left: 15px;
+  width: 235px;
+  padding: 10px 6px;
+  box-sizing: border-box;
+}
+
+.timerbox-leaderboard-title {
+  font-size: 32px;
+  line-height: 1;
+  font-weight: bold;
+}
+
+.timerbox-leaderboard-list {
+  margin-top: 10px;
+}
+
+.timerbox-leaderboard-row {
+  margin-left: 15px;
+  width: 235px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.timerbox-leaderboard-rank {
+  width: 42px;
+  height: 42px;
+  line-height: 42px;
+  border-radius: 3px;
+  background: #000;
+  color: #fff;
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.timerbox-leaderboard-rank.timerbox-leaderboard-rank-top1 {
+  background: #d9b300;
+}
+
+.timerbox-leaderboard-rank.timerbox-leaderboard-rank-top2 {
+  background: #c9c4ac;
+}
+
+.timerbox-leaderboard-rank.timerbox-leaderboard-rank-top3 {
+  background: #ba8a00;
+}
+
+.timerbox-leaderboard-entry {
+  margin-left: 6px;
+  width: 187px;
+  height: 42px;
+  line-height: 42px;
+  background: #ddd6cc;
+  color: #635c56;
+  border-radius: 3px;
+  font-weight: bold;
+  font-size: 16px;
+  text-align: left;
+  padding: 0 10px;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.timerbox-leaderboard-row.is-self .timerbox-leaderboard-entry {
+  color: #ff00ff;
+}
+
+.timerbox-leaderboard-empty {
+  margin-left: 15px;
+  width: 235px;
+  padding: 12px 8px;
+  box-sizing: border-box;
+  border-radius: 3px;
+  background: #ddd6cc;
+  color: #635c56;
+  font-size: 14px;
+  text-align: center;
+}
+
 .timertile {
   box-shadow: 0 0 30px 10px rgba(243, 215, 116, 0), inset 0 0 0 1px rgba(255, 255, 255, 0);
   border-radius: 3px;

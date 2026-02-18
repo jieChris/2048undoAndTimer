@@ -978,6 +978,15 @@
     css += ".replay-modal-content,.portal-card,.history-item,.mode-hub,.replay-controls-panel{background:" + t.surface + ";border-color:" + t.border + ";color:" + t.text + ";box-shadow:" + t.shadow + ";}\n";
     css += ".stats-panel-row{border-bottom-color:" + t.panelLine + ";color:" + t.text + ";}\n";
     css += ".replay-textarea,.settings-select,.portal-form input,.portal-inline-input,.portal-inline-select,.portal-api-input{background:" + t.surfaceSoft + ";border-color:" + t.border + ";color:" + t.text + ";}\n";
+    css += "#timerbox .timerbox-leaderboard-header{background:" + t.surface + ";color:" + t.text + ";border:1px solid " + rgba(t.border, 0.55) + ";box-shadow:" + t.shadow + ";}\n";
+    css += "#timerbox .timerbox-leaderboard-title{color:" + t.text + ";}\n";
+    css += "#timerbox .timerbox-leaderboard-rank{background:" + mixHex(t.surfaceSoft, t.buttonBg, 0.46) + ";color:" + t.text + ";box-shadow:inset 0 0 0 1px " + rgba(t.border, 0.46) + ";}\n";
+    css += "#timerbox .timerbox-leaderboard-rank.timerbox-leaderboard-rank-top1{background:" + colorForIndex(theme, 10, theme.colors.length) + ";color:" + tileTextColor(10, theme.lightTextFrom) + ";}\n";
+    css += "#timerbox .timerbox-leaderboard-rank.timerbox-leaderboard-rank-top2{background:" + colorForIndex(theme, 8, theme.colors.length) + ";color:" + tileTextColor(8, theme.lightTextFrom) + ";}\n";
+    css += "#timerbox .timerbox-leaderboard-rank.timerbox-leaderboard-rank-top3{background:" + colorForIndex(theme, 6, theme.colors.length) + ";color:" + tileTextColor(6, theme.lightTextFrom) + ";}\n";
+    css += "#timerbox .timerbox-leaderboard-entry{background:" + t.surfaceSoft + ";color:" + t.text + ";box-shadow:inset 0 0 0 1px " + rgba(t.border, 0.4) + ";}\n";
+    css += "#timerbox .timerbox-leaderboard-row.is-self .timerbox-leaderboard-entry{color:" + colorForIndex(theme, 0, theme.colors.length) + ";}\n";
+    css += "#timerbox .timerbox-leaderboard-empty{background:" + t.surfaceSoft + ";color:" + t.muted + ";border:1px solid " + rgba(t.border, 0.42) + ";}\n";
     css += ".theme-preview-grid,.final-board-grid{background:" + mixHex(t.gameBg, t.surface, 0.3) + ";}\n";
     css += ".final-board-cell,.final-board-cell-empty{background:" + t.gridCellBg + ";color:" + t.muted + ";}\n";
     css += ".portal-table th,.portal-table td{border-bottom-color:" + t.panelLine + ";color:" + t.text + ";}\n";

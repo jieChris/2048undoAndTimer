@@ -42,8 +42,9 @@ window.openSettingsModal = function () {
   if (modal) {
     modal.style.display = "flex";
   }
+  removeLegacyUndoSettingsUI();
   initThemeSettingsUI();
-  initUndoSettingsUI();
+  initTimerModuleSettingsUI();
 };
 
 window.closeSettingsModal = function () {
@@ -300,55 +301,74 @@ function initThemeSettingsUI() {
 }
 
 
-function initUndoSettingsUI() {
+function removeLegacyUndoSettingsUI() {
   var toggle = document.getElementById("undo-enabled-toggle");
-  var note = document.getElementById("undo-settings-note");
+  if (!toggle) return;
+  var row = toggle.closest(".settings-row");
+  if (row && row.parentNode) {
+    row.parentNode.removeChild(row);
+  } else {
+    toggle.style.display = "none";
+  }
+}
+
+function ensureTimerModuleSettingsDom() {
+  var modal = document.getElementById("settings-modal");
+  if (!modal) return null;
+  if (document.getElementById("timer-module-view-toggle")) {
+    return document.getElementById("timer-module-view-toggle");
+  }
+  var content = modal.querySelector(".settings-modal-content");
+  if (!content) return null;
+
+  var row = document.createElement("div");
+  row.className = "settings-row";
+  row.innerHTML =
+    "<label for='timer-module-view-toggle'>右侧模块</label>" +
+    "<label class='settings-switch-row'>" +
+    "<input id='timer-module-view-toggle' type='checkbox'>" +
+    "<span>排行榜模式（关闭为计时器模式）</span>" +
+    "</label>" +
+    "<div id='timer-module-view-note' class='settings-note'></div>";
+
+  var actions = content.querySelector(".replay-modal-actions");
+  if (actions && actions.parentNode === content) {
+    content.insertBefore(row, actions);
+  } else {
+    content.appendChild(row);
+  }
+  return document.getElementById("timer-module-view-toggle");
+}
+
+function initTimerModuleSettingsUI() {
+  var toggle = ensureTimerModuleSettingsDom();
+  var note = document.getElementById("timer-module-view-note");
   if (!toggle) return;
   if (!window.game_manager) {
-    setTimeout(initUndoSettingsUI, 60);
+    setTimeout(initTimerModuleSettingsUI, 60);
     return;
   }
 
   function sync() {
     var gm = window.game_manager;
     if (!gm) return;
-    var forced = gm.getForcedUndoSettingForMode ? gm.getForcedUndoSettingForMode(gm.mode) : null;
-    var allowed = gm.isUndoAllowedByMode ? gm.isUndoAllowedByMode(gm.mode) : true;
-    var enabled = gm.isUndoInteractionEnabled ? gm.isUndoInteractionEnabled() : true;
-    var canToggle = gm.canToggleUndoSetting ? gm.canToggleUndoSetting(gm.mode) : allowed;
-    var undoLimit = Number.isInteger(gm.undoLimit) ? gm.undoLimit : null;
-    var undoUsed = Number.isInteger(gm.undoUsed) ? gm.undoUsed : 0;
-    toggle.disabled = !canToggle;
-    toggle.checked = !!enabled;
+    var available = gm.isTimerLeaderboardAvailable ? gm.isTimerLeaderboardAvailable() : false;
+    var view = gm.getTimerModuleViewMode ? gm.getTimerModuleViewMode() : "timer";
+    toggle.disabled = !available;
+    toggle.checked = view === "leaderboard";
     if (note) {
-      if (!allowed || forced === false) {
-        note.textContent = "该模式固定不可撤回。";
-      } else if (forced === true) {
-        if (undoLimit !== null) {
-          note.textContent = "该模式固定可撤回（剩余 " + Math.max(0, undoLimit - undoUsed) + "/" + undoLimit + " 次）。";
-        } else {
-          note.textContent = "该模式固定可撤回，不能关闭。";
-        }
-      } else if (gm.hasGameStarted) {
-        if (undoLimit !== null) {
-          note.textContent = "本局已开始，撤回开关只能在开局前设置。剩余撤回 " + Math.max(0, undoLimit - undoUsed) + "/" + undoLimit + " 次。";
-        } else {
-          note.textContent = "本局已开始，撤回开关只能在开局前设置。";
-        }
-      } else {
-        note.textContent = undoLimit !== null
-          ? ("当前模式可切换撤回功能（仅开局前），本局上限 " + undoLimit + " 次。")
-          : "当前模式可切换撤回功能（仅开局前）。";
-      }
+      note.textContent = available
+        ? "开启后右侧显示当前模式总榜（前10 + 本人名次）。"
+        : "当前模式不支持排行榜模块，仅显示计时器。";
     }
   }
-  window.syncUndoSettingsUI = sync;
+  window.syncTimerModuleSettingsUI = sync;
 
-  if (!toggle.__undoBound) {
-    toggle.__undoBound = true;
+  if (!toggle.__timerViewBound) {
+    toggle.__timerViewBound = true;
     toggle.addEventListener("change", function () {
-      if (!window.game_manager || !window.game_manager.setUndoEnabled) return;
-      window.game_manager.setUndoEnabled(this.checked);
+      if (!window.game_manager || !window.game_manager.setTimerModuleViewMode) return;
+      window.game_manager.setTimerModuleViewMode(this.checked ? "leaderboard" : "timer");
       sync();
     });
   }
@@ -405,7 +425,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     initThemeSettingsUI();
-    initUndoSettingsUI();
+    removeLegacyUndoSettingsUI();
+    initTimerModuleSettingsUI();
 
     // Undo Button on Game Over Screen
     var undoBtnGameOver = document.getElementById('undo-btn-gameover');

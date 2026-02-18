@@ -19,6 +19,9 @@ function GameManager(size, InputManager, Actuator, ScoreManager) {
   this.disableSessionSync = false;
   this.sessionSubmitDone = false;
   this.sessionReplayV3 = null;
+  this.timerModuleView = "timer";
+  this.timerLeaderboardLoadId = 0;
+  this.timerModuleBaseHeight = 0;
 
   this.inputManager.on("move", this.move.bind(this));
   this.inputManager.on("restart", this.restart.bind(this));
@@ -45,6 +48,7 @@ GameManager.REPLAY128_TOTAL = 128;
 GameManager.REPLAY_V4_PREFIX = "REPLAY_v4C_";
 GameManager.UNDO_SETTINGS_KEY = "settings_undo_enabled_by_mode_v1";
 GameManager.STATS_PANEL_VISIBLE_KEY = "stats_panel_visible_v1";
+GameManager.TIMER_MODULE_VIEW_SETTINGS_KEY = "settings_timer_module_view_by_mode_v1";
 GameManager.DEFAULT_MODE_KEY = "standard_4x4_pow2_no_undo";
 GameManager.DEFAULT_MODE_CONFIG = {
   key: "standard_4x4_pow2_no_undo",
@@ -768,6 +772,200 @@ GameManager.prototype.closeStatsPanel = function () {
   } catch (_err) {}
 };
 
+GameManager.prototype.isTimerLeaderboardAvailableByMode = function (mode) {
+  var modeCfg = this.resolveModeConfig(mode || this.mode);
+  if (!modeCfg) return false;
+  // Current leaderboard API supports all no-undo modes.
+  return modeCfg.undo_enabled === false;
+};
+
+GameManager.prototype.isTimerLeaderboardAvailable = function () {
+  return this.isTimerLeaderboardAvailableByMode(this.mode);
+};
+
+GameManager.prototype.getTimerModuleViewMode = function () {
+  return this.timerModuleView === "leaderboard" ? "leaderboard" : "timer";
+};
+
+GameManager.prototype.loadTimerModuleViewForMode = function (mode) {
+  if (!this.isTimerLeaderboardAvailableByMode(mode)) return "timer";
+  var map = {};
+  try {
+    map = JSON.parse(localStorage.getItem(GameManager.TIMER_MODULE_VIEW_SETTINGS_KEY) || "{}");
+  } catch (_err) {
+    map = {};
+  }
+  var value = map[mode];
+  return value === "leaderboard" ? "leaderboard" : "timer";
+};
+
+GameManager.prototype.persistTimerModuleViewForMode = function (mode, view) {
+  if (!this.isTimerLeaderboardAvailableByMode(mode)) return;
+  var map = {};
+  try {
+    map = JSON.parse(localStorage.getItem(GameManager.TIMER_MODULE_VIEW_SETTINGS_KEY) || "{}");
+  } catch (_err) {
+    map = {};
+  }
+  map[mode] = view === "leaderboard" ? "leaderboard" : "timer";
+  try {
+    localStorage.setItem(GameManager.TIMER_MODULE_VIEW_SETTINGS_KEY, JSON.stringify(map));
+  } catch (_err2) {}
+};
+
+GameManager.prototype.notifyTimerModuleSettingsStateChanged = function () {
+  if (typeof window !== "undefined" && typeof window.syncTimerModuleSettingsUI === "function") {
+    window.syncTimerModuleSettingsUI();
+  }
+};
+
+GameManager.prototype.captureTimerModuleBaseHeight = function () {
+  var timerBox = document.getElementById("timerbox");
+  if (!timerBox) return;
+  var h = Math.max(timerBox.offsetHeight || 0, timerBox.scrollHeight || 0);
+  if (h > 0) {
+    this.timerModuleBaseHeight = Math.max(this.timerModuleBaseHeight || 0, h);
+  }
+};
+
+GameManager.prototype.ensureTimerLeaderboardPanel = function () {
+  var timerBox = document.getElementById("timerbox");
+  if (!timerBox) return null;
+  var panel = document.getElementById("timerbox-leaderboard-panel");
+  if (panel) return panel;
+
+  panel = document.createElement("div");
+  panel.id = "timerbox-leaderboard-panel";
+  panel.className = "timerbox-leaderboard-panel";
+  panel.innerHTML =
+    "<div class='timerbox-leaderboard-header'>" +
+    "<div class='timerbox-leaderboard-title'>排行榜</div>" +
+    "</div>" +
+    "<div id='timerbox-leaderboard-list' class='timerbox-leaderboard-list'></div>";
+  timerBox.appendChild(panel);
+  return panel;
+};
+
+GameManager.prototype.renderTimerLeaderboardRows = function (items, selfUsername) {
+  var list = document.getElementById("timerbox-leaderboard-list");
+  if (!list) return;
+  list.innerHTML = "";
+
+  if (!Array.isArray(items) || items.length === 0) {
+    var empty = document.createElement("div");
+    empty.className = "timerbox-leaderboard-empty";
+    empty.textContent = "暂无排行数据";
+    list.appendChild(empty);
+    return;
+  }
+
+  var top = items.slice(0, 10);
+  var selfItem = null;
+  if (selfUsername) {
+    for (var i = 0; i < items.length; i++) {
+      if (items[i] && items[i].username === selfUsername) {
+        selfItem = items[i];
+        break;
+      }
+    }
+  }
+
+  function createRow(item, extraClass) {
+    if (!item) return null;
+    var row = document.createElement("div");
+    row.className = "timerbox-leaderboard-row" + (extraClass ? " " + extraClass : "");
+
+    var rank = document.createElement("div");
+    rank.className = "timerbox-leaderboard-rank";
+    if (item.rank <= 3) rank.className += " timerbox-leaderboard-rank-top" + item.rank;
+    rank.textContent = String(item.rank || "-");
+
+    var entry = document.createElement("div");
+    entry.className = "timerbox-leaderboard-entry";
+    entry.textContent = String(item.score || 0) + " - " + String(item.username || "unknown");
+
+    row.appendChild(rank);
+    row.appendChild(entry);
+    return row;
+  }
+
+  for (var j = 0; j < top.length; j++) {
+    var cls = selfUsername && top[j].username === selfUsername ? "is-self" : "";
+    var node = createRow(top[j], cls);
+    if (node) list.appendChild(node);
+  }
+
+  if (selfItem && selfItem.rank > 10) {
+    var selfNode = createRow(selfItem, "is-self");
+    if (selfNode) list.appendChild(selfNode);
+  }
+};
+
+GameManager.prototype.refreshTimerLeaderboard = function () {
+  if (!this.isTimerLeaderboardAvailable()) return;
+  this.ensureTimerLeaderboardPanel();
+  var list = document.getElementById("timerbox-leaderboard-list");
+  if (!list) return;
+  list.innerHTML = "<div class='timerbox-leaderboard-empty'>加载中...</div>";
+
+  if (!window.ApiClient || typeof window.ApiClient.getLeaderboard !== "function") {
+    list.innerHTML = "<div class='timerbox-leaderboard-empty'>排行榜不可用</div>";
+    return;
+  }
+
+  var self = this;
+  var loadId = ++this.timerLeaderboardLoadId;
+  var modeKey = this.modeKey;
+  var me = window.ApiClient.getCurrentUser ? window.ApiClient.getCurrentUser() : null;
+  var meName = me && me.username ? me.username : null;
+
+  window.ApiClient.getLeaderboard(modeKey, "all", 200, 0)
+    .then(function (data) {
+      if (loadId !== self.timerLeaderboardLoadId) return;
+      self.renderTimerLeaderboardRows(data && data.items ? data.items : [], meName);
+    })
+    .catch(function () {
+      if (loadId !== self.timerLeaderboardLoadId) return;
+      list.innerHTML = "<div class='timerbox-leaderboard-empty'>加载失败</div>";
+    });
+};
+
+GameManager.prototype.applyTimerModuleView = function (view, skipPersist) {
+  var timerBox = document.getElementById("timerbox");
+  if (!timerBox) return;
+  var wasLeaderboard = timerBox.classList.contains("timerbox-leaderboard-mode");
+  if (!wasLeaderboard) {
+    this.captureTimerModuleBaseHeight();
+  }
+
+  var allowed = this.isTimerLeaderboardAvailable();
+  var next = (allowed && view === "leaderboard") ? "leaderboard" : "timer";
+  this.timerModuleView = next;
+
+  var panel = this.ensureTimerLeaderboardPanel();
+  if (next === "leaderboard") {
+    timerBox.classList.add("timerbox-leaderboard-mode");
+    if (this.timerModuleBaseHeight > 0) {
+      timerBox.style.minHeight = this.timerModuleBaseHeight + "px";
+      if (panel) panel.style.minHeight = this.timerModuleBaseHeight + "px";
+    }
+    this.refreshTimerLeaderboard();
+  } else {
+    timerBox.classList.remove("timerbox-leaderboard-mode");
+    timerBox.style.minHeight = "";
+    if (panel) panel.style.minHeight = "";
+  }
+
+  if (!skipPersist) {
+    this.persistTimerModuleViewForMode(this.mode, next);
+  }
+  this.notifyTimerModuleSettingsStateChanged();
+};
+
+GameManager.prototype.setTimerModuleViewMode = function (view, skipPersist) {
+  this.applyTimerModuleView(view, !!skipPersist);
+};
+
 GameManager.prototype.getServerMode = function (mode) {
   return this.getLegacyModeFromModeKey(mode || this.modeKey || this.mode);
 };
@@ -1156,6 +1354,7 @@ GameManager.prototype.setup = function (inputSeed, options) {
   this.spawnTwos = 0;
   this.spawnFours = 0;
   this.undoEnabled = this.loadUndoSettingForMode(this.mode);
+  var preferredTimerModuleView = this.loadTimerModuleViewForMode(this.mode);
   if (this.ipsInterval) clearInterval(this.ipsInterval);
 
   var legacyTotalEl = document.getElementById("stats-total");
@@ -1198,6 +1397,7 @@ GameManager.prototype.setup = function (inputSeed, options) {
   this.refreshSpawnRateDisplay();
   this.updateUndoUiState();
   this.notifyUndoSettingsStateChanged();
+  this.applyTimerModuleView(preferredTimerModuleView, true);
 
   // Update the actuator
   this.actuate();
