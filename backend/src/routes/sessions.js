@@ -25,8 +25,29 @@ function validateReplayV3(replay, modeCfg) {
   if (replay.undo_enabled !== undefined && Boolean(replay.undo_enabled) !== Boolean(modeCfg.undo_enabled)) {
     return "replay.undo_enabled mismatch";
   }
+  if (replay.mode_family !== undefined && replay.mode_family !== modeCfg.mode_family) {
+    return "replay.mode_family mismatch";
+  }
+  if (replay.rank_policy !== undefined && replay.rank_policy !== modeCfg.rank_policy) {
+    return "replay.rank_policy mismatch";
+  }
+  if (replay.special_rules_snapshot !== undefined) {
+    const modeBoundErr = validateModeBoundFields({
+      special_rules_snapshot: replay.special_rules_snapshot
+    }, modeCfg);
+    if (modeBoundErr) return `replay.${modeBoundErr}`;
+  }
   if (!Array.isArray(replay.actions)) return "replay.actions must be array";
   if (replay.actions.length > config.maxReplayActions) return "replay.actions too long";
+  const blockedMap = {};
+  const blocked = modeCfg && modeCfg.special_rules && Array.isArray(modeCfg.special_rules.blocked_cells)
+    ? modeCfg.special_rules.blocked_cells
+    : [];
+  for (let b = 0; b < blocked.length; b += 1) {
+    const cell = blocked[b];
+    if (Array.isArray(cell) && cell.length >= 2) blockedMap[`${Number(cell[0])}:${Number(cell[1])}`] = true;
+    else if (cell && typeof cell === "object") blockedMap[`${Number(cell.x)}:${Number(cell.y)}`] = true;
+  }
 
   for (let i = 0; i < replay.actions.length; i += 1) {
     const action = replay.actions[i];
@@ -51,6 +72,9 @@ function validateReplayV3(replay, modeCfg) {
       if (![x, y, value].every((n) => Number.isInteger(n))) return `invalid practice numeric at ${i}`;
       if (x < 0 || x >= modeCfg.board_width || y < 0 || y >= modeCfg.board_height) {
         return `invalid practice coordinates at ${i}`;
+      }
+      if (blockedMap[`${x}:${y}`]) {
+        return `blocked practice coordinates at ${i}`;
       }
       if (!isValidTileValue(value, modeCfg.ruleset)) {
         return `invalid practice value at ${i}`;
@@ -77,6 +101,31 @@ export async function sessionsRoutes(fastify) {
     return null;
   }
 
+  function todayUtcDateString() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function toDateString(value) {
+    if (!value) return "";
+    if (value instanceof Date) {
+      return value.toISOString().slice(0, 10);
+    }
+    return String(value).slice(0, 10);
+  }
+
+  async function getChallengeById(challengeId) {
+    if (!challengeId) return null;
+    const result = await pool.query(
+      `
+        SELECT id, challenge_date, mode_key, status, special_rules_snapshot
+        FROM challenges
+        WHERE id = ?
+      `,
+      [challengeId]
+    );
+    return result.rows.length ? result.rows[0] : null;
+  }
+
   fastify.post(
     "/sessions/complete",
     {
@@ -97,6 +146,10 @@ export async function sessionsRoutes(fastify) {
         ruleset,
         undo_enabled: undoEnabled,
         ranked_bucket: rankedBucket,
+        mode_family: modeFamily,
+        rank_policy: rankPolicy,
+        special_rules_snapshot: specialRulesSnapshot,
+        challenge_id: challengeIdRaw,
         score,
         best_tile: bestTile,
         duration_ms: durationMs,
@@ -118,7 +171,10 @@ export async function sessionsRoutes(fastify) {
         board_height: boardHeight,
         ruleset,
         undo_enabled: undoEnabled,
-        ranked_bucket: rankedBucket
+        ranked_bucket: rankedBucket,
+        mode_family: modeFamily,
+        rank_policy: rankPolicy,
+        special_rules_snapshot: specialRulesSnapshot
       }, modeCfg);
       if (modeBoundErr) {
         return reply.code(400).send({ error: modeBoundErr });
@@ -147,6 +203,30 @@ export async function sessionsRoutes(fastify) {
         return reply.code(400).send({ error: replayErr });
       }
 
+      const challengeId = typeof challengeIdRaw === "string" && challengeIdRaw.trim()
+        ? challengeIdRaw.trim()
+        : null;
+      if (challengeIdRaw !== undefined && challengeIdRaw !== null && challengeId === null) {
+        return reply.code(400).send({ error: "invalid challenge_id" });
+      }
+      if (replay && replay.challenge_id && !challengeId) {
+        return reply.code(400).send({ error: "challenge_id required when replay includes challenge_id" });
+      }
+      if (replay && replay.challenge_id && challengeId && replay.challenge_id !== challengeId) {
+        return reply.code(400).send({ error: "replay.challenge_id mismatch" });
+      }
+      if (challengeId) {
+        const challenge = await getChallengeById(challengeId);
+        if (!challenge) return reply.code(400).send({ error: "challenge_not_found" });
+        if (challenge.status !== "active") return reply.code(400).send({ error: "challenge_inactive" });
+        if (toDateString(challenge.challenge_date) !== todayUtcDateString()) {
+          return reply.code(400).send({ error: "challenge_expired" });
+        }
+        if (challenge.mode_key !== modeCfg.key) {
+          return reply.code(400).send({ error: "challenge_mode_mismatch" });
+        }
+      }
+
       const sessionId = newId();
       const weekStart = weekStartMonday(endedAtDate);
 
@@ -158,6 +238,7 @@ export async function sessionsRoutes(fastify) {
             INSERT INTO game_sessions (
               id, user_id, mode, mode_key, board_width, board_height,
               ruleset, undo_enabled, ranked_bucket,
+              mode_family, rank_policy, special_rules_snapshot, challenge_id,
               status, score, best_tile, duration_ms,
               final_board, replay_version, replay_payload, client_version,
               ended_at, week_start
@@ -165,6 +246,7 @@ export async function sessionsRoutes(fastify) {
             VALUES (
               ?, ?, ?, ?, ?, ?,
               ?, ?, ?,
+              ?, ?, ?, ?,
               'pending', ?, ?, ?,
               ?, 3, ?, ?,
               ?, ?
@@ -180,6 +262,10 @@ export async function sessionsRoutes(fastify) {
             modeCfg.ruleset,
             modeCfg.undo_enabled,
             modeCfg.ranked_bucket,
+            modeCfg.mode_family,
+            modeCfg.rank_policy,
+            JSON.stringify(modeCfg.special_rules || {}),
+            challengeId,
             score,
             bestTile,
             durationMs,
@@ -225,6 +311,10 @@ export async function sessionsRoutes(fastify) {
           gs.ruleset,
           gs.undo_enabled,
           gs.ranked_bucket,
+          gs.mode_family,
+          gs.rank_policy,
+          gs.special_rules_snapshot,
+          gs.challenge_id,
           gs.status,
           gs.score,
           gs.best_tile,
@@ -259,6 +349,10 @@ export async function sessionsRoutes(fastify) {
       ruleset: row.ruleset,
       undo_enabled: !!row.undo_enabled,
       ranked_bucket: row.ranked_bucket,
+      mode_family: row.mode_family,
+      rank_policy: row.rank_policy,
+      special_rules_snapshot: parseJsonValue(row.special_rules_snapshot),
+      challenge_id: row.challenge_id,
       status: row.status,
       score: row.score,
       best_tile: row.best_tile,

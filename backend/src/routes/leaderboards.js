@@ -44,7 +44,10 @@ export async function leaderboardRoutes(fastify) {
           gs.board_width,
           gs.board_height,
           gs.ruleset,
-          gs.undo_enabled
+          gs.undo_enabled,
+          gs.mode_family,
+          gs.rank_policy,
+          gs.challenge_id
         FROM game_sessions gs
         JOIN users u ON u.id = gs.user_id
         WHERE gs.ranked_bucket = ?
@@ -74,7 +77,10 @@ export async function leaderboardRoutes(fastify) {
         board_width: row.board_width,
         board_height: row.board_height,
         ruleset: row.ruleset,
-        undo_enabled: !!row.undo_enabled
+        undo_enabled: !!row.undo_enabled,
+        mode_family: row.mode_family,
+        rank_policy: row.rank_policy,
+        challenge_id: row.challenge_id
       }))
     });
   });

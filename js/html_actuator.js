@@ -14,7 +14,7 @@ HTMLActuator.prototype.actuate = function (grid, metadata) {
   var self = this;
 
   window.requestAnimationFrame(function () {
-    self.ensureGridLayout(grid);
+    self.ensureGridLayout(grid, metadata);
     self.clearContainer(self.tileContainer);
 
     grid.cells.forEach(function (column) {
@@ -38,11 +38,13 @@ HTMLActuator.prototype.actuate = function (grid, metadata) {
   });
 };
 
-HTMLActuator.prototype.ensureGridLayout = function (grid) {
+HTMLActuator.prototype.ensureGridLayout = function (grid, metadata) {
   if (!this.gridContainer || !this.tileContainer) return;
 
   var cols = grid.width || grid.size || 4;
   var rows = grid.height || grid.size || 4;
+  var blockedCells = metadata && Array.isArray(metadata.blockedCells) ? metadata.blockedCells : [];
+  var blockedSignature = blockedCells.length ? JSON.stringify(blockedCells) : "";
   var boardSize = 470;
   if (this.gameContainer && this.gameContainer.clientWidth > 80 && typeof window !== "undefined") {
     var styles = window.getComputedStyle(this.gameContainer);
@@ -51,7 +53,7 @@ HTMLActuator.prototype.ensureGridLayout = function (grid) {
     boardSize = Math.max(120, this.gameContainer.clientWidth - padLeft - padRight);
   }
   var cached = this.gridMeta;
-  if (cached && cached.cols === cols && cached.rows === rows && cached.boardSize === boardSize) {
+  if (cached && cached.cols === cols && cached.rows === rows && cached.boardSize === boardSize && cached.blockedSignature === blockedSignature) {
     return;
   }
 
@@ -76,7 +78,8 @@ HTMLActuator.prototype.ensureGridLayout = function (grid) {
     gridHeight: gridHeight,
     offsetX: offsetX,
     offsetY: offsetY,
-    boardSize: boardSize
+    boardSize: boardSize,
+    blockedSignature: blockedSignature
   };
 
   this.gridContainer.style.left = "50%";
@@ -92,6 +95,12 @@ HTMLActuator.prototype.ensureGridLayout = function (grid) {
   this.tileContainer.style.transform = "translate(-50%, -50%)";
 
   this.gridContainer.innerHTML = "";
+  var blockedMap = {};
+  for (var b = 0; b < blockedCells.length; b++) {
+    var bc = blockedCells[b];
+    if (!bc) continue;
+    blockedMap[bc.x + ":" + bc.y] = true;
+  }
   for (var y = 0; y < rows; y++) {
     var rowEl = document.createElement("div");
     rowEl.className = "grid-row";
@@ -104,6 +113,9 @@ HTMLActuator.prototype.ensureGridLayout = function (grid) {
       cellEl.style.marginRight = (x === cols - 1) ? "0" : (gap + "px");
       cellEl.setAttribute("data-x", x);
       cellEl.setAttribute("data-y", y);
+      if (blockedMap[x + ":" + y]) {
+        cellEl.classList.add("grid-cell-obstacle");
+      }
       rowEl.appendChild(cellEl);
     }
     this.gridContainer.appendChild(rowEl);

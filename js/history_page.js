@@ -65,6 +65,10 @@
       var dimText = (item.board_width || 4) + "x" + (item.board_height || 4);
       var ruleText = item.ruleset === "fibonacci" ? "Fibonacci" : "2幂";
       var rankedText = item.ranked_bucket && item.ranked_bucket !== "none" ? ("进榜: " + item.ranked_bucket) : "不进榜";
+      var specialRules = item.special_rules_snapshot && typeof item.special_rules_snapshot === "object"
+        ? JSON.stringify(item.special_rules_snapshot)
+        : "{}";
+      var challengeText = item.challenge_id ? ("挑战: " + item.challenge_id) : "普通对局";
 
       node.innerHTML =
         "<div class='history-item-head'>" +
@@ -76,6 +80,8 @@
           "<span>分数: " + item.score + "</span>" +
           "<span>最大块: " + item.best_tile + "</span>" +
           "<span>" + rankedText + "</span>" +
+          "<span>" + challengeText + "</span>" +
+          "<span>规则参数: " + specialRules + "</span>" +
           "<span>结束: " + new Date(item.ended_at).toLocaleString() + "</span>" +
           "<a href='replay.html?session_id=" + encodeURIComponent(item.session_id) + "'>回放</a>" +
         "</div>" +

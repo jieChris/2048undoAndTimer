@@ -135,51 +135,167 @@ function getCurrentRuleset() {
 }
 
 function initThemeSettingsUI() {
-  var select = document.getElementById("theme-select");
+  // Elements
+  var originalSelect = document.getElementById("theme-select");
   var preview = document.getElementById("theme-preview-grid");
-  if (!select || !preview || !window.ThemeManager) return;
+  var customTrigger = document.getElementById("theme-select-trigger");
+  var customOptionsContainer = document.getElementById("theme-select-options");
+  var customSelect = document.querySelector(".custom-select");
 
-  if (!select.__themeOptionsReady) {
-    var themes = window.ThemeManager.getThemes();
-    select.innerHTML = "";
-    for (var i = 0; i < themes.length; i++) {
-      var option = document.createElement("option");
-      option.value = themes[i].id;
-      option.textContent = themes[i].label;
-      select.appendChild(option);
-    }
-    select.__themeOptionsReady = true;
+  if (!originalSelect || !preview || !window.ThemeManager) return;
+
+  var themes = window.ThemeManager.getThemes();
+  
+  // State for Revert Logic
+  var confirmedTheme = window.ThemeManager.getCurrentTheme();
+
+  // 1. Populate Custom Options
+  if (customOptionsContainer.children.length === 0) {
+      customOptionsContainer.innerHTML = "";
+      themes.forEach(function(theme) {
+          var option = document.createElement("div");
+          option.className = "custom-option";
+          option.textContent = theme.label;
+          option.dataset.value = theme.id;
+          
+          // Interaction: Select Theme (Commit)
+          option.addEventListener("click", function(e) {
+              e.stopPropagation(); // Prevent bubbling
+              var value = this.dataset.value;
+              confirmedTheme = value; // Update confirmed selection
+              window.ThemeManager.applyTheme(value);
+              closeDropdown();
+          });
+
+          // Interaction: Hover Preview (Temporary)
+          option.addEventListener("mouseenter", function() {
+              window.ThemeManager.applyTheme(this.dataset.value);
+          });
+
+          customOptionsContainer.appendChild(option);
+      });
   }
 
-  var values = window.ThemeManager.getTileValues ?
-    window.ThemeManager.getTileValues(getCurrentRuleset()) :
-    [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536];
-
-  preview.innerHTML = "";
-  for (var j = 0; j < values.length; j++) {
-    var tile = document.createElement("div");
-    tile.className = "theme-preview-tile theme-color-" + values[j];
-    tile.textContent = formatPreviewValue(values[j]);
-    preview.appendChild(tile);
+  // 2. Custom Select Interaction
+  function toggleDropdown(e) {
+      if(e) e.stopPropagation();
+      var isOpen = customSelect.classList.contains("open");
+      
+      if (isOpen) {
+          closeDropdown();
+      } else {
+          // Open
+          confirmedTheme = window.ThemeManager.getCurrentTheme(); // Sync confirmation
+          customSelect.classList.add("open");
+          
+          // Scroll to selected
+          var selectedParams = customOptionsContainer.querySelector(".custom-option.selected");
+          if (selectedParams) {
+              // Simple scroll helper
+               customOptionsContainer.scrollTop = selectedParams.offsetTop - customOptionsContainer.offsetTop;
+          }
+      }
   }
 
-  select.value = window.ThemeManager.getCurrentTheme();
-  if (!select.__themeBound) {
-    select.__themeBound = true;
-    select.addEventListener("change", function () {
-      window.ThemeManager.applyTheme(this.value);
-    });
+  function closeDropdown() {
+      customSelect.classList.remove("open");
+      // Revert to confirmed theme when closing (e.g. clicked outside or toggled off without selection)
+      // Only necessary if current theme is different (i.e. we were hovering)
+      if (window.ThemeManager.getCurrentTheme() !== confirmedTheme) {
+           window.ThemeManager.applyTheme(confirmedTheme);
+      }
   }
 
+  // Bind Trigger
+  if (!customTrigger.__bound) {
+      customTrigger.addEventListener("click", toggleDropdown);
+      customTrigger.__bound = true;
+  }
+
+  // Click Outside to Close
+  if (!window.__clickOutsideBound) {
+      document.addEventListener("click", function(e) {
+          if (!customSelect.contains(e.target)) {
+              closeDropdown();
+          }
+      });
+      window.__clickOutsideBound = true;
+  }
+  
+  // Revert when mouse leaves the options/dropdown area
+  if (!customSelect.__mouseleaveBound) {
+      customSelect.addEventListener("mouseleave", function() {
+          // If dropdown is open and we leave the area, should we revert? 
+          // User requested "hover on color scheme... right side preview corresponds".
+          // Standard pattern: If mouse leaves the list, revert to confirmed.
+          if (customSelect.classList.contains("open")) {
+               window.ThemeManager.applyTheme(confirmedTheme);
+          }
+      });
+      customSelect.__mouseleaveBound = true;
+  }
+
+  // 3. UI Update Helpers
+  function updateCustomSelectUI() {
+      var currentThemeId = window.ThemeManager.getCurrentTheme();
+      
+      // Update Trigger Text
+      var label = "Select Theme";
+      for (var i = 0; i < themes.length; i++) {
+          if (themes[i].id === currentThemeId) {
+              label = themes[i].label;
+              break;
+          }
+      }
+      customTrigger.querySelector("span").textContent = label;
+
+      // Update Selected State in Options
+      var options = customOptionsContainer.querySelectorAll(".custom-option");
+      options.forEach(function(opt) {
+          if (opt.dataset.value === currentThemeId) {
+              opt.classList.add("selected");
+          } else {
+              opt.classList.remove("selected");
+          }
+      });
+  }
+
+  // Render Preview Grid (Tiles)
+  function renderPreviewGrid() {
+      var values = window.ThemeManager.getTileValues ?
+        window.ThemeManager.getTileValues(getCurrentRuleset()) :
+        [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536];
+
+      preview.innerHTML = "";
+      for (var j = 0; j < values.length; j++) {
+        var tile = document.createElement("div");
+        tile.className = "theme-preview-tile theme-color-" + values[j];
+        tile.textContent = formatPreviewValue(values[j]);
+        preview.appendChild(tile);
+      }
+  }
+
+  // Helper for formatting values (simplified version of original logic if needed, or assume global)
+  // Check if formatPreviewValue is global or we need to inline it. 
+  // It was used in original code, likely defined globally or in this scope previously.
+  // Actually, checking previous view_file, `formatPreviewValue` was NOT defined in `initThemeSettingsUI`.
+  // It must be a helper in index_ui.js.
+  
+  // Initial Render
+  renderPreviewGrid();
+  updateCustomSelectUI();
+  
+  // Sync if changed externally (e.g. from hovering, or from other tabs)
   if (!window.__themeChangeSyncBound) {
     window.__themeChangeSyncBound = true;
-    window.addEventListener("themechange", function () {
-      if (window.ThemeManager && select) {
-        select.value = window.ThemeManager.getCurrentTheme();
-      }
+    window.addEventListener("themechange", function (e) {
+       updateCustomSelectUI();
+       // P.S. The grid tiles themselves don't change markup, just their classes/styles respond to body class.
+       // So we don't need to re-render grid HTML on theme change, just CSS handles it.
     });
   }
 }
+
 
 function initUndoSettingsUI() {
   var toggle = document.getElementById("undo-enabled-toggle");
@@ -197,17 +313,29 @@ function initUndoSettingsUI() {
     var allowed = gm.isUndoAllowedByMode ? gm.isUndoAllowedByMode(gm.mode) : true;
     var enabled = gm.isUndoInteractionEnabled ? gm.isUndoInteractionEnabled() : true;
     var canToggle = gm.canToggleUndoSetting ? gm.canToggleUndoSetting(gm.mode) : allowed;
+    var undoLimit = Number.isInteger(gm.undoLimit) ? gm.undoLimit : null;
+    var undoUsed = Number.isInteger(gm.undoUsed) ? gm.undoUsed : 0;
     toggle.disabled = !canToggle;
     toggle.checked = !!enabled;
     if (note) {
       if (!allowed || forced === false) {
         note.textContent = "该模式固定不可撤回。";
       } else if (forced === true) {
-        note.textContent = "该模式固定可撤回，不能关闭。";
+        if (undoLimit !== null) {
+          note.textContent = "该模式固定可撤回（剩余 " + Math.max(0, undoLimit - undoUsed) + "/" + undoLimit + " 次）。";
+        } else {
+          note.textContent = "该模式固定可撤回，不能关闭。";
+        }
       } else if (gm.hasGameStarted) {
-        note.textContent = "本局已开始，撤回开关只能在开局前设置。";
+        if (undoLimit !== null) {
+          note.textContent = "本局已开始，撤回开关只能在开局前设置。剩余撤回 " + Math.max(0, undoLimit - undoUsed) + "/" + undoLimit + " 次。";
+        } else {
+          note.textContent = "本局已开始，撤回开关只能在开局前设置。";
+        }
       } else {
-        note.textContent = "当前模式可切换撤回功能（仅开局前）。";
+        note.textContent = undoLimit !== null
+          ? ("当前模式可切换撤回功能（仅开局前），本局上限 " + undoLimit + " 次。")
+          : "当前模式可切换撤回功能（仅开局前）。";
       }
     }
   }

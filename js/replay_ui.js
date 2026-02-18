@@ -163,6 +163,18 @@ async function loadReplayFromSessionId() {
         if (session.undo_enabled !== undefined && session.replay.undo_enabled === undefined) {
             session.replay.undo_enabled = !!session.undo_enabled;
         }
+        if (session.mode_family && !session.replay.mode_family) {
+            session.replay.mode_family = session.mode_family;
+        }
+        if (session.rank_policy && !session.replay.rank_policy) {
+            session.replay.rank_policy = session.rank_policy;
+        }
+        if (session.special_rules_snapshot && !session.replay.special_rules_snapshot) {
+            session.replay.special_rules_snapshot = session.special_rules_snapshot;
+        }
+        if (session.challenge_id && !session.replay.challenge_id) {
+            session.replay.challenge_id = session.challenge_id;
+        }
 
         var replayPayload = JSON.stringify(session.replay);
         window.game_manager.import(replayPayload);

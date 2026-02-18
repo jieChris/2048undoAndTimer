@@ -1,7 +1,25 @@
 (function () {
   function parseModeKey() {
     var params = new URLSearchParams(window.location.search);
-    return params.get("mode_key") || "classic_4x4_pow2_undo";
+    return params.get("mode_key") || "standard_4x4_pow2_no_undo";
+  }
+
+  function parseChallengeId() {
+    var params = new URLSearchParams(window.location.search);
+    var v = params.get("challenge_id");
+    return v && v.trim() ? v.trim() : "";
+  }
+
+  function compactModeLabel(modeConfig) {
+    var raw = modeConfig && (modeConfig.label || modeConfig.key) ? (modeConfig.label || modeConfig.key) : "模式";
+    return raw
+      .replace(/（可撤回）|（无撤回）/g, "")
+      .replace(/标准版/g, "标准")
+      .replace(/经典版/g, "经典")
+      .replace(/封顶版/g, "封顶")
+      .replace(/Fibonacci/gi, "Fib")
+      .replace(/（Legacy）/g, "")
+      .replace(/\s+/g, "");
   }
 
   function setupHeader(modeConfig) {
@@ -16,15 +34,17 @@
 
     if (title) title.textContent = modeConfig.label;
     if (intro) {
+      var modeText = compactModeLabel(modeConfig);
+      var boardText = modeConfig.board_width + "x" + modeConfig.board_height;
+      var rulesText = (modeConfig.ruleset === "fibonacci" ? "Fib" : "2幂");
       intro.textContent =
-        "模式：" + modeConfig.label +
-        " ｜ 棋盘：" + modeConfig.board_width + "x" + modeConfig.board_height +
-        " ｜ 规则：" + (modeConfig.ruleset === "fibonacci" ? "Fibonacci" : "2 幂");
+        modeText + "｜" + boardText + "｜" + rulesText;
     }
   }
 
   window.requestAnimationFrame(function () {
     var modeKey = parseModeKey();
+    var challengeId = parseChallengeId();
     var modeConfig = (window.ModeCatalog && window.ModeCatalog.getMode(modeKey)) ||
       (window.ModeCatalog && window.ModeCatalog.getMode("standard_4x4_pow2_no_undo"));
 
@@ -35,6 +55,7 @@
     }
 
     window.GAME_MODE_CONFIG = modeConfig;
+    window.GAME_CHALLENGE_CONTEXT = challengeId ? { id: challengeId, mode_key: modeConfig.key } : null;
     setupHeader(modeConfig);
 
     var gm = new GameManager(modeConfig.board_width, KeyboardInputManager, HTMLActuator, LocalScoreManager);

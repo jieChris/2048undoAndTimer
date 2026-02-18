@@ -16,6 +16,29 @@ function cloneBoard(board) {
   return board.map((column) => column.slice());
 }
 
+function normalizeSpecialRules(input) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    return {};
+  }
+  return JSON.parse(JSON.stringify(input));
+}
+
+function parseBlockedCells(raw) {
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  for (let i = 0; i < raw.length; i += 1) {
+    const item = raw[i];
+    if (Array.isArray(item) && item.length === 2) {
+      out.push({ x: Number(item[0]), y: Number(item[1]) });
+      continue;
+    }
+    if (item && typeof item === "object") {
+      out.push({ x: Number(item.x), y: Number(item.y) });
+    }
+  }
+  return out;
+}
+
 export class ReplayEngine {
   constructor({
     mode,
@@ -26,7 +49,10 @@ export class ReplayEngine {
     ruleset,
     spawnTable,
     maxTile,
-    undoEnabled
+    undoEnabled,
+    modeFamily,
+    rankPolicy,
+    specialRules
   }) {
     this.mode = mode || "classic";
     this.modeKey = modeKey || null;
@@ -41,6 +67,9 @@ export class ReplayEngine {
     this.maxTile = Number.isInteger(maxTile) && maxTile > 0 ? maxTile : Number.POSITIVE_INFINITY;
     this.undoEnabled = typeof undoEnabled === "boolean" ? undoEnabled : true;
     this.isPracticeMode = this.mode === "practice" || this.modeKey === "practice_legacy";
+    this.modeFamily = modeFamily || (this.ruleset === "fibonacci" ? "fibonacci" : "pow2");
+    this.rankPolicy = rankPolicy || "unranked";
+    this.specialRules = normalizeSpecialRules(specialRules);
 
     this.seed = seed;
     this.score = 0;
@@ -48,7 +77,65 @@ export class ReplayEngine {
     this.moveHistory = [];
     this.undoStack = [];
     this.board = Array.from({ length: this.width }, () => Array(this.height).fill(0));
+
+    this.comboStreak = 0;
+    this.successfulMoveCount = 0;
+    this.undoUsed = 0;
+    this.undoLimit = Number.isInteger(this.specialRules.undo_limit) && this.specialRules.undo_limit >= 0
+      ? this.specialRules.undo_limit
+      : null;
+    this.comboMultiplier = Number.isFinite(this.specialRules.combo_multiplier) && this.specialRules.combo_multiplier > 1
+      ? Number(this.specialRules.combo_multiplier)
+      : 1;
+    this.directionLock = this.specialRules.direction_lock && typeof this.specialRules.direction_lock === "object"
+      ? this.specialRules.direction_lock
+      : null;
+    this.lockConsumedAtMoveCount = -1;
+    this.lockedDirectionTurn = null;
+    this.lockedDirection = null;
+
+    const blocked = parseBlockedCells(this.specialRules.blocked_cells);
+    this.blockedSet = new Set();
+    for (let i = 0; i < blocked.length; i += 1) {
+      const x = blocked[i].x;
+      const y = blocked[i].y;
+      if (Number.isInteger(x) && Number.isInteger(y) && x >= 0 && x < this.width && y >= 0 && y < this.height) {
+        this.blockedSet.add(boardKey(x, y));
+      }
+    }
+
     this.addStartTiles();
+  }
+
+  isBlocked(x, y) {
+    return this.blockedSet.has(boardKey(x, y));
+  }
+
+  getLockedDirection() {
+    if (!this.directionLock || typeof this.directionLock !== "object") return null;
+    const everyK = Number(this.directionLock.every_k_moves);
+    if (!Number.isInteger(everyK) || everyK <= 0) return null;
+
+    if (this.successfulMoveCount <= 0 || this.successfulMoveCount % everyK !== 0) {
+      return null;
+    }
+
+    if (this.lockConsumedAtMoveCount === this.successfulMoveCount) {
+      return null;
+    }
+
+    if (this.lockedDirectionTurn !== this.successfulMoveCount) {
+      const phase = Math.floor(this.successfulMoveCount / everyK);
+      const rng = seedrandom(`${this.seed}:lock:${phase}`);
+      this.lockedDirection = Math.floor(rng() * 4);
+      this.lockedDirectionTurn = this.successfulMoveCount;
+    }
+
+    return this.lockedDirection;
+  }
+
+  consumeDirectionLock() {
+    this.lockConsumedAtMoveCount = this.successfulMoveCount;
   }
 
   addStartTiles() {
@@ -60,6 +147,7 @@ export class ReplayEngine {
     const cells = [];
     for (let x = 0; x < this.width; x += 1) {
       for (let y = 0; y < this.height; y += 1) {
+        if (this.isBlocked(x, y)) continue;
         if (this.board[x][y] === 0) {
           cells.push({ x, y });
         }
@@ -121,7 +209,11 @@ export class ReplayEngine {
     do {
       previous = current;
       current = { x: previous.x + vector.x, y: previous.y + vector.y };
-    } while (this.withinBounds(current) && this.board[current.x][current.y] === 0);
+    } while (
+      this.withinBounds(current) &&
+      !this.isBlocked(current.x, current.y) &&
+      this.board[current.x][current.y] === 0
+    );
 
     return {
       farthest: previous,
@@ -169,6 +261,7 @@ export class ReplayEngine {
   tileMatchesAvailable() {
     for (let x = 0; x < this.width; x += 1) {
       for (let y = 0; y < this.height; y += 1) {
+        if (this.isBlocked(x, y)) continue;
         const tile = this.board[x][y];
         if (tile === 0) continue;
 
@@ -176,6 +269,7 @@ export class ReplayEngine {
           const vector = DIR_MAP[direction];
           const next = { x: x + vector.x, y: y + vector.y };
           if (!this.withinBounds(next)) continue;
+          if (this.isBlocked(next.x, next.y)) continue;
           const other = this.board[next.x][next.y];
           if (other !== 0 && this.mergedValue(tile, other) !== null) {
             return true;
@@ -193,11 +287,20 @@ export class ReplayEngine {
   undo() {
     if (!this.undoEnabled) return false;
     if (this.undoStack.length === 0) return false;
+    if (this.undoLimit !== null && this.undoUsed >= this.undoLimit) return false;
 
     const prev = this.undoStack.pop();
     this.board = cloneBoard(prev.board);
     this.score = prev.score;
+    this.comboStreak = prev.comboStreak || 0;
+    this.successfulMoveCount = Number.isInteger(prev.successfulMoveCount) ? prev.successfulMoveCount : 0;
+    this.lockConsumedAtMoveCount = Number.isInteger(prev.lockConsumedAtMoveCount) ? prev.lockConsumedAtMoveCount : -1;
+    this.lockedDirectionTurn = Number.isInteger(prev.lockedDirectionTurn) ? prev.lockedDirectionTurn : null;
+    this.lockedDirection = Number.isInteger(prev.lockedDirection) ? prev.lockedDirection : null;
+    this.undoUsed = Number.isInteger(prev.undoUsed) ? prev.undoUsed : this.undoUsed;
+
     this.over = false;
+    this.undoUsed += 1;
     this.moveHistory.push(-1);
     return true;
   }
@@ -210,25 +313,42 @@ export class ReplayEngine {
       return { moved: false, reason: "game_over" };
     }
 
+    const lockedDirection = this.getLockedDirection();
+    if (lockedDirection !== null) {
+      this.consumeDirectionLock();
+      if (direction === lockedDirection) {
+        return { moved: false, reason: "direction_locked" };
+      }
+    }
+
     const vector = DIR_MAP[direction];
     const traversals = this.buildTraversals(vector);
     const mergedTargets = new Set();
 
     let moved = false;
+    let mergedScore = 0;
     const undoSnapshot = {
       score: this.score,
-      board: cloneBoard(this.board)
+      board: cloneBoard(this.board),
+      comboStreak: this.comboStreak,
+      successfulMoveCount: this.successfulMoveCount,
+      lockConsumedAtMoveCount: this.lockConsumedAtMoveCount,
+      lockedDirectionTurn: this.lockedDirectionTurn,
+      lockedDirection: this.lockedDirection,
+      undoUsed: this.undoUsed
     };
 
     traversals.x.forEach((x) => {
       traversals.y.forEach((y) => {
+        if (this.isBlocked(x, y)) return;
+
         const value = this.board[x][y];
         if (value === 0) return;
 
         const positions = this.findFarthestPosition({ x, y }, vector);
         const next = positions.next;
 
-        if (this.withinBounds(next)) {
+        if (this.withinBounds(next) && !this.isBlocked(next.x, next.y)) {
           const nextValue = this.board[next.x][next.y];
           const mergedKey = boardKey(next.x, next.y);
           const mergedValue = this.mergedValue(value, nextValue);
@@ -237,6 +357,7 @@ export class ReplayEngine {
             this.board[next.x][next.y] = mergedValue;
             mergedTargets.add(mergedKey);
             this.score += mergedValue;
+            mergedScore += mergedValue;
             moved = true;
             return;
           }
@@ -254,11 +375,22 @@ export class ReplayEngine {
       return { moved: false };
     }
 
+    if (mergedScore > 0) {
+      this.comboStreak += 1;
+      if (this.comboMultiplier > 1 && this.comboStreak > 1) {
+        const bonus = Math.floor(mergedScore * (this.comboMultiplier - 1) * (this.comboStreak - 1));
+        if (bonus > 0) this.score += bonus;
+      }
+    } else {
+      this.comboStreak = 0;
+    }
+
     this.addRandomTile();
     if (!this.movesAvailable()) {
       this.over = true;
     }
 
+    this.successfulMoveCount += 1;
     this.undoStack.push(undoSnapshot);
     this.moveHistory.push(direction);
     return { moved: true };
@@ -270,6 +402,9 @@ export class ReplayEngine {
     }
     if (!Number.isInteger(x) || !Number.isInteger(y) || x < 0 || x >= this.width || y < 0 || y >= this.height) {
       throw new Error("Invalid practice coordinates");
+    }
+    if (this.isBlocked(x, y)) {
+      throw new Error("Blocked cell cannot be edited");
     }
     if (!isValidTileValue(value, this.ruleset)) {
       throw new Error("Invalid practice tile value");

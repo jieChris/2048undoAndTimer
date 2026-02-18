@@ -8,6 +8,7 @@ import { authRoutes } from "./routes/auth.js";
 import { sessionsRoutes } from "./routes/sessions.js";
 import { leaderboardRoutes } from "./routes/leaderboards.js";
 import { usersRoutes } from "./routes/users.js";
+import { challengeRoutes } from "./routes/challenges.js";
 
 export function createApp() {
   const app = Fastify({
@@ -66,6 +67,7 @@ export function createApp() {
     api.register(sessionsRoutes);
     api.register(leaderboardRoutes);
     api.register(usersRoutes);
+    api.register(challengeRoutes);
   }, { prefix: "/api/v1" });
 
   return app;

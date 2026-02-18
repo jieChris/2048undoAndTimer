@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <title>2048 多玩法</title>
 
-  <link href="style/main.css?v=44" rel="stylesheet" type="text/css">
+  <link href="style/main.css?v=46" rel="stylesheet" type="text/css">
   <link rel="shortcut icon" href="favicon.ico?v=42">
   <link rel="apple-touch-icon" href="meta/apple-touch-icon.png?v=42">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -25,20 +25,32 @@
     <div class="stats-right" id="stats-ips">IPS: 0</div>
     <div class="heading">
       <div class="top-action-buttons">
-        <a class="top-action-btn stats-panel-toggle" id="stats-panel-toggle">统计</a>
-        <a class="top-action-btn" id="top-export-replay-btn">导出回放</a>
-        <a class="top-action-btn" href="replay.html">高级回放</a>
-        <a class="top-action-btn" href="modes.html">模式选择</a>
-        <a class="top-action-btn" id="top-settings-btn">设置</a>
+        <a class="top-action-btn stats-panel-toggle" id="stats-panel-toggle" title="统计">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        </a>
+        <a class="top-action-btn" id="top-export-replay-btn" title="导出回放">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        </a>
+        <a class="top-action-btn" href="replay.html" title="高级回放">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+        </a>
+        <a class="top-action-btn" href="modes.html" title="模式选择">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        </a>
+        <a class="top-action-btn" id="top-settings-btn" title="设置">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </a>
       </div>
-      <h1 class="title">2048</h1>
+      <h1 class="title"><a href="index.html" style="text-decoration: none; color: inherit; cursor: pointer;">2048</a></h1>
       <div class="scores-container">
         <div class="score-container">0</div>
         <div class="best-container">0</div>
       </div>
       <div class="above-game" style="clear: both; padding-top: 15px;">
       <p class="game-intro" id="play-mode-intro">模式加载中...</p>
-      <a class="restart-button">新游戏</a>
+      <a class="restart-button" title="新游戏">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+      </a>
       </div>
     </div>
 
@@ -134,9 +146,28 @@
   <div id="settings-modal" class="replay-modal-overlay" style="display: none;">
     <div class="replay-modal-content settings-modal-content">
       <h3>设置</h3>
-      <div class="settings-row">
-        <label for="theme-select">棋子配色</label>
-        <select id="theme-select" class="settings-select"></select>
+      <div class="settings-row theme-settings-row">
+        <div class="theme-selection-col">
+          <label>棋子配色</label>
+          <div class="custom-select-wrapper">
+              <div class="custom-select">
+                  <div class="custom-select-trigger" id="theme-select-trigger">
+                      <span>选择主题</span>
+                      <div class="custom-arrow"></div>
+                  </div>
+                  <div class="custom-select-options" id="theme-select-options">
+                      <!-- Options populated by JS -->
+                  </div>
+              </div>
+          </div>
+          <!-- Hidden original select for fallback/data binding if needed -->
+          <select id="theme-select" style="display:none"></select>
+        </div>
+        
+        <div class="theme-preview-col">
+          <label>配色预览</label>
+          <div id="theme-preview-grid" class="theme-preview-grid"></div>
+        </div>
       </div>
       <div class="settings-row">
         <label for="undo-enabled-toggle">撤回功能</label>
@@ -160,14 +191,14 @@
   <script src="js/animframe_polyfill.js?v=42"></script>
   <script src="js/keyboard_input_manager.js?v=42"></script>
   <script src="js/theme_manager.js?v=4"></script>
-  <script src="js/mode_catalog.js?v=2"></script>
-  <script src="js/html_actuator.js?v=47"></script>
+  <script src="js/mode_catalog.js?v=3"></script>
+  <script src="js/html_actuator.js?v=48"></script>
   <script src="js/grid.js?v=42"></script>
   <script src="js/tile.js?v=42"></script>
   <script src="js/local_score_manager.js?v=42"></script>
-  <script src="js/api_client.js?v=3"></script>
-  <script src="js/game_manager.js?v=54"></script>
-  <script src="js/play_application.js?v=2"></script>
+  <script src="js/api_client.js?v=4"></script>
+  <script src="js/game_manager.js?v=59"></script>
+  <script src="js/play_application.js?v=4"></script>
   <script src="js/index_ui.js?v=45"></script>
 </body>
 </html>

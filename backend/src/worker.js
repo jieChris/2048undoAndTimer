@@ -48,7 +48,7 @@ async function claimJob() {
       `
         SELECT
           id, mode, mode_key, board_width, board_height, ruleset,
-          undo_enabled, ranked_bucket,
+          undo_enabled, ranked_bucket, mode_family, rank_policy, special_rules_snapshot,
           score, best_tile, final_board, replay_payload
         FROM game_sessions
         WHERE id = $1
@@ -195,6 +195,11 @@ async function loop() {
         ruleset: job.session.ruleset,
         undoEnabled: !!job.session.undo_enabled,
         rankedBucket: job.session.ranked_bucket,
+        modeFamily: job.session.mode_family,
+        rankPolicy: job.session.rank_policy,
+        specialRulesSnapshot: typeof job.session.special_rules_snapshot === "string"
+          ? JSON.parse(job.session.special_rules_snapshot)
+          : job.session.special_rules_snapshot,
         replay,
         clientScore: job.session.score,
         clientBestTile: job.session.best_tile,

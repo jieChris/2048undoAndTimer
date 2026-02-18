@@ -281,6 +281,16 @@
     return request("GET", "/sessions/" + encodeURIComponent(sessionId));
   }
 
+  async function getDailyChallenge() {
+    return request("GET", "/challenges/daily");
+  }
+
+  async function getChallengeLeaderboard(challengeId, limit, offset) {
+    var l = typeof limit === "number" ? limit : 50;
+    var o = typeof offset === "number" ? offset : 0;
+    return request("GET", "/challenges/" + encodeURIComponent(challengeId) + "/leaderboard?limit=" + l + "&offset=" + o);
+  }
+
   async function healthcheck() {
     var response;
     var rawText = "";
@@ -332,6 +342,8 @@
     fetchMe: fetchMe,
     completeSession: completeSession,
     getLeaderboard: getLeaderboard,
+    getDailyChallenge: getDailyChallenge,
+    getChallengeLeaderboard: getChallengeLeaderboard,
     getUserHistory: getUserHistory,
     getSession: getSession,
     getCurrentUser: getCurrentUser,

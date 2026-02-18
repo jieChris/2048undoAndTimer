@@ -55,7 +55,10 @@ GameManager.DEFAULT_MODE_CONFIG = {
   undo_enabled: false,
   max_tile: null,
   spawn_table: [{ value: 2, weight: 90 }, { value: 4, weight: 10 }],
-  ranked_bucket: "standard"
+  ranked_bucket: "standard",
+  mode_family: "pow2",
+  special_rules: {},
+  rank_policy: "ranked"
 };
 GameManager.FALLBACK_MODE_CONFIGS = {
   standard_4x4_pow2_no_undo: GameManager.DEFAULT_MODE_CONFIG,
@@ -209,6 +212,7 @@ GameManager.LEGACY_MODE_BY_KEY = {
   capped_4x4_pow2_no_undo: "capped",
   practice_legacy: "practice"
 };
+GameManager.TIMER_SLOT_IDS = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768];
 
 GameManager.prototype.getActionKind = function (action) {
   if (action === -1) return "u";
@@ -287,6 +291,7 @@ GameManager.prototype.setBoardFromMatrix = function (board) {
     for (var x = 0; x < this.width; x++) {
       var value = board[y][x];
       if (!Number.isInteger(value) || value < 0) throw "Invalid board value";
+      if (this.isBlockedCell(x, y) && value !== 0) throw "Blocked cell must stay empty";
       if (value > 0) {
         this.grid.insertTile(new Tile({ x: x, y: y }, value));
       }
@@ -393,6 +398,9 @@ GameManager.prototype.normalizeModeConfig = function (modeKey, rawConfig) {
   cfg.max_tile = Number.isInteger(cfg.max_tile) && cfg.max_tile > 0 ? cfg.max_tile : null;
   cfg.spawn_table = this.normalizeSpawnTable(cfg.spawn_table, cfg.ruleset);
   cfg.ranked_bucket = cfg.ranked_bucket || "none";
+  cfg.mode_family = cfg.mode_family || (cfg.ruleset === "fibonacci" ? "fibonacci" : "pow2");
+  cfg.special_rules = this.normalizeSpecialRules(cfg.special_rules);
+  cfg.rank_policy = cfg.rank_policy || (cfg.ranked_bucket !== "none" ? "ranked" : "unranked");
   return cfg;
 };
 
@@ -428,10 +436,87 @@ GameManager.prototype.applyModeConfig = function (modeConfig) {
   this.maxTile = cfg.max_tile || Infinity;
   this.spawnTable = this.normalizeSpawnTable(cfg.spawn_table, cfg.ruleset);
   this.rankedBucket = cfg.ranked_bucket || "none";
+  this.modeFamily = cfg.mode_family || (cfg.ruleset === "fibonacci" ? "fibonacci" : "pow2");
+  this.specialRules = this.normalizeSpecialRules(cfg.special_rules);
+  this.rankPolicy = cfg.rank_policy || (this.rankedBucket !== "none" ? "ranked" : "unranked");
+  this.applySpecialRulesState();
   if (typeof document !== "undefined" && document.body) {
     document.body.setAttribute("data-mode-id", cfg.key);
     document.body.setAttribute("data-ruleset", cfg.ruleset);
+    document.body.setAttribute("data-mode-family", this.modeFamily);
+    document.body.setAttribute("data-rank-policy", this.rankPolicy);
   }
+};
+
+GameManager.prototype.normalizeSpecialRules = function (rules) {
+  if (!rules || typeof rules !== "object" || Array.isArray(rules)) return {};
+  return this.clonePlain(rules);
+};
+
+GameManager.prototype.applySpecialRulesState = function () {
+  var rules = this.specialRules || {};
+  var blockedRaw = Array.isArray(rules.blocked_cells) ? rules.blocked_cells : [];
+  this.blockedCellSet = {};
+  this.blockedCellsList = [];
+  for (var i = 0; i < blockedRaw.length; i++) {
+    var item = blockedRaw[i];
+    var x = null;
+    var y = null;
+    if (Array.isArray(item) && item.length >= 2) {
+      x = Number(item[0]);
+      y = Number(item[1]);
+    } else if (item && typeof item === "object") {
+      x = Number(item.x);
+      y = Number(item.y);
+    }
+    if (!Number.isInteger(x) || !Number.isInteger(y)) continue;
+    if (x < 0 || x >= this.width || y < 0 || y >= this.height) continue;
+    this.blockedCellSet[x + ":" + y] = true;
+    this.blockedCellsList.push({ x: x, y: y });
+  }
+
+  this.undoLimit = Number.isInteger(rules.undo_limit) && rules.undo_limit >= 0 ? rules.undo_limit : null;
+  this.comboMultiplier = Number.isFinite(rules.combo_multiplier) && rules.combo_multiplier > 1
+    ? Number(rules.combo_multiplier)
+    : 1;
+  this.directionLockRules = rules.direction_lock && typeof rules.direction_lock === "object"
+    ? this.clonePlain(rules.direction_lock)
+    : null;
+};
+
+GameManager.prototype.isBlockedCell = function (x, y) {
+  return !!(this.blockedCellSet && this.blockedCellSet[x + ":" + y]);
+};
+
+GameManager.prototype.getAvailableCells = function () {
+  var out = [];
+  for (var x = 0; x < this.width; x++) {
+    for (var y = 0; y < this.height; y++) {
+      if (this.isBlockedCell(x, y)) continue;
+      if (this.grid.cellAvailable({ x: x, y: y })) out.push({ x: x, y: y });
+    }
+  }
+  return out;
+};
+
+GameManager.prototype.getLockedDirection = function () {
+  var rules = this.directionLockRules;
+  if (!rules) return null;
+  var everyK = Number(rules.every_k_moves);
+  if (!Number.isInteger(everyK) || everyK <= 0) return null;
+  if (this.successfulMoveCount <= 0 || this.successfulMoveCount % everyK !== 0) return null;
+  if (this.lockConsumedAtMoveCount === this.successfulMoveCount) return null;
+  if (this.lockedDirectionTurn !== this.successfulMoveCount) {
+    var phase = Math.floor(this.successfulMoveCount / everyK);
+    var rng = new Math.seedrandom(String(this.initialSeed) + ":lock:" + phase);
+    this.lockedDirection = Math.floor(rng() * 4);
+    this.lockedDirectionTurn = this.successfulMoveCount;
+  }
+  return this.lockedDirection;
+};
+
+GameManager.prototype.consumeDirectionLock = function () {
+  this.lockConsumedAtMoveCount = this.successfulMoveCount;
 };
 
 GameManager.prototype.getLegacyModeFromModeKey = function (modeKey) {
@@ -496,6 +581,50 @@ GameManager.prototype.getMergedValue = function (a, b) {
   var fibMerged = low + high;
   if (fibMerged > this.maxTile) return null;
   return fibMerged;
+};
+
+GameManager.prototype.getTimerMilestoneValues = function () {
+  if (this.isFibonacciMode()) {
+    // 12 slots mapped to Fibonacci milestones.
+    return [13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584];
+  }
+  return GameManager.TIMER_SLOT_IDS.slice();
+};
+
+GameManager.prototype.configureTimerMilestones = function () {
+  this.timerMilestones = this.getTimerMilestoneValues();
+  this.timerMilestoneSlotByValue = {};
+  for (var i = 0; i < GameManager.TIMER_SLOT_IDS.length; i++) {
+    var slotId = String(GameManager.TIMER_SLOT_IDS[i]);
+    var milestone = this.timerMilestones[i];
+    if (Number.isInteger(milestone) && milestone > 0) {
+      this.timerMilestoneSlotByValue[String(milestone)] = slotId;
+    }
+  }
+  this.updateTimerLegendLabels();
+};
+
+GameManager.prototype.updateTimerLegendLabels = function () {
+  if (typeof document === "undefined") return;
+  var milestones = this.timerMilestones || this.getTimerMilestoneValues();
+  for (var i = 0; i < GameManager.TIMER_SLOT_IDS.length; i++) {
+    var slotId = String(GameManager.TIMER_SLOT_IDS[i]);
+    var label = String(milestones[i]);
+    var nodes = document.querySelectorAll(".timer-legend-" + slotId);
+    for (var j = 0; j < nodes.length; j++) {
+      nodes[j].textContent = label;
+    }
+  }
+};
+
+GameManager.prototype.recordTimerMilestone = function (value, timeStr) {
+  if (!Number.isInteger(value) || value <= 0) return;
+  var slotId = this.timerMilestoneSlotByValue ? this.timerMilestoneSlotByValue[String(value)] : null;
+  if (!slotId) return;
+  var el = document.getElementById("timer" + slotId);
+  if (el && el.textContent === "") {
+    el.textContent = timeStr;
+  }
 };
 
 GameManager.prototype.initCornerStats = function () {
@@ -578,9 +707,9 @@ GameManager.prototype.initStatsPanelUi = function () {
       "<div class='stats-panel-row'><span>总步数</span><span id='stats-panel-total'>0</span></div>" +
       "<div class='stats-panel-row'><span>移动步数</span><span id='stats-panel-moves'>0</span></div>" +
       "<div class='stats-panel-row'><span>撤回步数</span><span id='stats-panel-undo'>0</span></div>" +
-      "<div class='stats-panel-row'><span>出2数量</span><span id='stats-panel-two'>0</span></div>" +
-      "<div class='stats-panel-row'><span>出4数量</span><span id='stats-panel-four'>0</span></div>" +
-      "<div class='stats-panel-row'><span>实际出4率</span><span id='stats-panel-four-rate'>0.00</span></div>" +
+      "<div class='stats-panel-row'><span id='stats-panel-two-label'>出2数量</span><span id='stats-panel-two'>0</span></div>" +
+      "<div class='stats-panel-row'><span id='stats-panel-four-label'>出4数量</span><span id='stats-panel-four'>0</span></div>" +
+      "<div class='stats-panel-row'><span id='stats-panel-four-rate-label'>实际出4率</span><span id='stats-panel-four-rate'>0.00</span></div>" +
       "<div class='replay-modal-actions'>" +
       "<button id='stats-panel-close' class='replay-button'>关闭</button>" +
       "</div>" +
@@ -721,6 +850,7 @@ GameManager.prototype.setUndoEnabled = function (enabled, skipPersist, forceChan
 
 GameManager.prototype.isUndoInteractionEnabled = function () {
   if (this.replayMode) return false;
+  if (this.undoLimit !== null && this.undoUsed >= this.undoLimit) return false;
   return !!(this.undoEnabled && this.isUndoAllowedByMode(this.mode));
 };
 
@@ -738,30 +868,109 @@ GameManager.prototype.updateUndoUiState = function () {
 };
 
 GameManager.prototype.recordSpawnValue = function (value) {
-  this.totalSpawns++;
-  if (value === 2) this.spawnTwos++;
-  if (value === 4) {
-    this.spawnFours++;
-    this.fours++;
-  }
+  if (!this.spawnValueCounts) this.spawnValueCounts = {};
+  var k = String(value);
+  this.spawnValueCounts[k] = (this.spawnValueCounts[k] || 0) + 1;
+
+  // Keep legacy fields for compatibility with existing UI hooks.
+  this.spawnTwos = this.spawnValueCounts["2"] || 0;
+  this.spawnFours = this.spawnValueCounts["4"] || 0;
   this.refreshSpawnRateDisplay();
 };
 
-GameManager.prototype.refreshSpawnRateDisplay = function () {
-  var rate = 0;
-  if (this.totalSpawns > 0) {
-    rate = (this.fours / this.totalSpawns) * 100;
+GameManager.prototype.getSpawnStatPair = function () {
+  var table = Array.isArray(this.spawnTable) ? this.spawnTable : [];
+  var values = [];
+  for (var i = 0; i < table.length; i++) {
+    var item = table[i];
+    if (!item || !Number.isInteger(Number(item.value)) || Number(item.value) <= 0) continue;
+    var v = Number(item.value);
+    if (values.indexOf(v) === -1) {
+      values.push(v);
+    }
   }
-  var text = rate.toFixed(2);
+  values.sort(function (a, b) { return a - b; });
+  var primary = values.length > 0 ? values[0] : 2;
+  var secondary = values.length > 1 ? values[1] : primary;
+  return {
+    primary: primary,
+    secondary: secondary
+  };
+};
+
+GameManager.prototype.getSpawnCount = function (value) {
+  if (!this.spawnValueCounts) return 0;
+  return this.spawnValueCounts[String(value)] || 0;
+};
+
+GameManager.prototype.getTotalSpawnCount = function () {
+  if (!this.spawnValueCounts) return 0;
+  var total = 0;
+  for (var k in this.spawnValueCounts) {
+    if (Object.prototype.hasOwnProperty.call(this.spawnValueCounts, k)) {
+      total += this.spawnValueCounts[k] || 0;
+    }
+  }
+  return total;
+};
+
+GameManager.prototype.getConfiguredSecondaryRate = function () {
+  var table = Array.isArray(this.spawnTable) ? this.spawnTable : [];
+  var pair = this.getSpawnStatPair();
+  var totalWeight = 0;
+  var secondaryWeight = 0;
+  for (var i = 0; i < table.length; i++) {
+    var item = table[i];
+    if (!item || !Number.isFinite(item.weight) || item.weight <= 0) continue;
+    totalWeight += item.weight;
+    if (Number(item.value) === pair.secondary) secondaryWeight += item.weight;
+  }
+  if (totalWeight <= 0 || secondaryWeight <= 0) return "0.00";
+  return ((secondaryWeight / totalWeight) * 100).toFixed(2);
+};
+
+GameManager.prototype.getSmoothedSecondaryRate = function () {
+  var configured = Number(this.getConfiguredSecondaryRate());
+  if (!Number.isFinite(configured) || configured <= 0) return "0.00";
+
+  // Use original 2048 rate as prior (10%) style smoothing to avoid 0/100 spikes at game start.
+  var priorTotal = 20;
+  var priorSecondary = (configured / 100) * priorTotal;
+  var pair = this.getSpawnStatPair();
+  var observedTotal = this.getTotalSpawnCount();
+  var observedSecondary = this.getSpawnCount(pair.secondary);
+  var smoothed = (observedSecondary + priorSecondary) / (observedTotal + priorTotal);
+  return (smoothed * 100).toFixed(2);
+};
+
+GameManager.prototype.refreshSpawnRateDisplay = function () {
+  // Top-left rate: dynamic value with prior smoothing (avoids 0/100 spikes at start).
+  var text = this.getSmoothedSecondaryRate();
   var rateEl = document.getElementById("stats-4-rate");
   if (rateEl) rateEl.textContent = text;
   if (this.cornerRateEl) this.cornerRateEl.textContent = text;
 };
 
-GameManager.prototype.getActualFourRate = function () {
-  var total = this.spawnTwos + this.spawnFours;
+GameManager.prototype.getActualSecondaryRate = function () {
+  var pair = this.getSpawnStatPair();
+  var total = this.getTotalSpawnCount();
   if (total <= 0) return "0.00";
-  return ((this.spawnFours / total) * 100).toFixed(2);
+  return ((this.getSpawnCount(pair.secondary) / total) * 100).toFixed(2);
+};
+
+GameManager.prototype.getActualFourRate = function () {
+  // Keep old method name for compatibility.
+  return this.getActualSecondaryRate();
+};
+
+GameManager.prototype.updateStatsPanelLabels = function () {
+  var pair = this.getSpawnStatPair();
+  var twoLabel = document.getElementById("stats-panel-two-label");
+  if (twoLabel) twoLabel.textContent = "出" + pair.primary + "数量";
+  var fourLabel = document.getElementById("stats-panel-four-label");
+  if (fourLabel) fourLabel.textContent = "出" + pair.secondary + "数量";
+  var rateLabel = document.getElementById("stats-panel-four-rate-label");
+  if (rateLabel) rateLabel.textContent = "实际出" + pair.secondary + "率";
 };
 
 GameManager.prototype.updateStatsPanel = function (totalSteps, moveSteps, undoSteps) {
@@ -769,6 +978,9 @@ GameManager.prototype.updateStatsPanel = function (totalSteps, moveSteps, undoSt
   if (typeof totalSteps === "undefined") totalSteps = fallback.totalSteps;
   if (typeof moveSteps === "undefined") moveSteps = fallback.moveSteps;
   if (typeof undoSteps === "undefined") undoSteps = fallback.undoSteps;
+  this.updateStatsPanelLabels();
+
+  var pair = this.getSpawnStatPair();
 
   var totalEl = document.getElementById("stats-panel-total");
   if (totalEl) totalEl.textContent = String(totalSteps);
@@ -777,11 +989,11 @@ GameManager.prototype.updateStatsPanel = function (totalSteps, moveSteps, undoSt
   var undoEl = document.getElementById("stats-panel-undo");
   if (undoEl) undoEl.textContent = String(undoSteps);
   var twoEl = document.getElementById("stats-panel-two");
-  if (twoEl) twoEl.textContent = String(this.spawnTwos || 0);
+  if (twoEl) twoEl.textContent = String(this.getSpawnCount(pair.primary));
   var fourEl = document.getElementById("stats-panel-four");
-  if (fourEl) fourEl.textContent = String(this.spawnFours || 0);
+  if (fourEl) fourEl.textContent = String(this.getSpawnCount(pair.secondary));
   var rateEl = document.getElementById("stats-panel-four-rate");
-  if (rateEl) rateEl.textContent = this.getActualFourRate();
+  if (rateEl) rateEl.textContent = this.getActualSecondaryRate();
 };
 
 GameManager.prototype.computeStepStats = function () {
@@ -899,9 +1111,21 @@ GameManager.prototype.setup = function (inputSeed, options) {
     board_height: this.height,
     ruleset: this.ruleset,
     undo_enabled: !!this.modeConfig.undo_enabled,
+    mode_family: this.modeFamily,
+    rank_policy: this.rankPolicy,
+    special_rules_snapshot: this.clonePlain(this.specialRules || {}),
+    challenge_id: this.challengeId,
     seed: this.initialSeed,
     actions: []
   };
+  this.challengeId = typeof options.challengeId === "string" && options.challengeId
+    ? options.challengeId
+    : null;
+  if (!this.challengeId && typeof window !== "undefined" && window.GAME_CHALLENGE_CONTEXT && window.GAME_CHALLENGE_CONTEXT.id) {
+    this.challengeId = window.GAME_CHALLENGE_CONTEXT.id;
+    this.sessionReplayV3.challenge_id = this.challengeId;
+  }
+  if (this.challengeId) this.sessionReplayV3.challenge_id = this.challengeId;
   this.lastSpawn = null; // To capture spawn during play
   this.forcedSpawn = null; // To force spawn during replay v2
   
@@ -916,10 +1140,16 @@ GameManager.prototype.setup = function (inputSeed, options) {
   this.accumulatedTime = 0; // For pausing logic
   this.sessionStartedAt = Date.now();
   this.hasGameStarted = false;
+  this.configureTimerMilestones();
+  this.comboStreak = 0;
+  this.successfulMoveCount = 0;
+  this.undoUsed = 0;
+  this.lockConsumedAtMoveCount = -1;
+  this.lockedDirectionTurn = null;
+  this.lockedDirection = null;
 
   // Stats
-  this.totalSpawns = 0;
-  this.fours = 0;
+  this.spawnValueCounts = {};
   this.spawnTwos = 0;
   this.spawnFours = 0;
   this.undoEnabled = this.loadUndoSettingForMode(this.mode);
@@ -935,9 +1165,9 @@ GameManager.prototype.setup = function (inputSeed, options) {
   if (document.getElementById("timer")) document.getElementById("timer").textContent = this.pretty(0);
   
   // Clear milestones
-  var milestones = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768];
-  milestones.forEach(function(val) {
-      var el = document.getElementById("timer" + val);
+  var timerSlots = GameManager.TIMER_SLOT_IDS;
+  timerSlots.forEach(function(slotId) {
+      var el = document.getElementById("timer" + slotId);
       if (el) el.textContent = "";
   });
   // Clear sub timers
@@ -986,7 +1216,7 @@ GameManager.prototype.addStartTiles = function () {
 GameManager.prototype.addRandomTile = function () {
   // Replay v2 Logic: Use forced spawn if available
   if (this.replayMode && this.forcedSpawn) {
-      if (this.grid.cellAvailable(this.forcedSpawn)) {
+      if (this.grid.cellAvailable(this.forcedSpawn) && !this.isBlockedCell(this.forcedSpawn.x, this.forcedSpawn.y)) {
           var tile = new Tile(this.forcedSpawn, this.forcedSpawn.value);
           this.grid.insertTile(tile);
           this.recordSpawnValue(this.forcedSpawn.value);
@@ -995,7 +1225,8 @@ GameManager.prototype.addRandomTile = function () {
       return;
   }
   // Normal Logic
-  if (this.grid.cellsAvailable()) {
+  var available = this.getAvailableCells();
+  if (available.length > 0) {
     Math.seedrandom(this.seed);
     
     // Fix: Use move history length (or replay index) instead of score to determine RNG state.
@@ -1007,7 +1238,7 @@ GameManager.prototype.addRandomTile = function () {
     }
     
     var value = this.pickSpawnValue();
-    var cell = this.grid.randomAvailableCell();
+    var cell = available[Math.floor(Math.random() * available.length)];
     var tile = new Tile(cell, value);
 
     this.grid.insertTile(tile);
@@ -1029,7 +1260,8 @@ GameManager.prototype.actuate = function () {
     over:       this.over,
     won:        this.won,
     bestScore:  this.scoreManager.get(),
-    terminated: this.isGameTerminated()
+    terminated: this.isGameTerminated(),
+    blockedCells: this.blockedCellsList || []
   });
   
   // Update Stats: Total Steps & Moves (Excluding Undo)
@@ -1103,6 +1335,9 @@ GameManager.prototype.move = function (direction) {
     if (!this.replayMode && !this.isUndoInteractionEnabled()) {
       return;
     }
+    if (this.undoLimit !== null && this.undoUsed >= this.undoLimit) {
+      return;
+    }
     if (this.undoStack.length > 0) {
       var prev = this.undoStack.pop();
 
@@ -1117,10 +1352,18 @@ GameManager.prototype.move = function (direction) {
         };
         this.grid.cells[tile.x][tile.y] = tile;
       }
+      this.comboStreak = Number.isInteger(prev.comboStreak) ? prev.comboStreak : 0;
+      this.successfulMoveCount = Number.isInteger(prev.successfulMoveCount) ? prev.successfulMoveCount : 0;
+      this.lockConsumedAtMoveCount = Number.isInteger(prev.lockConsumedAtMoveCount) ? prev.lockConsumedAtMoveCount : -1;
+      this.lockedDirectionTurn = Number.isInteger(prev.lockedDirectionTurn) ? prev.lockedDirectionTurn : null;
+      this.lockedDirection = Number.isInteger(prev.lockedDirection) ? prev.lockedDirection : null;
+      this.undoUsed = Number.isInteger(prev.undoUsed) ? prev.undoUsed : this.undoUsed;
+
       this.over = false;
       this.won = false;
       this.keepPlaying = false;
       this.actuator.clearMessage(); // Clear Game Over message if present
+      this.undoUsed++;
       
       // Record undo in history if valid
       if (!this.replayMode) {
@@ -1143,12 +1386,30 @@ GameManager.prototype.move = function (direction) {
 
   if (this.isGameTerminated()) return; // Don't do anything if the game's over
 
+  var lockedDirection = this.getLockedDirection();
+  if (lockedDirection !== null) {
+    this.consumeDirectionLock();
+    if (Number(direction) === Number(lockedDirection)) {
+      return;
+    }
+  }
+
   var cell, tile;
 
   var vector     = this.getVector(direction);
   var traversals = this.buildTraversals(vector);
   var moved      = false;
-  var undo       = {score: this.score, tiles: []};
+  var scoreBeforeMove = this.score;
+  var undo       = {
+    score: this.score,
+    tiles: [],
+    comboStreak: this.comboStreak,
+    successfulMoveCount: this.successfulMoveCount,
+    lockConsumedAtMoveCount: this.lockConsumedAtMoveCount,
+    lockedDirectionTurn: this.lockedDirectionTurn,
+    lockedDirection: this.lockedDirection,
+    undoUsed: this.undoUsed
+  };
 
   // Save the current tile positions and remove merger information
   this.prepareTiles();
@@ -1156,12 +1417,13 @@ GameManager.prototype.move = function (direction) {
   // Traverse the grid in the right direction and move tiles
   traversals.x.forEach(function (x) {
     traversals.y.forEach(function (y) {
+      if (self.isBlockedCell(x, y)) return;
       cell = { x: x, y: y };
       tile = self.grid.cellContent(cell);
 
       if (tile) {
         var positions = self.findFarthestPosition(cell, vector);
-        var next      = self.grid.cellContent(positions.next);
+        var next      = self.isBlockedCell(positions.next.x, positions.next.y) ? null : self.grid.cellContent(positions.next);
 
         var mergedValue = next ? self.getMergedValue(tile.value, next.value) : null;
         if (next && !next.mergedFrom && mergedValue !== null) {
@@ -1293,6 +1555,8 @@ GameManager.prototype.move = function (direction) {
              if (document.getElementById("timer-row-32")) document.getElementById("timer-row-32").style.display = "none";
           }
 
+          self.recordTimerMilestone(merged.value, timeStr);
+
         } else {
           // Save backup information
           undo.tiles.push(tile.save(positions.farthest));
@@ -1307,7 +1571,21 @@ GameManager.prototype.move = function (direction) {
   });
 
   if (moved) {
+    var mergeGain = this.score - scoreBeforeMove;
+    if (mergeGain > 0) {
+      this.comboStreak += 1;
+      if (this.comboMultiplier > 1 && this.comboStreak > 1) {
+        var comboBonus = Math.floor(mergeGain * (this.comboMultiplier - 1) * (this.comboStreak - 1));
+        if (comboBonus > 0) {
+          this.score += comboBonus;
+        }
+      }
+    } else {
+      this.comboStreak = 0;
+    }
+
     this.addRandomTile();
+    this.successfulMoveCount += 1;
 
     if (!this.movesAvailable()) {
       this.over = true; // Game over!
@@ -1390,6 +1668,7 @@ GameManager.prototype.findFarthestPosition = function (cell, vector) {
     previous = cell;
     cell     = { x: previous.x + vector.x, y: previous.y + vector.y };
   } while (this.grid.withinBounds(cell) &&
+           !this.isBlockedCell(cell.x, cell.y) &&
            this.grid.cellAvailable(cell));
 
   return {
@@ -1399,7 +1678,7 @@ GameManager.prototype.findFarthestPosition = function (cell, vector) {
 };
 
 GameManager.prototype.movesAvailable = function () {
-  return this.grid.cellsAvailable() || this.tileMatchesAvailable();
+  return this.getAvailableCells().length > 0 || this.tileMatchesAvailable();
 };
 
 // Check for available matches between tiles (more expensive check)
@@ -1410,6 +1689,7 @@ GameManager.prototype.tileMatchesAvailable = function () {
 
   for (var x = 0; x < this.width; x++) {
     for (var y = 0; y < this.height; y++) {
+      if (this.isBlockedCell(x, y)) continue;
       tile = this.grid.cellContent({ x: x, y: y });
 
       if (tile) {
@@ -1417,6 +1697,7 @@ GameManager.prototype.tileMatchesAvailable = function () {
           var vector = self.getVector(direction);
           var cell   = { x: x + vector.x, y: y + vector.y };
 
+          if (self.isBlockedCell(cell.x, cell.y)) continue;
           var other  = self.grid.cellContent(cell);
 
           if (other && self.getMergedValue(tile.value, other.value) !== null) {
@@ -1511,6 +1792,9 @@ GameManager.prototype.pretty = function(time) {
 
 // Insert a custom tile (Test Board)
 GameManager.prototype.insertCustomTile = function(x, y, value) {
+    if (this.isBlockedCell(x, y)) {
+        throw "Blocked cell cannot be edited";
+    }
     if (this.grid.cellContent({ x: x, y: y })) {
         // Remove existing if needed? Or just overwrite?
         this.grid.removeTile(this.grid.cellContent({ x: x, y: y }));
@@ -1565,10 +1849,13 @@ GameManager.prototype.insertCustomTile = function(x, y, value) {
 };
 
 GameManager.prototype.invalidateTimers = function(limit) {
-    var milestones = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768];
-    milestones.forEach(function(val) {
-        if (val <= limit) {
-             var el = document.getElementById("timer" + val);
+    var milestones = this.timerMilestones || this.getTimerMilestoneValues();
+    var timerSlots = GameManager.TIMER_SLOT_IDS;
+    for (var i = 0; i < timerSlots.length; i++) {
+        var milestoneValue = milestones[i];
+        var slotId = timerSlots[i];
+        if (Number.isInteger(milestoneValue) && milestoneValue <= limit) {
+             var el = document.getElementById("timer" + slotId);
              if (el) {
                  el.textContent = "---------";
                  // Also ensure it doesn't get overwritten later? 
@@ -1576,11 +1863,11 @@ GameManager.prototype.invalidateTimers = function(limit) {
                  // Now it is "---------", so it won't be overwritten. Correct.
              }
         }
-    });
+    }
     
     // 8k/16k sub-timers logic
     // Only invalidate sub-timers if we have actually reached the 32k phase.
-    if (this.reached32k) {
+    if (this.reached32k && !this.isFibonacciMode()) {
         if (8192 <= limit && limit !== 32768) {
             var sub8k = document.getElementById("timer8192-sub");
             if (sub8k) sub8k.textContent = "---------";
@@ -1636,6 +1923,9 @@ GameManager.prototype.serializeV3 = function () {
     board_height: this.height,
     ruleset: this.ruleset,
     undo_enabled: !!this.modeConfig.undo_enabled,
+    mode_family: this.modeFamily,
+    rank_policy: this.rankPolicy,
+    special_rules_snapshot: this.clonePlain(this.specialRules || {}),
     seed: this.initialSeed,
     actions: []
   };
@@ -1647,6 +1937,10 @@ GameManager.prototype.serializeV3 = function () {
     board_height: replay.board_height || this.height,
     ruleset: replay.ruleset || this.ruleset,
     undo_enabled: typeof replay.undo_enabled === "boolean" ? replay.undo_enabled : !!this.modeConfig.undo_enabled,
+    mode_family: replay.mode_family || this.modeFamily,
+    rank_policy: replay.rank_policy || this.rankPolicy,
+    special_rules_snapshot: this.clonePlain(replay.special_rules_snapshot || this.specialRules || {}),
+    challenge_id: replay.challenge_id || this.challengeId || null,
     seed: replay.seed,
     actions: replay.actions.slice()
   };
@@ -1680,6 +1974,10 @@ GameManager.prototype.tryAutoSubmitOnGameOver = function () {
     ruleset: this.ruleset,
     undo_enabled: !!this.modeConfig.undo_enabled,
     ranked_bucket: this.rankedBucket,
+    mode_family: this.modeFamily,
+    rank_policy: this.rankPolicy,
+    special_rules_snapshot: this.clonePlain(this.specialRules || {}),
+    challenge_id: this.challengeId,
     score: this.score,
     best_tile: this.getBestTileValue(),
     duration_ms: this.getDurationMs(),
@@ -1771,6 +2069,18 @@ GameManager.prototype.import = function (replayString) {
         if (!Array.isArray(replayObj.actions)) throw "Invalid v3 actions";
         var replayModeKey = replayObj.mode_key || replayObj.mode || this.modeKey || this.mode;
         var replayModeConfig = this.resolveModeConfig(replayModeKey);
+        if (replayObj.special_rules_snapshot && typeof replayObj.special_rules_snapshot === "object") {
+          replayModeConfig.special_rules = this.clonePlain(replayObj.special_rules_snapshot);
+        }
+        if (typeof replayObj.mode_family === "string" && replayObj.mode_family) {
+          replayModeConfig.mode_family = replayObj.mode_family;
+        }
+        if (typeof replayObj.rank_policy === "string" && replayObj.rank_policy) {
+          replayModeConfig.rank_policy = replayObj.rank_policy;
+        }
+        if (typeof replayObj.challenge_id === "string" && replayObj.challenge_id) {
+          this.challengeId = replayObj.challenge_id;
+        }
         this.replayMoves = replayObj.actions;
         this.replaySpawns = null;
         this.disableSessionSync = true;

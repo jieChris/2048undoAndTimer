@@ -134,7 +134,7 @@ h1.title {
 /* New Timer Styles */
 #timer {
   float: left;
-  width: 157px;
+  width: 185px;
   text-align: center;
   margin-left: 15px;
   margin-bottom: 5px;
@@ -205,6 +205,14 @@ h1.title {
   float: left;
   line-height: 42px;
   margin-bottom: 0;
+}
+
+#play-mode-intro {
+  max-width: 380px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+  font-size: 16px;
 }
 
 .restart-button {
@@ -407,6 +415,11 @@ hr {
   float: left;
   border-radius: 3px;
   background: rgba(238, 228, 218, 0.35);
+}
+
+.grid-cell.grid-cell-obstacle {
+  background: rgba(70, 64, 58, 0.55);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.08);
 }
 
 .grid-cell:last-child {
@@ -1055,6 +1068,14 @@ hr {
     line-height: 1.65;
   }
 
+  #play-mode-intro {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
+    line-height: 1.65;
+    font-size: 13px;
+  }
+
   .restart-button {
     width: 42%;
     padding: 0;
@@ -1328,44 +1349,129 @@ input[type=range]::-webkit-slider-runnable-track {
   height: 18px;
 }
 
-.settings-select {
-  width: 100%;
-  height: 36px;
-  border: 1px solid #d8d4d0;
-  border-radius: 4px;
-  background: #fffdfa;
-  color: #776e65;
-  padding: 0 10px;
-  font-size: 14px;
+/* Custom Theme Settings Layout */
+.theme-settings-row {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  margin: 14px 0;
 }
 
-.theme-preview-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  background: #bbada0;
-  border-radius: 6px;
-  padding: 8px;
+.theme-selection-col {
+  flex: 0 0 200px;
+  /* Fixed width for selector */
 }
 
-.theme-preview-tile {
+.theme-preview-col {
+  flex: 1;
+  /* Takes remaining space */
+}
+
+/* Custom Select Dropdown */
+.custom-select-wrapper {
   position: relative;
-  height: 54px;
-  border-radius: 4px;
+  user-select: none;
+  width: 100%;
+}
+
+.custom-select {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.custom-select-trigger {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 12px;
-  line-height: 1;
-  color: #f9f6f2;
-  user-select: none;
+  justify-content: space-between;
+  padding: 0 10px;
+  font-size: 14px;
+  color: #776e65;
+  height: 36px;
+  line-height: 36px;
+  background: #fffdfa;
+  border: 1px solid #d8d4d0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.custom-select-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fffdfa;
+  border: 1px solid #d8d4d0;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.custom-select.open .custom-select-options {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: all;
+  transform: translateY(0);
+}
+
+.custom-option {
+  padding: 0 10px;
+  line-height: 36px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.custom-option:hover {
+  background: #eee4da;
+}
+
+.custom-option.selected {
+  background: #edc22e;
+  color: #fff;
+}
+
+.custom-arrow {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #776e65;
+  transition: transform 0.2s;
+}
+
+.custom-select.open .custom-arrow {
+  transform: rotate(180deg);
+}
+
+/* Adjusted Preview Grid for Side-by-Side */
+.theme-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 40px);
+  /* Slightly smaller to fit */
+  grid-template-rows: repeat(4, 40px);
+  gap: 6px;
+  background: #bbada0;
+  border-radius: 6px;
+  padding: 6px;
+  width: fit-content;
 }
 
 .settings-note {
   margin-top: 8px;
   font-size: 13px;
   color: #8a8178;
+}
+
+color: #8a8178;
 }
 
 @media screen and (max-width: 520px) {
@@ -1397,18 +1503,65 @@ input[type=range]::-webkit-slider-runnable-track {
 }
 
 /* Timer Tiles (Legend Colors & Glows) */
-.timer-legend-16 { background: #f59563; box-shadow: 0 0 5px 0 rgba(245, 149, 99, 0.5); }
-.timer-legend-32 { background: #f67c5f; box-shadow: 0 0 5px 0 rgba(246, 124, 95, 0.5); }
-.timer-legend-64 { background: #f65e3b; box-shadow: 0 0 5px 0 rgba(246, 94, 59, 0.5); }
-.timer-legend-128 { background: #edcf72; box-shadow: 0 0 10px 1px rgba(243, 215, 116, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.2); }
-.timer-legend-256 { background: #edcc61; box-shadow: 0 0 10px 1px rgba(243, 215, 116, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.2); }
-.timer-legend-512 { background: #edc850; box-shadow: 0 0 10px 2px rgba(243, 215, 116, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.2); }
-.timer-legend-1024 { background: #edc53f; box-shadow: 0 0 10px 2px rgba(243, 215, 116, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.2); }
-.timer-legend-2048 { background: #edc22e; box-shadow: 0 0 15px 3px rgba(243, 215, 116, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.3); }
-.timer-legend-4096 { background: #aa44cc; box-shadow: 0 0 15px 3px rgba(170, 68, 204, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.15); }
-.timer-legend-8192 { background: #662288; box-shadow: 0 0 15px 3px rgba(102, 34, 136, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.15); }
-.timer-legend-16384 { background: #331155; box-shadow: 0 0 15px 3px rgba(51, 17, 85, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.15); }
-.timer-legend-32768 { background: #000000; box-shadow: 0 0 15px 3px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(100, 100, 100, 0.2); }
+.timer-legend-16 {
+  background: #f59563;
+  box-shadow: 0 0 5px 0 rgba(245, 149, 99, 0.5);
+}
+
+.timer-legend-32 {
+  background: #f67c5f;
+  box-shadow: 0 0 5px 0 rgba(246, 124, 95, 0.5);
+}
+
+.timer-legend-64 {
+  background: #f65e3b;
+  box-shadow: 0 0 5px 0 rgba(246, 94, 59, 0.5);
+}
+
+.timer-legend-128 {
+  background: #edcf72;
+  box-shadow: 0 0 10px 1px rgba(243, 215, 116, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.timer-legend-256 {
+  background: #edcc61;
+  box-shadow: 0 0 10px 1px rgba(243, 215, 116, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.timer-legend-512 {
+  background: #edc850;
+  box-shadow: 0 0 10px 2px rgba(243, 215, 116, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.timer-legend-1024 {
+  background: #edc53f;
+  box-shadow: 0 0 10px 2px rgba(243, 215, 116, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.timer-legend-2048 {
+  background: #edc22e;
+  box-shadow: 0 0 15px 3px rgba(243, 215, 116, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+}
+
+.timer-legend-4096 {
+  background: #aa44cc;
+  box-shadow: 0 0 15px 3px rgba(170, 68, 204, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+.timer-legend-8192 {
+  background: #662288;
+  box-shadow: 0 0 15px 3px rgba(102, 34, 136, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+.timer-legend-16384 {
+  background: #331155;
+  box-shadow: 0 0 15px 3px rgba(51, 17, 85, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+.timer-legend-32768 {
+  background: #000000;
+  box-shadow: 0 0 15px 3px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(100, 100, 100, 0.2);
+}
 
 /* Custom Tile Colors 4096+ to match Timer Legend */
 .tile.tile-4096 .tile-inner {
@@ -1416,16 +1569,19 @@ input[type=range]::-webkit-slider-runnable-track {
   background: #aa44cc;
   box-shadow: 0 0 30px 10px rgba(170, 68, 204, 0.47), inset 0 0 0 1px rgba(255, 255, 255, 0.28);
 }
+
 .tile.tile-8192 .tile-inner {
   color: #f9f6f2;
   background: #662288;
   box-shadow: 0 0 30px 10px rgba(102, 34, 136, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.33);
 }
+
 .tile.tile-16384 .tile-inner {
   color: #f9f6f2;
   background: #331155;
   box-shadow: 0 0 30px 10px rgba(51, 17, 85, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.33);
 }
+
 .tile.tile-32768 .tile-inner {
   color: #f9f6f2;
   background: #000000;
@@ -1433,11 +1589,13 @@ input[type=range]::-webkit-slider-runnable-track {
 }
 
 @media screen and (max-width: 520px) {
+
   .tile.tile-4096 .tile-inner,
   .tile.tile-8192 .tile-inner,
   .tile.tile-16384 .tile-inner,
   .tile.tile-32768 .tile-inner {
-    font-size: 15px; /* Adjust font size for mobile */
+    font-size: 15px;
+    /* Adjust font size for mobile */
   }
 }
 

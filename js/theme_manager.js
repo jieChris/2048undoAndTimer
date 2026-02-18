@@ -109,7 +109,7 @@
   }
 
   var themes = {
-    classic: makeTheme("classic", "经典", [
+    classic: makeTheme("classic", "经典 (Classic)", [
       "#eee4da", "#ede0c8", "#f2b179", "#f59563",
       "#f67c5f", "#f65e3b", "#edcf72", "#edcc61",
       "#edc850", "#edc53f", "#edc22e", "#aa44cc",
@@ -501,7 +501,7 @@
       }
     }),
 
-    pop: makeTheme("pop", "高对比", [
+    pop: makeTheme("pop", "高对比 (High Contrast)", [
       "#fff2e0", "#ffe2b8", "#ffd08d", "#ffbd63",
       "#ffa53d", "#ff8820", "#ff6a2e", "#f84b4b",
       "#e33580", "#c92bbb", "#9c38de", "#6d45ef",
@@ -523,7 +523,7 @@
         buttonHoverText: "#44295a"
       }
     }),
-    neon_flux: makeTheme("neon_flux", "Neon Flux（动态霓虹）", [
+    neon_flux: makeTheme("neon_flux", "动态霓虹 (Neon Flux)", [
       "#50f2ff", "#33e2ff", "#2dd0ff", "#38bbff",
       "#4da2ff", "#6b88ff", "#8a70ff", "#ab56ff",
       "#cf42ff", "#f22eff", "#ff37d8", "#ff42aa",
@@ -545,7 +545,7 @@
         buttonHoverText: "#f2efff"
       }
     }),
-    neon_black: makeTheme("neon_black", "Cyber Noir（炫彩闪烁）", [
+    neon_black: makeTheme("neon_black", "炫彩闪烁 (Cyber Noir)", [
       "#00f0ff", "#11d9ff", "#2cc1ff", "#45a9ff",
       "#5f90ff", "#7d78ff", "#a05fff", "#c247ff",
       "#e931ff", "#ff35da", "#ff45b1", "#ff5a8d",
@@ -947,6 +947,11 @@
 
     css += ".restart-button,.top-action-btn,.replay-button,.replay-modal-actions .replay-button,.replay-control-btn,.game-container .game-message a,.game-container .game-message a.export-replay-button,.game-container .game-message a.import-replay-button,.game-container .game-message a.undo-button,.mode-hub-btn{background:" + t.buttonBg + ";color:" + t.buttonText + ";box-shadow:0 0 0 1px " + rgba(t.border, 0.44) + " inset, 0 6px 16px " + rgba(t.buttonBg, 0.28) + ";}\n";
     css += ".restart-button:hover,.top-action-btn:hover,.replay-button:hover,.replay-modal-actions .replay-button:hover,.replay-control-btn:hover,.game-container .game-message a:hover,.mode-hub-btn:hover{background:" + t.buttonHoverBg + ";color:" + t.buttonText + ";}\n";
+    
+    // Icon styles - general alignment
+    css += ".top-action-btn svg, .restart-button svg { width: 28px; height: 28px; vertical-align: middle; }\n";
+    css += ".top-action-btn, .restart-button { display: inline-flex !important; justify-content: center; align-items: center; padding: 0 !important; width: 50px !important; height: 50px !important; min-width: 50px !important; border-radius: 12px !important; }\n";
+
 
     css += ".replay-modal-content,.portal-card,.history-item,.mode-hub,.replay-controls-panel{background:" + t.surface + ";border-color:" + t.border + ";color:" + t.text + ";box-shadow:" + t.shadow + ";}\n";
     css += ".stats-panel-row{border-bottom-color:" + t.panelLine + ";color:" + t.text + ";}\n";
@@ -1179,19 +1184,19 @@
        css += ".game-container { background: rgba(255, 255, 255, 0.4) !important; backdrop-filter: blur(20px); border-radius: 30px !important; box-shadow: 0 20px 40px rgba(0,0,0,0.1) !important; border: 2px solid #fff; }\n";
        css += ".grid-cell { background: rgba(255, 255, 255, 0.5) !important; border-radius: 20px !important; box-shadow: inset 4px 4px 8px rgba(0,0,0,0.05) !important; }\n";
        
-       css += ".tile .tile-inner { border-radius: 20px !important; box-shadow: inset -6px -6px 10px rgba(0,0,0,0.1), inset 6px 6px 10px rgba(255,255,255,0.5), 8px 8px 16px rgba(0,0,0,0.1) !important; color: #fff !important; font-weight: 800 !important; transform: perspective(500px) !important; }\n";
+       css += ".tile .tile-inner, .theme-preview-tile { border-radius: 20px !important; box-shadow: inset -6px -6px 10px rgba(0,0,0,0.1), inset 6px 6px 10px rgba(255,255,255,0.5), 8px 8px 16px rgba(0,0,0,0.1) !important; color: #fff !important; font-weight: 800 !important; transform: perspective(500px) !important; }\n";
        
-       css += ".tile-2 .tile-inner { background: #ff8a80 !important; }\n";
-       css += ".tile-4 .tile-inner { background: #ff80ab !important; }\n";
-       css += ".tile-8 .tile-inner { background: #b388ff !important; }\n";
-       css += ".tile-16 .tile-inner { background: #8c9eff !important; }\n";
-       css += ".tile-32 .tile-inner { background: #82b1ff !important; }\n";
-       css += ".tile-64 .tile-inner { background: #80d8ff !important; }\n";
-       css += ".tile-128 .tile-inner { background: #84ffff !important; color: #333 !important; }\n";
-       css += ".tile-256 .tile-inner { background: #a7ffeb !important; color: #333 !important; }\n";
-       css += ".tile-512 .tile-inner { background: #ccff90 !important; color: #333 !important; }\n";
-       css += ".tile-1024 .tile-inner { background: #f4ff81 !important; color: #333 !important; }\n";
-       css += ".tile-2048 .tile-inner { background: #ffd180 !important; color: #333 !important; box-shadow: inset -6px -6px 10px rgba(0,0,0,0.2), inset 6px 6px 10px rgba(255,255,255,0.6), 0 0 20px rgba(255, 209, 128, 0.6) !important; }\n";
+       css += ".tile-2 .tile-inner, .theme-preview-tile.theme-color-2 { background: #ff8a80 !important; }\n";
+       css += ".tile-4 .tile-inner, .theme-preview-tile.theme-color-4 { background: #ff80ab !important; }\n";
+       css += ".tile-8 .tile-inner, .theme-preview-tile.theme-color-8 { background: #b388ff !important; }\n";
+       css += ".tile-16 .tile-inner, .theme-preview-tile.theme-color-16 { background: #8c9eff !important; }\n";
+       css += ".tile-32 .tile-inner, .theme-preview-tile.theme-color-32 { background: #82b1ff !important; }\n";
+       css += ".tile-64 .tile-inner, .theme-preview-tile.theme-color-64 { background: #80d8ff !important; }\n";
+       css += ".tile-128 .tile-inner, .theme-preview-tile.theme-color-128 { background: #84ffff !important; color: #333 !important; }\n";
+       css += ".tile-256 .tile-inner, .theme-preview-tile.theme-color-256 { background: #a7ffeb !important; color: #333 !important; }\n";
+       css += ".tile-512 .tile-inner, .theme-preview-tile.theme-color-512 { background: #ccff90 !important; color: #333 !important; }\n";
+       css += ".tile-1024 .tile-inner, .theme-preview-tile.theme-color-1024 { background: #f4ff81 !important; color: #333 !important; }\n";
+       css += ".tile-2048 .tile-inner, .theme-preview-tile.theme-color-2048 { background: #ffd180 !important; color: #333 !important; box-shadow: inset -6px -6px 10px rgba(0,0,0,0.2), inset 6px 6px 10px rgba(255,255,255,0.6), 0 0 20px rgba(255, 209, 128, 0.6) !important; }\n";
        
        css += "h1.title { color: #333 !important; font-family: 'Varela Round', sans-serif !important; letter-spacing: -1px; }\n";
        css += "p, .game-intro, .game-explanation { color: #555 !important; font-family: 'Varela Round', sans-serif !important; }\n";
@@ -1211,18 +1216,18 @@
        css += ".game-container { background: #ffffff !important; border: 4px solid #1a1a1a; border-radius: 0 !important; box-shadow: 8px 8px 0 #1a1a1a !important; }\n";
        css += ".grid-cell { background: #e0e0e0 !important; border-radius: 50% !important; box-shadow: 0 0 0 2px #1a1a1a, 2px 2px 0 #1a1a1a !important; border: none !important; }\n";
        
-       css += ".tile .tile-inner { border-radius: 0 !important; box-shadow: inset 0 0 0 2px #1a1a1a, 4px 4px 0 #1a1a1a !important; border: none !important; font-weight: 900 !important; color: #ffffff !important; }\n";
+       css += ".tile .tile-inner, .theme-preview-tile { border-radius: 0 !important; box-shadow: inset 0 0 0 2px #1a1a1a, 4px 4px 0 #1a1a1a !important; border: none !important; font-weight: 900 !important; color: #ffffff !important; }\n";
        
        // vary shapes and colors
-       css += ".tile-2 .tile-inner { background: #E4002B !important; border-radius: 50% !important; }\n";
-       css += ".tile-4 .tile-inner { background: #FFD700 !important; color: #1a1a1a !important; border-radius: 0 !important; }\n";
-       css += ".tile-8 .tile-inner { background: #0057B7 !important; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); line-height: 130px !important; }\n";
-       css += ".tile-16 .tile-inner { background: #1a1a1a !important; border-radius: 0 20px 0 20px !important; }\n";
-       css += ".tile-32 .tile-inner { background: #ffffff !important; color: #1a1a1a !important; border: 4px double #1a1a1a !important; }\n";
-       css += ".tile-64 .tile-inner { background: #E4002B !important; clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%); }\n";
-       css += ".tile-128 .tile-inner { background: #FFD700 !important; color: #1a1a1a !important; border-radius: 50% 0 50% 0 !important; }\n";
-       css += ".tile-256 .tile-inner { background: #0057B7 !important; transform: rotate(5deg); }\n";
-       css += ".tile-512 .tile-inner { background: #1a1a1a !important; border-radius: 50% !important; border: 4px dashed #fff !important; }\n";
+       css += ".tile-2 .tile-inner, .theme-preview-tile.theme-color-2 { background: #E4002B !important; border-radius: 50% !important; }\n";
+       css += ".tile-4 .tile-inner, .theme-preview-tile.theme-color-4 { background: #FFD700 !important; color: #1a1a1a !important; border-radius: 0 !important; }\n";
+       css += ".tile-8 .tile-inner, .theme-preview-tile.theme-color-8 { background: #0057B7 !important; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); line-height: 130px !important; }\n";
+       css += ".tile-16 .tile-inner, .theme-preview-tile.theme-color-16 { background: #1a1a1a !important; border-radius: 0 20px 0 20px !important; }\n";
+       css += ".tile-32 .tile-inner, .theme-preview-tile.theme-color-32 { background: #ffffff !important; color: #1a1a1a !important; border: 4px double #1a1a1a !important; }\n";
+       css += ".tile-64 .tile-inner, .theme-preview-tile.theme-color-64 { background: #E4002B !important; clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%); }\n";
+       css += ".tile-128 .tile-inner, .theme-preview-tile.theme-color-128 { background: #FFD700 !important; color: #1a1a1a !important; border-radius: 50% 0 50% 0 !important; }\n";
+       css += ".tile-256 .tile-inner, .theme-preview-tile.theme-color-256 { background: #0057B7 !important; transform: rotate(5deg); }\n";
+       css += ".tile-512 .tile-inner, .theme-preview-tile.theme-color-512 { background: #1a1a1a !important; border-radius: 50% !important; border: 4px dashed #fff !important; }\n";
        
        css += "@keyframes bauhaus-pop { 0% { transform: scale(0.8); opacity: 0.6; } 100% { transform: scale(1); opacity: 1; } }\n";
        css += ".tile-merged .tile-inner { animation: bauhaus-pop 0.3s cubic-bezier(0.25, 1, 0.5, 1) !important; transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1) !important; }\n";
@@ -1246,20 +1251,20 @@
        css += ".game-container { background: rgba(255, 255, 255, 0.7) !important; backdrop-filter: blur(5px); border: 1px solid #cfd8dc; box-shadow: 0 10px 30px rgba(176, 190, 197, 0.3) !important; border-radius: 4px !important; }\n";
        css += ".grid-cell { background: rgba(236, 239, 241, 0.6) !important; border-radius: 2px !important; }\n";
        
-       css += ".tile .tile-inner { border-radius: 2px !important; background: #fff !important; color: #37474f !important; box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important; font-weight: 300 !important; border: 1px solid transparent; }\n";
+       css += ".tile .tile-inner, .theme-preview-tile { border-radius: 2px !important; background: #fff !important; color: #37474f !important; box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important; font-weight: 300 !important; border: 1px solid transparent; }\n";
        
        // Icy ramp
-       css += ".tile-2 .tile-inner { background: #ffffff !important; border-color: #eceff1 !important; }\n";
-       css += ".tile-4 .tile-inner { background: #eceff1 !important; }\n";
-       css += ".tile-8 .tile-inner { background: #cfd8dc !important; }\n";
-       css += ".tile-16 .tile-inner { background: #b0bec5 !important; color: #fff !important; }\n";
-       css += ".tile-32 .tile-inner { background: #90a4ae !important; color: #fff !important; }\n";
-       css += ".tile-64 .tile-inner { background: #78909c !important; color: #fff !important; }\n";
-       css += ".tile-128 .tile-inner { background: #607d8b !important; color: #fff !important; }\n";
-       css += ".tile-256 .tile-inner { background: #546e7a !important; color: #fff !important; box-shadow: 0 0 15px rgba(84, 110, 122, 0.4) !important; }\n";
-       css += ".tile-512 .tile-inner { background: #455a64 !important; color: #fff !important; }\n";
-       css += ".tile-1024 .tile-inner { background: #37474f !important; color: #fff !important; }\n";
-       css += ".tile-2048 .tile-inner { background: #263238 !important; color: #80deea !important; border: 1px solid #80deea !important; box-shadow: 0 0 20px rgba(38, 198, 218, 0.5) !important; }\n";
+       css += ".tile-2 .tile-inner, .theme-preview-tile.theme-color-2 { background: #ffffff !important; border-color: #eceff1 !important; }\n";
+       css += ".tile-4 .tile-inner, .theme-preview-tile.theme-color-4 { background: #eceff1 !important; }\n";
+       css += ".tile-8 .tile-inner, .theme-preview-tile.theme-color-8 { background: #cfd8dc !important; }\n";
+       css += ".tile-16 .tile-inner, .theme-preview-tile.theme-color-16 { background: #b0bec5 !important; color: #fff !important; }\n";
+       css += ".tile-32 .tile-inner, .theme-preview-tile.theme-color-32 { background: #90a4ae !important; color: #fff !important; }\n";
+       css += ".tile-64 .tile-inner, .theme-preview-tile.theme-color-64 { background: #78909c !important; color: #fff !important; }\n";
+       css += ".tile-128 .tile-inner, .theme-preview-tile.theme-color-128 { background: #607d8b !important; color: #fff !important; }\n";
+       css += ".tile-256 .tile-inner, .theme-preview-tile.theme-color-256 { background: #546e7a !important; color: #fff !important; box-shadow: 0 0 15px rgba(84, 110, 122, 0.4) !important; }\n";
+       css += ".tile-512 .tile-inner, .theme-preview-tile.theme-color-512 { background: #455a64 !important; color: #fff !important; }\n";
+       css += ".tile-1024 .tile-inner, .theme-preview-tile.theme-color-1024 { background: #37474f !important; color: #fff !important; }\n";
+       css += ".tile-2048 .tile-inner, .theme-preview-tile.theme-color-2048 { background: #263238 !important; color: #80deea !important; border: 1px solid #80deea !important; box-shadow: 0 0 20px rgba(38, 198, 218, 0.5) !important; }\n";
        
        css += "h1.title { color: #37474f !important; font-weight: 300; letter-spacing: 5px; }\n";
        css += "p, .game-intro, .game-explanation { color: #546e7a !important; font-weight: 300; }\n";
@@ -1281,19 +1286,19 @@
        css += ".game-container { background: #141414 !important; border: 1px solid #d4af37; box-shadow: 0 0 30px rgba(212, 175, 55, 0.15) !important; border-radius: 2px !important; }\n";
        css += ".grid-cell { background: #000 !important; box-shadow: 0 0 0 1px #333, inset 0 0 10px #000 !important; border: none !important; border-radius: 0 !important; }\n";
        
-       css += ".tile .tile-inner { border-radius: 0 !important; font-family: 'Playfair Display', serif !important; box-shadow: inset 0 0 0 1px #d4af37, inset 0 0 15px rgba(0,0,0,0.8), 0 0 5px rgba(212, 175, 55, 0.3) !important; border: none !important; background: linear-gradient(135deg, #1a1a1a 0%, #000 100%) !important; color: #d4af37 !important; }\n";
+       css += ".tile .tile-inner, .theme-preview-tile { border-radius: 0 !important; font-family: 'Playfair Display', serif !important; box-shadow: inset 0 0 0 1px #d4af37, inset 0 0 15px rgba(0,0,0,0.8), 0 0 5px rgba(212, 175, 55, 0.3) !important; border: none !important; background: linear-gradient(135deg, #1a1a1a 0%, #000 100%) !important; color: #d4af37 !important; }\n";
        
        // Gold gradations
-       css += ".tile-2 .tile-inner { color: #887020 !important; border-color: #887020 !important; }\n";
-       css += ".tile-4 .tile-inner { color: #a6821a !important; border-color: #a6821a !important; }\n";
-       css += ".tile-8 .tile-inner { color: #b69121 !important; border-color: #b69121 !important; }\n";
-       css += ".tile-16 .tile-inner { color: #c5a028 !important; border-color: #c5a028 !important; background: linear-gradient(135deg, #262626 0%, #1a1a1a 100%) !important; }\n";
-       css += ".tile-32 .tile-inner { color: #d4af37 !important; border-color: #d4af37 !important; background: linear-gradient(135deg, #333 0%, #222 100%) !important; }\n";
-       css += ".tile-64 .tile-inner { color: #e5c15b !important; border-color: #e5c15b !important; text-shadow: 0 0 5px rgba(229, 193, 91, 0.5); }\n";
-       css += ".tile-128 .tile-inner { color: #f2d378 !important; border-color: #f2d378 !important; text-shadow: 0 0 8px rgba(242, 211, 120, 0.6); }\n";
-       css += ".tile-256 .tile-inner { color: #ffeaa0 !important; border-color: #ffeaa0 !important; background: #262626 !important; animation: sparkle 3s infinite; }\n";
-       css += ".tile-512 .tile-inner, .tile-1024 .tile-inner { color: #fff !important; border-color: #fff !important; background: #d4af37 !important; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }\n";
-       css += ".tile-2048 .tile-inner { color: #000 !important; background: linear-gradient(45deg, #d4af37, #f2d378, #d4af37) !important; box-shadow: 0 0 20px #d4af37 !important; border: 1px solid #fff !important; }\n";
+       css += ".tile-2 .tile-inner, .theme-preview-tile.theme-color-2 { color: #887020 !important; border-color: #887020 !important; }\n";
+       css += ".tile-4 .tile-inner, .theme-preview-tile.theme-color-4 { color: #a6821a !important; border-color: #a6821a !important; }\n";
+       css += ".tile-8 .tile-inner, .theme-preview-tile.theme-color-8 { color: #b69121 !important; border-color: #b69121 !important; }\n";
+       css += ".tile-16 .tile-inner, .theme-preview-tile.theme-color-16 { color: #c5a028 !important; border-color: #c5a028 !important; background: linear-gradient(135deg, #262626 0%, #1a1a1a 100%) !important; }\n";
+       css += ".tile-32 .tile-inner, .theme-preview-tile.theme-color-32 { color: #d4af37 !important; border-color: #d4af37 !important; background: linear-gradient(135deg, #333 0%, #222 100%) !important; }\n";
+       css += ".tile-64 .tile-inner, .theme-preview-tile.theme-color-64 { color: #e5c15b !important; border-color: #e5c15b !important; text-shadow: 0 0 5px rgba(229, 193, 91, 0.5); }\n";
+       css += ".tile-128 .tile-inner, .theme-preview-tile.theme-color-128 { color: #f2d378 !important; border-color: #f2d378 !important; text-shadow: 0 0 8px rgba(242, 211, 120, 0.6); }\n";
+       css += ".tile-256 .tile-inner, .theme-preview-tile.theme-color-256 { color: #ffeaa0 !important; border-color: #ffeaa0 !important; background: #262626 !important; animation: sparkle 3s infinite; }\n";
+       css += ".tile-512 .tile-inner, .theme-preview-tile.theme-color-512, .tile-1024 .tile-inner, .theme-preview-tile.theme-color-1024 { color: #fff !important; border-color: #fff !important; background: #d4af37 !important; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }\n";
+       css += ".tile-2048 .tile-inner, .theme-preview-tile.theme-color-2048 { color: #000 !important; background: linear-gradient(45deg, #d4af37, #f2d378, #d4af37) !important; box-shadow: 0 0 20px #d4af37 !important; border: 1px solid #fff !important; }\n";
 
        css += "h1.title { font-weight: normal; letter-spacing: 2px; background: linear-gradient(to right, #887020 0%, #f2d378 50%, #887020 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shine 5s infinite linear; background-size: 200px; }\n";
        css += "p, .game-intro, .game-explanation { color: #a6821a !important; font-style: italic; }\n";
@@ -1312,7 +1317,7 @@
        
        css += ".game-container { background: rgba(255, 255, 255, 0.4) !important; backdrop-filter: blur(8px); border: 2px solid rgba(255,255,255,0.6); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2) !important; border-radius: 20px !important; }\n";
        css += ".grid-cell { background: rgba(255, 255, 255, 0.3) !important; border-radius: 15px !important; box-shadow: inset 0 0 10px rgba(0,0,0,0.05) !important; }\n";
-       css += ".tile .tile-inner { border-radius: 15px !important; box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3), 0 1px 3px rgba(0,0,0,0.1) !important; background-image: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%) !important; }\n";
+       css += ".tile .tile-inner, .theme-preview-tile { border-radius: 15px !important; box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3), 0 1px 3px rgba(0,0,0,0.1) !important; background-image: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%) !important; }\n";
        
        css += "h1.title { color: #fff !important; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }\n";
        css += "p, .game-intro, .game-explanation { color: #0f2642 !important; }\n";
@@ -1330,8 +1335,8 @@
        
        css += ".game-container { background: #1a1a2e !important; border: 2px solid #ff71ce; box-shadow: 0 0 20px #ff71ce, inset 0 0 20px #b967ff !important; border-radius: 0 !important; transform: skewX(-2deg); }\n";
        css += ".grid-cell { background: transparent !important; border: 1px solid #01cdfe; box-shadow: 0 0 5px #01cdfe !important; border-radius: 0 !important; }\n";
-       css += ".tile .tile-inner { border-radius: 0 !important; font-style: italic; background: linear-gradient(45deg, #ff71ce, #b967ff) !important; color: #fff !important; text-shadow: 2px 2px 0px #000; box-shadow: 4px 4px 0 rgba(0,0,0,0.5) !important; }\n";
-       css += ".tile-2 .tile-inner, .tile-4 .tile-inner { background: linear-gradient(45deg, #01cdfe, #05ffa1) !important; color: #000 !important; text-shadow: none !important; }\n";
+       css += ".tile .tile-inner, .theme-preview-tile { border-radius: 0 !important; font-style: italic; background: linear-gradient(45deg, #ff71ce, #b967ff) !important; color: #fff !important; text-shadow: 2px 2px 0px #000; box-shadow: 4px 4px 0 rgba(0,0,0,0.5) !important; }\n";
+       css += ".tile-2 .tile-inner, .theme-preview-tile.theme-color-2, .tile-4 .tile-inner, .theme-preview-tile.theme-color-4 { background: linear-gradient(45deg, #01cdfe, #05ffa1) !important; color: #000 !important; text-shadow: none !important; }\n";
        
        css += "h1.title { color: #ff71ce !important; text-shadow: 3px 3px 0px #01cdfe; font-style: italic; }\n";
        css += ".score-container, .best-container { background: #000 !important; border: 1px solid #05ffa1; color: #fffb96 !important; box-shadow: 4px 4px 0 #b967ff !important; border-radius: 0 !important; }\n";
@@ -1345,17 +1350,17 @@
        css += "html, body { background: #f7f8f0 !important; color: #5c4a35 !important; font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif !important; }\n";
        css += ".game-container { background: #e8f0e0 !important; border-radius: 10px !important; border: 8px solid #b9dba3; box-shadow: 0 10px 20px rgba(92, 74, 53, 0.1) !important; }\n";
        css += ".grid-cell { background: #d4e6c3 !important; border-radius: 6px !important; }\n";
-       css += ".tile .tile-inner { border-radius: 6px !important; font-weight: normal; box-shadow: 0 4px 8px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.1) !important; }\n";
+       css += ".tile .tile-inner, .theme-preview-tile { border-radius: 6px !important; font-weight: normal; box-shadow: 0 4px 8px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.1) !important; }\n";
        
-       css += ".tile-2 .tile-inner { background: #ffffff !important; color: #6e5d4b !important; border: 2px solid #d4e6c3 !important; }\n";
-       css += ".tile-4 .tile-inner { background: #f7f8f0 !important; color: #5c4a35 !important; border: 2px solid #b9dba3 !important; }\n";
-       css += ".tile-8 .tile-inner { background: #b9dba3 !important; color: #467528 !important; }\n";
-       css += ".tile-16 .tile-inner { background: #9ecf80 !important; color: #355c1e !important; }\n";
-       css += ".tile-32 .tile-inner { background: #86c260 !important; color: #fff !important; }\n";
-       css += ".tile-64 .tile-inner { background: #6fa848 !important; color: #fff !important; }\n";
-       css += ".tile-128 .tile-inner { background: #598f35 !important; color: #fff !important; }\n";
-       css += ".tile-256 .tile-inner { background: #467528 !important; color: #fff !important; }\n";
-       css += ".tile-512 .tile-inner { background: #355c1e !important; color: #fff !important; }\n";
+       css += ".tile-2 .tile-inner, .theme-preview-tile.theme-color-2 { background: #ffffff !important; color: #6e5d4b !important; border: 2px solid #d4e6c3 !important; }\n";
+       css += ".tile-4 .tile-inner, .theme-preview-tile.theme-color-4 { background: #f7f8f0 !important; color: #5c4a35 !important; border: 2px solid #b9dba3 !important; }\n";
+       css += ".tile-8 .tile-inner, .theme-preview-tile.theme-color-8 { background: #b9dba3 !important; color: #467528 !important; }\n";
+       css += ".tile-16 .tile-inner, .theme-preview-tile.theme-color-16 { background: #9ecf80 !important; color: #355c1e !important; }\n";
+       css += ".tile-32 .tile-inner, .theme-preview-tile.theme-color-32 { background: #86c260 !important; color: #fff !important; }\n";
+       css += ".tile-64 .tile-inner, .theme-preview-tile.theme-color-64 { background: #6fa848 !important; color: #fff !important; }\n";
+       css += ".tile-128 .tile-inner, .theme-preview-tile.theme-color-128 { background: #598f35 !important; color: #fff !important; }\n";
+       css += ".tile-256 .tile-inner, .theme-preview-tile.theme-color-256 { background: #467528 !important; color: #fff !important; }\n";
+       css += ".tile-512 .tile-inner, .theme-preview-tile.theme-color-512 { background: #355c1e !important; color: #fff !important; }\n";
        
        css += "h1.title { color: #467528 !important; font-weight: normal; }\n";
        css += ".score-container, .best-container { background: #86c260 !important; color: #fff !important; border-radius: 5px !important; }\n";
@@ -1369,18 +1374,18 @@
        css += "html, body { background: #282a36 !important; color: #f8f8f2 !important; font-family: 'Fira Code', monospace !important; }\n";
        css += ".game-container { background: #44475a !important; border-radius: 4px !important; box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important; border: 2px solid #6272a4; }\n";
        css += ".grid-cell { background: #282a36 !important; border-radius: 4px !important; box-shadow: inset 0 0 5px rgba(0,0,0,0.5) !important; }\n";
-       css += ".tile .tile-inner { border-radius: 4px !important; font-weight: bold; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 6px rgba(0,0,0,0.3) !important; }\n";
+       css += ".tile .tile-inner, .theme-preview-tile { border-radius: 4px !important; font-weight: bold; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 6px rgba(0,0,0,0.3) !important; }\n";
        
-       css += ".tile-2 .tile-inner { background: #282a36 !important; border-color: #bd93f9 !important; color: #bd93f9 !important; }\n";
-       css += ".tile-4 .tile-inner { background: #282a36 !important; border-color: #ff79c6 !important; color: #ff79c6 !important; }\n";
-       css += ".tile-8 .tile-inner { background: #44475a !important; color: #f8f8f2 !important; border-bottom: 4px solid #6272a4 !important; }\n";
-       css += ".tile-16 .tile-inner { background: #6272a4 !important; color: #f8f8f2 !important; }\n";
-       css += ".tile-32 .tile-inner { background: #8be9fd !important; color: #282a36 !important; }\n";
-       css += ".tile-64 .tile-inner { background: #50fa7b !important; color: #282a36 !important; }\n";
-       css += ".tile-128 .tile-inner { background: #ffb86c !important; color: #282a36 !important; }\n";
-       css += ".tile-256 .tile-inner { background: #ff79c6 !important; color: #282a36 !important; }\n";
-       css += ".tile-512 .tile-inner { background: #bd93f9 !important; color: #282a36 !important; box-shadow: 0 0 10px #bd93f9 !important; }\n";
-       css += ".tile-1024 .tile-inner { background: #ff5555 !important; color: #f8f8f2 !important; box-shadow: 0 0 15px #ff5555 !important; }\n";
+       css += ".tile-2 .tile-inner, .theme-preview-tile.theme-color-2 { background: #282a36 !important; border-color: #bd93f9 !important; color: #bd93f9 !important; }\n";
+       css += ".tile-4 .tile-inner, .theme-preview-tile.theme-color-4 { background: #282a36 !important; border-color: #ff79c6 !important; color: #ff79c6 !important; }\n";
+       css += ".tile-8 .tile-inner, .theme-preview-tile.theme-color-8 { background: #44475a !important; color: #f8f8f2 !important; border-bottom: 4px solid #6272a4 !important; }\n";
+       css += ".tile-16 .tile-inner, .theme-preview-tile.theme-color-16 { background: #6272a4 !important; color: #f8f8f2 !important; }\n";
+       css += ".tile-32 .tile-inner, .theme-preview-tile.theme-color-32 { background: #8be9fd !important; color: #282a36 !important; }\n";
+       css += ".tile-64 .tile-inner, .theme-preview-tile.theme-color-64 { background: #50fa7b !important; color: #282a36 !important; }\n";
+       css += ".tile-128 .tile-inner, .theme-preview-tile.theme-color-128 { background: #ffb86c !important; color: #282a36 !important; }\n";
+       css += ".tile-256 .tile-inner, .theme-preview-tile.theme-color-256 { background: #ff79c6 !important; color: #282a36 !important; }\n";
+       css += ".tile-512 .tile-inner, .theme-preview-tile.theme-color-512 { background: #bd93f9 !important; color: #282a36 !important; box-shadow: 0 0 10px #bd93f9 !important; }\n";
+       css += ".tile-1024 .tile-inner, .theme-preview-tile.theme-color-1024 { background: #ff5555 !important; color: #f8f8f2 !important; box-shadow: 0 0 15px #ff5555 !important; }\n";
        
        css += "h1.title { color: #ff79c6 !important; text-shadow: 2px 2px 0 #44475a; }\n";
        css += "p, .game-intro, .game-explanation { color: #f8f8f2 !important; }\n";
@@ -1396,9 +1401,10 @@
        css += "html, body { background: linear-gradient(to bottom, #4a148c, #bf360c) !important; color: #ffe0b2 !important; min-height: 100vh; }\n";
        css += ".game-container { background: rgba(0, 0, 0, 0.3) !important; border-radius: 12px !important; box-shadow: 0 0 30px rgba(255, 152, 0, 0.3) !important; border: 1px solid rgba(255, 255, 255, 0.1); }\n";
        css += ".grid-cell { background: rgba(255, 255, 255, 0.1) !important; border-radius: 8px !important; }\n";
-       css += ".tile .tile-inner { border-radius: 8px !important; box-shadow: 0 5px 15px rgba(255, 87, 34, 0.3), 0 2px 4px rgba(0,0,0,0.2) !important; background-image: linear-gradient(180deg, rgba(255,255,255,0.1), rgba(0,0,0,0.1)) !important; }\n";
+       css += ".tile .tile-inner, .theme-preview-tile { border-radius: 8px !important; box-shadow: 0 5px 15px rgba(255, 87, 34, 0.3), 0 2px 4px rgba(0,0,0,0.2) !important; background-image: linear-gradient(180deg, rgba(255,255,255,0.1), rgba(0,0,0,0.1)) !important; }\n";
        
        css += "h1.title { color: #ffcc80 !important; text-shadow: 0 2px 10px rgba(255, 152, 0, 0.5); }\n";
+       css += "p, .game-intro, .game-explanation { color: #a6821a !important; font-style: italic; }\n";
        css += ".score-container, .best-container { background: rgba(74, 20, 140, 0.6) !important; color: #ffcc80 !important; border: 1px solid #ff9800; }\n";
        css += ".score-container:after, .best-container:after { color: #ba68c8 !important; }\n";
        
@@ -1414,20 +1420,25 @@
        css += "body:before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px); background-size: 20px 20px; background-position: -1px -1px; opacity: 0.1; z-index: -1; }\n";
        
        css += ".grid-cell { background: transparent !important; border: 1px solid #64b5f6; border-radius: 0 !important; }\n";
-       css += ".tile .tile-inner { border-radius: 0 !important; background: #0d47a1 !important; color: #ffffff !important; border: 1px solid #ffffff !important; font-weight: normal !important; box-shadow: 4px 4px 0 rgba(0,0,0,0.3) !important; }\n";
+       css += ".tile .tile-inner, .theme-preview-tile { border-radius: 0 !important; background: #0d47a1 !important; color: #ffffff !important; border: 1px solid #ffffff !important; font-weight: normal !important; box-shadow: 4px 4px 0 rgba(0,0,0,0.3) !important; }\n";
        
-       css += ".tile-2 .tile-inner { background: #1976d2 !important; }\n";
-       css += ".tile-4 .tile-inner { background: #1e88e5 !important; }\n";
-       css += ".tile-8 .tile-inner { background: #2196f3 !important; }\n";
-       css += ".tile-16 .tile-inner { background: #42a5f5 !important; }\n";
-       css += ".tile-32 .tile-inner { background: #64b5f6 !important; color: #000 !important; }\n";
-       css += ".tile-64 .tile-inner { background: #90caf9 !important; color: #000 !important; }\n";
-       css += ".tile-128 .tile-inner { background: #bbdefb !important; color: #000 !important; border: 2px solid #000 !important; }\n";
-       css += ".tile-256 .tile-inner { background: #e3f2fd !important; color: #000 !important; border: 2px solid #000 !important; }\n";
+       css += ".tile-2 .tile-inner, .theme-preview-tile.theme-color-2 { background: #1976d2 !important; }\n";
+       css += ".tile-4 .tile-inner, .theme-preview-tile.theme-color-4 { background: #1e88e5 !important; }\n";
+       css += ".tile-8 .tile-inner, .theme-preview-tile.theme-color-8 { background: #2196f3 !important; }\n";
+       css += ".tile-16 .tile-inner, .theme-preview-tile.theme-color-16 { background: #42a5f5 !important; }\n";
+       css += ".tile-32 .tile-inner, .theme-preview-tile.theme-color-32 { background: #64b5f6 !important; color: #000 !important; }\n";
+       css += ".tile-64 .tile-inner, .theme-preview-tile.theme-color-64 { background: #90caf9 !important; color: #000 !important; }\n";
+       css += ".tile-128 .tile-inner, .theme-preview-tile.theme-color-128 { background: #bbdefb !important; color: #000 !important; border: 2px solid #000 !important; }\n";
+       css += ".tile-256 .tile-inner, .theme-preview-tile.theme-color-256 { background: #e3f2fd !important; color: #000 !important; border: 2px solid #000 !important; }\n";
        
        css += "h1.title { color: #ffffff !important; border-bottom: 2px dashed #ffffff; display: inline-block; }\n";
+       css += "p, .game-intro, .game-explanation { color: #00ff00 !important; }\n";
        css += ".score-container, .best-container { background: #0d47a1 !important; color: #ffffff !important; border: 1px solid #ffffff; border-radius: 0 !important; }\n";
        css += ".score-container:after, .best-container:after { color: #bbdefb !important; }\n";
+
+       // SVG stroke fix for blueprint
+       css += ".top-action-btn svg, .restart-button svg { stroke: #ffffff !important; }\n";
+
        
        css += ".restart-button, .game-message a { background: #0d47a1 !important; color: #ffffff !important; border: 1px solid #ffffff; border-radius: 0 !important; font-family: 'Courier New', Courier, monospace !important; }\n";
        css += ".restart-button:hover, .game-message a:hover { background: #1565c0 !important; box-shadow: inset 0 0 10px rgba(0,0,0,0.3) !important; }\n";
@@ -1439,18 +1450,19 @@
        
        css += ".game-container { background: #fff !important; border-radius: 30px !important; border: 4px solid #f8bbd0; box-shadow: 0 10px 0 #f48fb1 !important; }\n";
        css += ".grid-cell { background: #fce4ec !important; border-radius: 50% !important; }\n";
-       css += ".tile .tile-inner { border-radius: 50% !important; border: 2px solid #fff; box-shadow: inset 0 0 10px rgba(0,0,0,0.05), 0 6px 0 rgba(0,0,0,0.15), 0 10px 10px rgba(0,0,0,0.1) !important; font-weight: bold; }\n";
+       css += ".tile .tile-inner, .theme-preview-tile { border-radius: 50% !important; border: 2px solid #fff; box-shadow: inset 0 0 10px rgba(0,0,0,0.05), 0 6px 0 rgba(0,0,0,0.15), 0 10px 10px rgba(0,0,0,0.1) !important; font-weight: bold; }\n";
        
-       css += ".tile-2 .tile-inner { background: #ff9aa2 !important; color: #fff !important; }\n";
-       css += ".tile-4 .tile-inner { background: #ffb7b2 !important; color: #fff !important; }\n";
-       css += ".tile-8 .tile-inner { background: #ffdac1 !important; color: #fff !important; }\n";
-       css += ".tile-16 .tile-inner { background: #e2f0cb !important; color: #fff !important; }\n";
-       css += ".tile-32 .tile-inner { background: #b5ead7 !important; color: #fff !important; }\n";
-       css += ".tile-64 .tile-inner { background: #c7ceea !important; color: #fff !important; }\n";
-       css += ".tile-128 .tile-inner { background: #ff80ab !important; color: #fff !important; border: 4px dotted #fff !important; }\n";
-       css += ".tile-256 .tile-inner { background: #ea80fc !important; color: #fff !important; border: 4px dotted #fff !important; }\n";
+       css += ".tile-2 .tile-inner, .theme-preview-tile.theme-color-2 { background: #ff9aa2 !important; color: #fff !important; }\n";
+       css += ".tile-4 .tile-inner, .theme-preview-tile.theme-color-4 { background: #ffb7b2 !important; color: #fff !important; }\n";
+       css += ".tile-8 .tile-inner, .theme-preview-tile.theme-color-8 { background: #ffdac1 !important; color: #fff !important; }\n";
+       css += ".tile-16 .tile-inner, .theme-preview-tile.theme-color-16 { background: #e2f0cb !important; color: #fff !important; }\n";
+       css += ".tile-32 .tile-inner, .theme-preview-tile.theme-color-32 { background: #b5ead7 !important; color: #fff !important; }\n";
+       css += ".tile-64 .tile-inner, .theme-preview-tile.theme-color-64 { background: #c7ceea !important; color: #fff !important; }\n";
+       css += ".tile-128 .tile-inner, .theme-preview-tile.theme-color-128 { background: #ff80ab !important; color: #fff !important; border: 4px dotted #fff !important; }\n";
+       css += ".tile-256 .tile-inner, .theme-preview-tile.theme-color-256 { background: #ea80fc !important; color: #fff !important; border: 4px dotted #fff !important; }\n";
        
        css += "h1.title { color: #ec407a !important; text-shadow: 2px 2px 0 #fff; }\n";
+       css += "p, .game-intro, .game-explanation { color: #d81b60 !important; }\n";
        css += ".score-container, .best-container { background: #b5ead7 !important; color: #fff !important; border-radius: 20px !important; border: 2px solid #fff; }\n";
        css += ".score-container:after, .best-container:after { color: #009688 !important; }\n";
        
@@ -1463,14 +1475,14 @@
        css += "html, body { background: #000000 !important; color: #00ff00 !important; font-family: 'Consolas', 'Monaco', monospace !important; }\n";
        css += ".game-container { background: #000000 !important; border: 2px solid #00ff00; border-radius: 0 !important; box-shadow: 0 0 10px #00ff00 !important; }\n";
        css += ".grid-cell { background: #001100 !important; border: 1px solid #003300; border-radius: 0 !important; }\n";
-       css += ".tile .tile-inner { border-radius: 0 !important; background: #000 !important; color: #00ff00 !important; border: 1px solid #00ff00; font-family: 'Consolas', monospace !important; box-shadow: inset 0 0 5px #00ff00 !important; }\n";
+       css += ".tile .tile-inner, .theme-preview-tile { border-radius: 0 !important; background: #000 !important; color: #00ff00 !important; border: 1px solid #00ff00; font-family: 'Consolas', monospace !important; box-shadow: inset 0 0 5px #00ff00 !important; }\n";
        
-       css += ".tile-2 .tile-inner { color: #00ff00 !important; }\n";
-       css += ".tile-4 .tile-inner { color: #00dd00 !important; }\n";
-       css += ".tile-8 .tile-inner { color: #00bb00 !important; }\n";
-       css += ".tile-16 .tile-inner { color: #009900 !important; }\n";
-       css += ".tile-32 .tile-inner { color: #007700 !important; border: 2px solid #00ff00 !important; }\n";
-       css += ".tile-64 .tile-inner { color: #005500 !important; background: #00ff00 !important; color: #000 !important; }\n";
+       css += ".tile-2 .tile-inner, .theme-preview-tile.theme-color-2 { color: #00ff00 !important; }\n";
+       css += ".tile-4 .tile-inner, .theme-preview-tile.theme-color-4 { color: #00dd00 !important; }\n";
+       css += ".tile-8 .tile-inner, .theme-preview-tile.theme-color-8 { color: #00bb00 !important; }\n";
+       css += ".tile-16 .tile-inner, .theme-preview-tile.theme-color-16 { color: #009900 !important; }\n";
+       css += ".tile-32 .tile-inner, .theme-preview-tile.theme-color-32 { color: #007700 !important; border: 2px solid #00ff00 !important; }\n";
+       css += ".tile-64 .tile-inner, .theme-preview-tile.theme-color-64 { color: #005500 !important; background: #00ff00 !important; color: #000 !important; }\n";
        
        css += "h1.title:after { content: '_'; animation: cursor-blink 1s step-end infinite; }\n";
        css += "h1.title { color: #00ff00 !important; text-shadow: 0 0 5px #00ff00; }\n";
@@ -1486,13 +1498,13 @@
        css += "html, body { background: url('https://www.transparenttextures.com/patterns/cardboard.png'), #fdfbf7 !important; color: #333 !important; font-family: 'Courier New', Courier, monospace !important; }\n";
        css += ".game-container { background: #fff !important; border: 1px solid #ccc; box-shadow: 5px 5px 10px rgba(0,0,0,0.1) !important; transform: rotate(1deg); border-radius: 2px !important; }\n";
        css += ".grid-cell { background: #f5f5f5 !important; border: 1px dashed #ccc; border-radius: 0 !important; }\n";
-       css += ".tile .tile-inner { border-radius: 0 !important; background: #fff !important; border: 2px solid #333; color: #333 !important; font-weight: bold; transform: rotate(-2deg); box-shadow: 2px 2px 0 rgba(0,0,0,0.1) !important; }\n";
+       css += ".tile .tile-inner, .theme-preview-tile { border-radius: 0 !important; background: #fff !important; border: 2px solid #333; color: #333 !important; font-weight: bold; transform: rotate(-2deg); box-shadow: 2px 2px 0 rgba(0,0,0,0.1) !important; }\n";
        
-       css += ".tile-2 .tile-inner { transform: rotate(1deg); }\n";
-       css += ".tile-4 .tile-inner { transform: rotate(-1deg); border-color: #555 !important; }\n";
-       css += ".tile-8 .tile-inner { transform: rotate(2deg); background: #eee !important; }\n";
-       css += ".tile-16 .tile-inner { transform: rotate(-2deg); background: #ddd !important; }\n";
-       css += ".tile-32 .tile-inner { border: 3px solid #000 !important; transform: rotate(0deg); }\n";
+       css += ".tile-2 .tile-inner, .theme-preview-tile.theme-color-2 { transform: rotate(1deg); }\n";
+       css += ".tile-4 .tile-inner, .theme-preview-tile.theme-color-4 { transform: rotate(-1deg); border-color: #555 !important; }\n";
+       css += ".tile-8 .tile-inner, .theme-preview-tile.theme-color-8 { transform: rotate(2deg); background: #eee !important; }\n";
+       css += ".tile-16 .tile-inner, .theme-preview-tile.theme-color-16 { transform: rotate(-2deg); background: #ddd !important; }\n";
+       css += ".tile-32 .tile-inner, .theme-preview-tile.theme-color-32 { border: 3px solid #000 !important; transform: rotate(0deg); }\n";
        
        css += "h1.title { color: #000 !important; font-style: italic; text-decoration: underline; }\n";
        css += ".score-container, .best-container { background: #fff !important; color: #000 !important; border: 1px solid #333; border-radius: 0 !important; box-shadow: 3px 3px 0 rgba(0,0,0,0.1) !important; }\n";
@@ -1508,15 +1520,15 @@
        
        css += ".game-container { background: #4e342e !important; border-radius: 12px !important; border: 4px solid #3e2723; box-shadow: 0 10px 20px rgba(62, 39, 35, 0.4) !important; }\n";
        css += ".grid-cell { background: #5d4037 !important; border-radius: 8px !important; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2) !important; }\n";
-       css += ".tile .tile-inner { border-radius: 8px !important; box-shadow: 0 4px 8px rgba(62, 39, 35, 0.4), 0 1px 3px rgba(0,0,0,0.2) !important; font-weight: bold; }\n";
+       css += ".tile .tile-inner, .theme-preview-tile { border-radius: 8px !important; box-shadow: 0 4px 8px rgba(62, 39, 35, 0.4), 0 1px 3px rgba(0,0,0,0.2) !important; font-weight: bold; }\n";
        
-       css += ".tile-2 .tile-inner { background: #fff8e1 !important; color: #4e342e !important; }\n";
-       css += ".tile-4 .tile-inner { background: #ffecb3 !important; color: #4e342e !important; }\n";
-       css += ".tile-8 .tile-inner { background: #ffcc80 !important; color: #3e2723 !important; }\n";
-       css += ".tile-16 .tile-inner { background: #ffa726 !important; color: #3e2723 !important; }\n";
-       css += ".tile-32 .tile-inner { background: #ff9800 !important; color: #fff !important; }\n";
-       css += ".tile-64 .tile-inner { background: #ef6c00 !important; color: #fff !important; }\n";
-       css += ".tile-128 .tile-inner { background: #e65100 !important; color: #fff !important; box-shadow: 0 0 10px #e65100 !important; }\n";
+       css += ".tile-2 .tile-inner, .theme-preview-tile.theme-color-2 { background: #fff8e1 !important; color: #4e342e !important; }\n";
+       css += ".tile-4 .tile-inner, .theme-preview-tile.theme-color-4 { background: #ffecb3 !important; color: #4e342e !important; }\n";
+       css += ".tile-8 .tile-inner, .theme-preview-tile.theme-color-8 { background: #ffcc80 !important; color: #3e2723 !important; }\n";
+       css += ".tile-16 .tile-inner, .theme-preview-tile.theme-color-16 { background: #ffa726 !important; color: #3e2723 !important; }\n";
+       css += ".tile-32 .tile-inner, .theme-preview-tile.theme-color-32 { background: #ff9800 !important; color: #fff !important; }\n";
+       css += ".tile-64 .tile-inner, .theme-preview-tile.theme-color-64 { background: #ef6c00 !important; color: #fff !important; }\n";
+       css += ".tile-128 .tile-inner, .theme-preview-tile.theme-color-128 { background: #e65100 !important; color: #fff !important; box-shadow: 0 0 10px #e65100 !important; }\n";
        
        css += "h1.title { color: #3e2723 !important; text-shadow: 1px 1px 0 #d7ccc8; }\n";
        css += ".score-container, .best-container { background: #5d4037 !important; color: #fff8e1 !important; border-radius: 6px !important; box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important; }\n";
@@ -1525,6 +1537,29 @@
        css += ".restart-button, .game-message a { background: #6d4c41 !important; color: #fff !important; border-radius: 6px !important; box-shadow: 0 3px 0 #3e2723 !important; border: none; }\n";
        css += ".restart-button:hover, .game-message a:hover { background: #795548 !important; transform: translateY(2px); box-shadow: 0 1px 0 #3e2723 !important; }\n";
        css += ".top-action-btn { background: #efebe9 !important; color: #3e2723 !important; border: 1px solid #a1887f !important; border-radius: 6px !important; }\n";
+    }
+    if (theme.horse_year) {
+       css += "html, body { background: #801313 !important; color: #ffd700 !important; font-family: 'KaiTi', 'STKaiti', 'Microsoft YaHei', serif !important; }\n";
+       // Traditional Pattern Background
+       css += "body:before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: radial-gradient(#b71c1c 15%, transparent 16%), radial-gradient(#b71c1c 15%, transparent 16%); background-size: 60px 60px; background-position: 0 0, 30px 30px; opacity: 0.2; z-index: -1; }\n";
+       css += "body:after { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, transparent 100%); pointer-events: none; z-index: -1; }\n";
+       
+       css += ".game-container { background: #5c0000 !important; border: 4px solid #ffd700; border-radius: 8px !important; box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.5) !important; }\n";
+       css += ".grid-cell { background: #3e0000 !important; border: 1px solid #801313; border-radius: 4px !important; box-shadow: inset 0 0 5px rgba(0,0,0,0.5) !important; }\n";
+       
+       css += ".tile .tile-inner, .theme-preview-tile { border-radius: 4px !important; font-family: 'KaiTi', 'STKaiti', serif !important; font-weight: bold; border: 1px solid rgba(0,0,0,0.1); box-shadow: 0 2px 5px rgba(0,0,0,0.3) !important; }\n";
+       
+       // Specific tile overrides if needed, but the palette handles most
+       css += ".tile-2048 .tile-inner, .theme-preview-tile.theme-color-2048 { background: linear-gradient(135deg, #ffd700, #ffca28) !important; color: #3e2723 !important; border: 2px solid #fff !important; box-shadow: 0 0 15px #ffd700 !important; text-shadow: none !important; }\n";
+       
+       css += "h1.title { color: #ffd700 !important; text-shadow: 2px 2px 0 #3e0000; font-weight: normal; letter-spacing: 4px; }\n";
+       css += "p, .game-intro, .game-explanation { color: #ffcc80 !important; }\n";
+       css += ".score-container, .best-container { background: #5c0000 !important; color: #ffd700 !important; border: 2px solid #b71c1c; border-radius: 6px !important; box-shadow: 0 4px 0 #3e0000 !important; }\n";
+       css += ".score-container:after, .best-container:after { color: #ffab91 !important; }\n";
+       
+       css += ".restart-button, .game-message a { background: #b71c1c !important; color: #ffd700 !important; border: 2px solid #ffd700 !important; border-radius: 20px !important; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important; }\n";
+       css += ".restart-button:hover, .game-message a:hover { background: #d32f2f !important; transform: scale(1.05); }\n";
+       css += ".top-action-btn { background: #5c0000 !important; color: #ffd700 !important; border: 1px solid #b71c1c !important; }\n";
     }
     css += pageCss(theme);
     css += tileCssForValues(theme, POW2_TILE_VALUES, "body:not([data-ruleset=\"fibonacci\"])");

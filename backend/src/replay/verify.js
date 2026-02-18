@@ -15,6 +15,9 @@ export function verifySessionReplay({
   ruleset,
   undoEnabled,
   rankedBucket,
+  modeFamily,
+  rankPolicy,
+  specialRulesSnapshot,
   replay,
   clientScore,
   clientBestTile,
@@ -31,7 +34,9 @@ export function verifySessionReplay({
     board_height: boardHeight,
     ruleset,
     undo_enabled: undoEnabled,
-    ranked_bucket: rankedBucket
+    ranked_bucket: rankedBucket,
+    mode_family: modeFamily,
+    rank_policy: rankPolicy
   }, modeCfg);
   if (modeBoundErr) {
     return { ok: false, reason: modeBoundErr };
@@ -61,6 +66,27 @@ export function verifySessionReplay({
   if (replay.undo_enabled !== undefined && Boolean(replay.undo_enabled) !== Boolean(modeCfg.undo_enabled)) {
     return { ok: false, reason: "replay_undo_enabled_mismatch" };
   }
+  if (replay.mode_family !== undefined && replay.mode_family !== modeCfg.mode_family) {
+    return { ok: false, reason: "replay_mode_family_mismatch" };
+  }
+  if (replay.rank_policy !== undefined && replay.rank_policy !== modeCfg.rank_policy) {
+    return { ok: false, reason: "replay_rank_policy_mismatch" };
+  }
+  if (replay.special_rules_snapshot !== undefined) {
+    const expectedRules = specialRulesSnapshot && typeof specialRulesSnapshot === "object"
+      ? specialRulesSnapshot
+      : modeCfg.special_rules;
+    const expectedMode = {
+      ...modeCfg,
+      special_rules: expectedRules
+    };
+    const replayBoundErr = validateModeBoundFields({
+      special_rules_snapshot: replay.special_rules_snapshot
+    }, expectedMode);
+    if (replayBoundErr) {
+      return { ok: false, reason: `replay_${replayBoundErr.replace(/\s+/g, "_")}` };
+    }
+  }
 
   if (!isValidBoard(clientFinalBoard, modeCfg.board_width, modeCfg.board_height, modeCfg.ruleset)) {
     return { ok: false, reason: "invalid_client_final_board" };
@@ -73,6 +99,9 @@ export function verifySessionReplay({
   }
 
   try {
+    const engineSpecialRules = specialRulesSnapshot && typeof specialRulesSnapshot === "object"
+      ? specialRulesSnapshot
+      : modeCfg.special_rules;
     const engine = new ReplayEngine({
       mode: legacyModeFromModeKey(modeCfg.key),
       modeKey: modeCfg.key,
@@ -82,7 +111,10 @@ export function verifySessionReplay({
       ruleset: modeCfg.ruleset,
       spawnTable: modeCfg.spawn_table,
       maxTile: modeCfg.max_tile,
-      undoEnabled: modeCfg.undo_enabled
+      undoEnabled: modeCfg.undo_enabled,
+      modeFamily: modeCfg.mode_family,
+      rankPolicy: modeCfg.rank_policy,
+      specialRules: engineSpecialRules
     });
 
     engine.applyReplayV3(replay.actions, config.maxReplayActions);

@@ -67,5 +67,31 @@ function buildGameOverReplay(seed) {
     /Undo not allowed in mode/
   );
 
+  const limitedUndo = new ReplayEngine({
+    mode: "classic",
+    seed: 0.77,
+    undoEnabled: true,
+    specialRules: { undo_limit: 1 }
+  });
+  let movedOnce = false;
+  for (const dir of [0, 1, 2, 3]) {
+    const result = limitedUndo.move(dir);
+    if (result.moved) {
+      movedOnce = true;
+      break;
+    }
+  }
+  assert.equal(movedOnce, true, "limited undo setup should have at least one legal move");
+  assert.equal(limitedUndo.undo(), true, "first undo should succeed");
+  assert.equal(limitedUndo.undo(), false, "second undo should be blocked by undo_limit");
+
+  const obstacle = new ReplayEngine({
+    mode: "classic",
+    seed: 0.51,
+    specialRules: { blocked_cells: [[1, 1]] }
+  });
+  assert.equal(obstacle.board[1][1], 0, "blocked cell should remain empty");
+  assert.equal(obstacle.availableCells().some((c) => c.x === 1 && c.y === 1), false, "blocked cell should not be spawnable");
+
   console.log("replay_engine tests passed");
 })();
