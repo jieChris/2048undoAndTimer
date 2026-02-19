@@ -645,6 +645,138 @@ GameManager.prototype.recordTimerMilestone = function (value, timeStr) {
   }
 };
 
+GameManager.prototype.isCappedMode = function () {
+  var key = String(this.modeKey || this.mode || "");
+  return key.indexOf("capped") !== -1 && Number.isFinite(this.maxTile) && this.maxTile > 0;
+};
+
+GameManager.prototype.getCappedTargetValue = function () {
+  return this.isCappedMode() ? Number(this.maxTile) : null;
+};
+
+GameManager.prototype.getTimerRowEl = function (value) {
+  return document.getElementById("timer-row-" + String(value));
+};
+
+GameManager.prototype.setTimerRowVisibleState = function (value, visible, keepSpace) {
+  var row = this.getTimerRowEl(value);
+  if (!row) return;
+  row.style.display = "block";
+  if (visible) {
+    row.style.visibility = "visible";
+    row.style.pointerEvents = "";
+  } else if (keepSpace) {
+    row.style.visibility = "hidden";
+    row.style.pointerEvents = "none";
+  } else {
+    row.style.display = "none";
+    row.style.visibility = "";
+    row.style.pointerEvents = "";
+  }
+};
+
+GameManager.prototype.repositionCappedTimerContainer = function () {
+  var container = document.getElementById("capped-timer-container");
+  if (!container) return;
+  var target = this.getCappedTargetValue();
+  if (!target) target = 2048;
+  var anchorRow = this.getTimerRowEl(target);
+  if (!anchorRow || !anchorRow.parentNode) return;
+  var parent = anchorRow.parentNode;
+  if (container.parentNode !== parent || anchorRow.nextSibling !== container) {
+    parent.insertBefore(container, anchorRow.nextSibling);
+  }
+};
+
+GameManager.prototype.applyCappedRowVisibility = function () {
+  var i;
+  if (!this.isCappedMode()) {
+    for (i = 0; i < GameManager.TIMER_SLOT_IDS.length; i++) {
+      this.setTimerRowVisibleState(GameManager.TIMER_SLOT_IDS[i], true, false);
+    }
+    return;
+  }
+  var cap = this.getCappedTargetValue();
+  for (i = 0; i < GameManager.TIMER_SLOT_IDS.length; i++) {
+    var value = GameManager.TIMER_SLOT_IDS[i];
+    this.setTimerRowVisibleState(value, value <= cap, true);
+  }
+};
+
+GameManager.prototype.resetCappedDynamicTimers = function () {
+  this.cappedMilestoneCount = 0;
+  var cappedContainer = document.getElementById("capped-timer-container");
+  if (cappedContainer) cappedContainer.innerHTML = "";
+  if (typeof window.cappedTimerReset === "function") window.cappedTimerReset();
+};
+
+GameManager.prototype.getCappedTimerLegendClass = function () {
+  var slotId = this.timerMilestoneSlotByValue
+    ? this.timerMilestoneSlotByValue[String(this.getCappedTargetValue())]
+    : null;
+  return slotId ? ("timertile timer-legend-" + slotId) : "timertile";
+};
+
+GameManager.prototype.getCappedTimerFontSize = function () {
+  var cap = this.getCappedTargetValue() || 2048;
+  if (cap >= 8192) return "13px";
+  if (cap >= 1024) return "14px";
+  if (cap >= 128) return "18px";
+  return "22px";
+};
+
+GameManager.prototype.recordCappedMilestone = function (timeStr) {
+  if (!this.isCappedMode()) return;
+
+  this.cappedMilestoneCount += 1;
+  var capLabel = String(this.getCappedTargetValue());
+  var baseTimerEl = document.getElementById("timer" + capLabel);
+  var pendingVal = document.getElementById("capped-timer-pending");
+  var container = document.getElementById("capped-timer-container");
+
+  if (this.cappedMilestoneCount === 1) {
+    if (baseTimerEl && baseTimerEl.textContent === "") {
+      baseTimerEl.textContent = timeStr;
+    }
+  } else if (pendingVal) {
+    pendingVal.textContent = timeStr;
+    pendingVal.removeAttribute("id");
+  }
+
+  if (!container) return;
+
+  var circled = [
+    "\u2460","\u2461","\u2462","\u2463","\u2464","\u2465","\u2466","\u2467","\u2468","\u2469",
+    "\u246a","\u246b","\u246c","\u246d","\u246e","\u246f","\u2470","\u2471","\u2472","\u2473"
+  ];
+  var nextIdx = this.cappedMilestoneCount + 1;
+  var nextLabel = capLabel + (circled[nextIdx - 2] || ("(" + nextIdx + ")"));
+
+  var rowDiv = document.createElement("div");
+  rowDiv.className = "timer-row-item";
+
+  var legend = document.createElement("div");
+  legend.className = this.getCappedTimerLegendClass();
+  legend.style.cssText = "color: #f9f6f2; font-size: " + this.getCappedTimerFontSize() + ";";
+  legend.textContent = nextLabel;
+
+  var val = document.createElement("div");
+  val.className = "timertile";
+  val.id = "capped-timer-pending";
+  val.style.cssText = "margin-left:6px; width:187px;";
+  val.textContent = "";
+
+  rowDiv.appendChild(legend);
+  rowDiv.appendChild(val);
+  rowDiv.appendChild(document.createElement("br"));
+  rowDiv.appendChild(document.createElement("br"));
+  container.appendChild(rowDiv);
+
+  if (typeof window.cappedTimerAutoScroll === "function") {
+    window.cappedTimerAutoScroll();
+  }
+};
+
 GameManager.prototype.initCornerStats = function () {
   var rateEl = document.getElementById("stats-4-rate");
   var ipsEl = document.getElementById("stats-ips");
@@ -1390,14 +1522,9 @@ GameManager.prototype.setup = function (inputSeed, options) {
   if (sub16k) sub16k.textContent = "";
   var subContainer = document.getElementById("timer32k-sub-container");
   if (subContainer) subContainer.style.display = "none";
-  // Reset Timer Rows Visibility
-  if (document.getElementById("timer-row-16")) document.getElementById("timer-row-16").style.display = "block";
-  if (document.getElementById("timer-row-32")) document.getElementById("timer-row-32").style.display = "block";
-
-  // Reset capped mode dynamic timers
-  var cappedContainer = document.getElementById("capped-timer-container");
-  if (cappedContainer) cappedContainer.innerHTML = "";
-  if (typeof window.cappedTimerReset === "function") window.cappedTimerReset();
+  this.repositionCappedTimerContainer();
+  this.applyCappedRowVisibility();
+  this.resetCappedDynamicTimers();
 
   // Add the initial tiles unless a replay imports an explicit board.
   var skipStartTiles = !!(options && options.skipStartTiles);
@@ -1656,82 +1783,12 @@ GameManager.prototype.move = function (direction) {
           // Update the score
           self.score += merged.value;
 
-          // Milestone Logic (Ported)
           var timeStr = self.pretty(self.time);
-          if (merged.value === 16 && document.getElementById("timer16") && document.getElementById("timer16").innerHTML === "") {
-             document.getElementById("timer16").textContent = timeStr;
-          }
-          if (merged.value === 32 && document.getElementById("timer32") && document.getElementById("timer32").innerHTML === "") {
-             document.getElementById("timer32").textContent = timeStr;
-          }
-          if (merged.value === 64 && document.getElementById("timer64") && document.getElementById("timer64").innerHTML === "") {
-             document.getElementById("timer64").textContent = timeStr;
-          }
-          if (merged.value === 128 && document.getElementById("timer128") && document.getElementById("timer128").innerHTML === "") {
-             document.getElementById("timer128").textContent = timeStr;
-          }
-          if (merged.value === 256 && document.getElementById("timer256") && document.getElementById("timer256").innerHTML === "") {
-             document.getElementById("timer256").textContent = timeStr;
-          }
-          if (merged.value === 512 && document.getElementById("timer512") && document.getElementById("timer512").innerHTML === "") {
-             document.getElementById("timer512").textContent = timeStr;
-          }
-          if (merged.value === 1024 && document.getElementById("timer1024") && document.getElementById("timer1024").innerHTML === "") {
-             document.getElementById("timer1024").textContent = timeStr;
-          }
-          if (merged.value === 2048) {
-              // Capped mode: track each 2048 merge individually
-              if (self.maxTile === 2048) {
-                  self.cappedMilestoneCount++;
-                  var circled = ["\u2460","\u2461","\u2462","\u2463","\u2464","\u2465","\u2466","\u2467","\u2468","\u2469","\u246a","\u246b","\u246c","\u246d","\u246e","\u246f","\u2470","\u2471","\u2472","\u2473"];
-                  var container = document.getElementById("capped-timer-container");
-
-                  if (self.cappedMilestoneCount === 1) {
-                      // First 2048: fill the original timer row
-                      var t2048 = document.getElementById("timer2048");
-                      if (t2048 && t2048.textContent === "") t2048.textContent = timeStr;
-                  } else {
-                      // Fill the pending row that was created last time
-                      var pendingVal = document.getElementById("capped-timer-pending");
-                      if (pendingVal) {
-                          pendingVal.textContent = timeStr;
-                          pendingVal.removeAttribute("id"); // Remove pending marker
-                      }
-                  }
-
-                  // Always create the NEXT empty timer row as a target
-                  if (container) {
-                      var nextIdx = self.cappedMilestoneCount + 1;
-                      var nextLabel = "2048" + (circled[nextIdx - 1] || "(" + nextIdx + ")");
-                      var rowDiv = document.createElement("div");
-                      rowDiv.className = "timer-row-item";
-                      var legend = document.createElement("div");
-                      legend.className = "timertile timer-legend-2048";
-                      legend.style.cssText = "color: #f9f6f2; font-size: 13px;";
-                      legend.textContent = nextLabel;
-                      var val = document.createElement("div");
-                      val.className = "timertile";
-                      val.id = "capped-timer-pending";
-                      val.style.cssText = "margin-left:6px; width:187px;";
-                      val.textContent = "";
-                      rowDiv.appendChild(legend);
-                      rowDiv.appendChild(val);
-                      rowDiv.appendChild(document.createElement("br"));
-                      rowDiv.appendChild(document.createElement("br"));
-                      container.appendChild(rowDiv);
-                      // Auto-scroll to show the latest timer row
-                      if (typeof window.cappedTimerAutoScroll === "function") window.cappedTimerAutoScroll();
-                  }
-                  // No self.won = true: capped mode continues without "you win" prompt
-              } else {
-                  if (document.getElementById("timer2048") && document.getElementById("timer2048").innerHTML === "") {
-                      self.won = true;
-                      document.getElementById("timer2048").textContent = timeStr;
-                  }
-              }
-          }
-          if (merged.value === 4096 && document.getElementById("timer4096") && document.getElementById("timer4096").innerHTML === "") {
-             document.getElementById("timer4096").textContent = timeStr;
+          self.recordTimerMilestone(merged.value, timeStr);
+          if (self.isCappedMode() && merged.value === self.getCappedTargetValue()) {
+             self.recordCappedMilestone(timeStr);
+          } else if (!self.isCappedMode() && merged.value === 2048) {
+             self.won = true;
           }
           if (merged.value === 8192) {
              if (self.reached32k) {
@@ -1768,8 +1825,6 @@ GameManager.prototype.move = function (direction) {
              if (document.getElementById("timer-row-16")) document.getElementById("timer-row-16").style.display = "none";
              if (document.getElementById("timer-row-32")) document.getElementById("timer-row-32").style.display = "none";
           }
-
-          self.recordTimerMilestone(merged.value, timeStr);
 
         } else {
           // Save backup information

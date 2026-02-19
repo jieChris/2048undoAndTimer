@@ -137,166 +137,179 @@ function getCurrentRuleset() {
 }
 
 function initThemeSettingsUI() {
-  // Elements
   var originalSelect = document.getElementById("theme-select");
-  var preview = document.getElementById("theme-preview-grid");
+  var previewRoot = document.getElementById("theme-preview-grid");
   var customTrigger = document.getElementById("theme-select-trigger");
   var customOptionsContainer = document.getElementById("theme-select-options");
   var customSelect = document.querySelector(".custom-select");
 
-  if (!originalSelect || !preview || !window.ThemeManager) return;
+  if (!originalSelect || !previewRoot || !window.ThemeManager || !customTrigger || !customOptionsContainer || !customSelect) return;
 
   var themes = window.ThemeManager.getThemes();
-  
-  // State for Revert Logic
   var confirmedTheme = window.ThemeManager.getCurrentTheme();
 
-  // 1. Populate Custom Options
-  if (customOptionsContainer.children.length === 0) {
-      customOptionsContainer.innerHTML = "";
-      themes.forEach(function(theme) {
-          var option = document.createElement("div");
-          option.className = "custom-option";
-          option.textContent = theme.label;
-          option.dataset.value = theme.id;
-          
-          // Interaction: Select Theme (Commit)
-          option.addEventListener("click", function(e) {
-              e.stopPropagation(); // Prevent bubbling
-              var value = this.dataset.value;
-              confirmedTheme = value; // Update confirmed selection
-              window.ThemeManager.applyTheme(value);
-              closeDropdown();
-          });
-
-          // Interaction: Hover Preview (Scoped)
-          option.addEventListener("mouseenter", function() {
-              var style = document.getElementById("theme-preview-style");
-              if (!style) {
-                  style = document.createElement("style");
-                  style.id = "theme-preview-style";
-                  document.head.appendChild(style);
-              }
-              if (window.ThemeManager.getPreviewCss) {
-                  style.textContent = window.ThemeManager.getPreviewCss(this.dataset.value);
-              }
-          });
-
-          customOptionsContainer.appendChild(option);
-      });
+  function ensurePreviewStyleTag() {
+    var style = document.getElementById("theme-preview-style");
+    if (!style) {
+      style = document.createElement("style");
+      style.id = "theme-preview-style";
+      document.head.appendChild(style);
+    }
+    return style;
   }
 
-  // 2. Custom Select Interaction
+  function ensureDualPreviewGrids() {
+    if (previewRoot.__dualPreviewRefs) return previewRoot.__dualPreviewRefs;
+    previewRoot.className = "theme-preview-dual-wrap";
+    previewRoot.innerHTML =
+      "<div class='theme-preview-grid-block'>" +
+      "<div class='theme-preview-grid-title'>2幂</div>" +
+      "<div id='theme-preview-grid-pow2' class='theme-preview-grid'></div>" +
+      "</div>" +
+      "<div class='theme-preview-grid-block'>" +
+      "<div class='theme-preview-grid-title'>Fibonacci</div>" +
+      "<div id='theme-preview-grid-fib' class='theme-preview-grid'></div>" +
+      "</div>";
+    previewRoot.__dualPreviewRefs = {
+      pow2: document.getElementById("theme-preview-grid-pow2"),
+      fib: document.getElementById("theme-preview-grid-fib")
+    };
+    return previewRoot.__dualPreviewRefs;
+  }
+
+  function renderPreviewGrid(gridEl, values) {
+    if (!gridEl) return;
+    gridEl.innerHTML = "";
+    for (var i = 0; i < values.length; i++) {
+      var value = values[i];
+      var tile = document.createElement("div");
+      tile.className = "theme-preview-tile theme-color-" + value;
+      tile.textContent = formatPreviewValue(value);
+      gridEl.appendChild(tile);
+    }
+  }
+
+  function renderDualPreviewGrids() {
+    var refs = ensureDualPreviewGrids();
+    var pow2Values = window.ThemeManager.getTileValues
+      ? window.ThemeManager.getTileValues("pow2")
+      : [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536];
+    var fibValues = window.ThemeManager.getTileValues
+      ? window.ThemeManager.getTileValues("fibonacci")
+      : [1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597];
+    renderPreviewGrid(refs.pow2, pow2Values);
+    renderPreviewGrid(refs.fib, fibValues);
+  }
+
+  function getPreviewCss(themeId) {
+    if (!window.ThemeManager.getPreviewCss) return "";
+    return window.ThemeManager.getPreviewCss(themeId, {
+      pow2Selector: "#theme-preview-grid-pow2",
+      fibSelector: "#theme-preview-grid-fib"
+    });
+  }
+
+  function applyPreviewTheme(themeId) {
+    var style = ensurePreviewStyleTag();
+    style.textContent = getPreviewCss(themeId);
+  }
+
+  if (customOptionsContainer.children.length === 0) {
+    customOptionsContainer.innerHTML = "";
+    themes.forEach(function(theme) {
+      var option = document.createElement("div");
+      option.className = "custom-option";
+      option.textContent = theme.label;
+      option.dataset.value = theme.id;
+      option.addEventListener("click", function(e) {
+        e.stopPropagation();
+        var value = this.dataset.value;
+        confirmedTheme = value;
+        window.ThemeManager.applyTheme(value);
+        applyPreviewTheme(value);
+        closeDropdown();
+      });
+      option.addEventListener("mouseenter", function() {
+        applyPreviewTheme(this.dataset.value);
+      });
+      customOptionsContainer.appendChild(option);
+    });
+  }
+
   function toggleDropdown(e) {
-      if(e) e.stopPropagation();
-      var isOpen = customSelect.classList.contains("open");
-      
-      if (isOpen) {
-          closeDropdown();
-      } else {
-          // Open
-          confirmedTheme = window.ThemeManager.getCurrentTheme(); // Sync confirmation
-          customSelect.classList.add("open");
-          
-          // Scroll to selected
-          var selectedParams = customOptionsContainer.querySelector(".custom-option.selected");
-          if (selectedParams) {
-               customOptionsContainer.scrollTop = selectedParams.offsetTop - customOptionsContainer.offsetTop;
-          }
+    if (e) e.stopPropagation();
+    var isOpen = customSelect.classList.contains("open");
+    if (isOpen) {
+      closeDropdown();
+    } else {
+      confirmedTheme = window.ThemeManager.getCurrentTheme();
+      customSelect.classList.add("open");
+      var selected = customOptionsContainer.querySelector(".custom-option.selected");
+      if (selected) {
+        customOptionsContainer.scrollTop = selected.offsetTop - customOptionsContainer.offsetTop;
       }
+    }
   }
 
   function closeDropdown() {
-      customSelect.classList.remove("open");
-      // Clear preview style
-      var style = document.getElementById("theme-preview-style");
-      if (style) style.textContent = "";
+    customSelect.classList.remove("open");
+    applyPreviewTheme(confirmedTheme);
   }
 
-  // Bind Trigger
   if (!customTrigger.__bound) {
-      customTrigger.addEventListener("click", toggleDropdown);
-      customTrigger.__bound = true;
+    customTrigger.addEventListener("click", toggleDropdown);
+    customTrigger.__bound = true;
   }
 
-  // Click Outside to Close
   if (!window.__clickOutsideBound) {
-      document.addEventListener("click", function(e) {
-          if (!customSelect.contains(e.target)) {
-              closeDropdown();
-          }
-      });
-      window.__clickOutsideBound = true;
+    document.addEventListener("click", function(e) {
+      if (!customSelect.contains(e.target)) {
+        closeDropdown();
+      }
+    });
+    window.__clickOutsideBound = true;
   }
-  
-  // Revert when mouse leaves the options/dropdown area
+
   if (!customSelect.__mouseleaveBound) {
-      customSelect.addEventListener("mouseleave", function() {
-          if (customSelect.classList.contains("open")) {
-               var style = document.getElementById("theme-preview-style");
-               if (style) style.textContent = "";
-          }
-      });
-      customSelect.__mouseleaveBound = true;
+    customSelect.addEventListener("mouseleave", function() {
+      if (customSelect.classList.contains("open")) {
+        applyPreviewTheme(confirmedTheme);
+      }
+    });
+    customSelect.__mouseleaveBound = true;
   }
 
-  // 3. UI Update Helpers
   function updateCustomSelectUI() {
-      var currentThemeId = window.ThemeManager.getCurrentTheme();
-      
-      // Update Trigger Text
-      var label = "选择主题";
-      for (var i = 0; i < themes.length; i++) {
-          if (themes[i].id === currentThemeId) {
-              label = themes[i].label;
-              break;
-          }
+    var currentThemeId = window.ThemeManager.getCurrentTheme();
+    var label = "选择主题";
+    for (var i = 0; i < themes.length; i++) {
+      if (themes[i].id === currentThemeId) {
+        label = themes[i].label;
+        break;
       }
-      customTrigger.querySelector("span").textContent = label;
-
-      // Update Selected State in Options
-      var options = customOptionsContainer.querySelectorAll(".custom-option");
-      options.forEach(function(opt) {
-          if (opt.dataset.value === currentThemeId) {
-              opt.classList.add("selected");
-          } else {
-              opt.classList.remove("selected");
-          }
-      });
+    }
+    var triggerText = customTrigger.querySelector("span");
+    if (triggerText) triggerText.textContent = label;
+    var options = customOptionsContainer.querySelectorAll(".custom-option");
+    options.forEach(function(opt) {
+      if (opt.dataset.value === currentThemeId) {
+        opt.classList.add("selected");
+      } else {
+        opt.classList.remove("selected");
+      }
+    });
   }
 
-  // Render Preview Grid (Tiles)
-  function renderPreviewGrid() {
-      var values = window.ThemeManager.getTileValues ?
-        window.ThemeManager.getTileValues(getCurrentRuleset()) :
-        [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536];
-
-      preview.innerHTML = "";
-      for (var j = 0; j < values.length; j++) {
-        var tile = document.createElement("div");
-        tile.className = "theme-preview-tile theme-color-" + values[j];
-        tile.textContent = formatPreviewValue(values[j]);
-        preview.appendChild(tile);
-      }
-  }
-
-  // Helper for formatting values (simplified version of original logic if needed, or assume global)
-  // Check if formatPreviewValue is global or we need to inline it. 
-  // It was used in original code, likely defined globally or in this scope previously.
-  // Actually, checking previous view_file, `formatPreviewValue` was NOT defined in `initThemeSettingsUI`.
-  // It must be a helper in index_ui.js.
-  
-  // Initial Render
-  renderPreviewGrid();
+  renderDualPreviewGrids();
   updateCustomSelectUI();
-  
-  // Sync if changed externally (e.g. from hovering, or from other tabs)
+  applyPreviewTheme(confirmedTheme);
+
   if (!window.__themeChangeSyncBound) {
     window.__themeChangeSyncBound = true;
-    window.addEventListener("themechange", function (e) {
-       updateCustomSelectUI();
-       // P.S. The grid tiles themselves don't change markup, just their classes/styles respond to body class.
-       // So we don't need to re-render grid HTML on theme change, just CSS handles it.
+    window.addEventListener("themechange", function () {
+      confirmedTheme = window.ThemeManager.getCurrentTheme();
+      updateCustomSelectUI();
+      applyPreviewTheme(confirmedTheme);
     });
   }
 }
