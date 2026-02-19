@@ -88,6 +88,17 @@ GameManager.FALLBACK_MODE_CONFIGS = {
     spawn_table: [{ value: 2, weight: 90 }, { value: 4, weight: 10 }],
     ranked_bucket: "capped"
   },
+  capped_4x4_pow2_64_no_undo: {
+    key: "capped_4x4_pow2_64_no_undo",
+    label: "封顶版 4x4（64，无撤回）",
+    board_width: 4,
+    board_height: 4,
+    ruleset: "pow2",
+    undo_enabled: false,
+    max_tile: 64,
+    spawn_table: [{ value: 2, weight: 90 }, { value: 4, weight: 10 }],
+    ranked_bucket: "none"
+  },
   practice_legacy: {
     key: "practice_legacy",
     label: "练习板（Legacy）",
@@ -1064,7 +1075,7 @@ GameManager.prototype.updateUndoUiState = function () {
   }
   var undoBtn = document.getElementById("undo-btn-gameover");
   if (undoBtn) {
-    undoBtn.style.visibility = canUndo ? "visible" : "hidden";
+    undoBtn.style.display = canUndo ? "inline-block" : "none";
   }
 };
 
@@ -1701,7 +1712,7 @@ GameManager.prototype.move = function (direction) {
                       var val = document.createElement("div");
                       val.className = "timertile";
                       val.id = "capped-timer-pending";
-                      val.style.cssText = "margin-left:6px; width:159px;";
+                      val.style.cssText = "margin-left:6px; width:187px;";
                       val.textContent = "";
                       rowDiv.appendChild(legend);
                       rowDiv.appendChild(val);

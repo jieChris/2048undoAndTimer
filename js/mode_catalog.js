@@ -212,6 +212,20 @@
   });
 
   add({
+    key: "capped_4x4_pow2_64_no_undo",
+    label: "封顶版 4x4（64，无撤回）",
+    board_width: 4,
+    board_height: 4,
+    ruleset: "pow2",
+    undo_enabled: false,
+    max_tile: 64,
+    spawn_table: [{ value: 2, weight: 90 }, { value: 4, weight: 10 }],
+    ranked_bucket: "none",
+    mode_family: "pow2",
+    rank_policy: "unranked"
+  });
+
+  add({
     key: "capped_4x4_pow2_4096_no_undo",
     label: "封顶版 4x4（4096，无撤回）",
     board_width: 4,

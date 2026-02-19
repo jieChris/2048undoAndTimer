@@ -455,7 +455,10 @@ hr {
 }
 
 .game-container .game-message .lower {
-  display: block;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 9px;
   margin-top: 59px;
 }
 
@@ -468,7 +471,7 @@ hr {
   color: #f9f6f2;
   height: 40px;
   line-height: 42px;
-  margin-left: 9px;
+  margin-left: 0;
 }
 
 .game-container .game-message a.keep-playing-button {
@@ -987,7 +990,10 @@ hr {
   }
 
   .game-container .game-message .lower {
-    display: block;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 9px;
     margin-top: 59px;
   }
 
@@ -1000,7 +1006,7 @@ hr {
     color: #f9f6f2;
     height: 40px;
     line-height: 42px;
-    margin-left: 9px;
+    margin-left: 0;
   }
 
   .game-container .game-message a.keep-playing-button {
@@ -1231,7 +1237,7 @@ hr {
   color: #f9f6f2;
   height: 40px;
   line-height: 42px;
-  margin-left: 9px;
+  margin-left: 0;
   cursor: pointer;
 }
 
@@ -1569,9 +1575,6 @@ input[type=range]::-webkit-slider-runnable-track {
   margin-top: 8px;
   font-size: 13px;
   color: #8a8178;
-}
-
-color: #8a8178;
 }
 
 @media screen and (max-width: 520px) {

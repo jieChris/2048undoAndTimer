@@ -43,6 +43,10 @@ npm run dev:worker
 - `GET /sessions/:id`
 - `GET /leaderboards/:mode?period=all|week&limit=50&offset=0`
 - `GET /users/:username/history?mode=&page=&page_size=`
+- `GET /users/:username/export?format=json|ndjson&status=all|verified|pending|rejected&mode_key=&mode=&include_replay=true|false`
+
+## Export API 文档
+- 详见：`backend/EXPORT_API.md`
 
 ## Anti-cheat
 - Client metrics are untrusted.
@@ -58,6 +62,22 @@ npm run dev:worker
 - Given game loop is client-side and server is used only for login/upload/reads:
   - 200 concurrent online users is normally safe.
   - 1000-3000 DAU is realistic on this setup.
+
+## Registration Security Controls
+- Username policy:
+  - Format: `3-20` chars, `A-Z a-z 0-9 _`
+  - Reserved words: `USERNAME_RESERVED_WORDS` (comma-separated)
+  - Sensitive words: `USERNAME_SENSITIVE_WORDS` (comma-separated)
+  - Optional regex block: `USERNAME_BLOCKED_REGEX`
+- Registration anti-abuse (window-based):
+  - `REGISTER_LIMIT_WINDOW_SECONDS`
+  - `REGISTER_LIMIT_PER_IP`
+  - `REGISTER_LIMIT_PER_DEVICE`
+  - Attempt logs are stored in table `register_attempts`
+- Device dimension:
+  - Frontend sends `X-Device-Id` automatically via `js/api_client.js`
+- Reverse proxy:
+  - Keep `TRUST_PROXY=true` when behind Nginx/BaoTa, so IP limits use real client IP.
 
 ## Smoke Test
 ```bash

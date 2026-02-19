@@ -12,6 +12,7 @@ import { challengeRoutes } from "./routes/challenges.js";
 
 export function createApp() {
   const app = Fastify({
+    trustProxy: config.trustProxy,
     logger: {
       level: config.nodeEnv === "production" ? "info" : "debug"
     }
@@ -19,7 +20,8 @@ export function createApp() {
 
   app.register(cors, {
     origin: config.corsOrigin.length === 0 ? true : config.corsOrigin,
-    credentials: true
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization", "X-Device-Id"]
   });
 
   app.register(jwt, {

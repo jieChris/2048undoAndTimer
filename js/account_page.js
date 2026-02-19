@@ -10,73 +10,6 @@
     status.style.color = isError ? "#c0392b" : "#4a4a4a";
   }
 
-  function setApiStatus(text, isError) {
-    var status = el("account-api-status");
-    if (!status) return;
-    status.textContent = text || "";
-    status.style.color = isError ? "#c0392b" : "#4a4a4a";
-  }
-
-  function normalizeApiBase(input) {
-    var value = (input || "").trim();
-    if (!value) return "";
-    value = value.replace(/\/+$/, "");
-    if (!/\/api\/v1$/i.test(value)) {
-      value += "/api/v1";
-    }
-    return value;
-  }
-
-  function initApiBaseUI() {
-    var apiInput = el("api-base-input");
-    if (apiInput) {
-      apiInput.value = window.ApiClient.getApiBase();
-    }
-
-    var saveBtn = el("save-api-btn");
-    if (saveBtn) {
-      saveBtn.addEventListener("click", function () {
-        var normalized = normalizeApiBase(apiInput ? apiInput.value : "");
-        if (!normalized) {
-          setApiStatus("请输入 API 地址", true);
-          return;
-        }
-        window.ApiClient.setApiBase(normalized);
-        if (apiInput) apiInput.value = window.ApiClient.getApiBase();
-        setApiStatus("已保存: " + window.ApiClient.getApiBase(), false);
-      });
-    }
-
-    var testBtn = el("test-api-btn");
-    if (testBtn) {
-      testBtn.addEventListener("click", async function () {
-        var normalized = normalizeApiBase(apiInput ? apiInput.value : "");
-        if (!normalized) {
-          setApiStatus("请输入 API 地址", true);
-          return;
-        }
-
-        window.ApiClient.setApiBase(normalized);
-        if (apiInput) apiInput.value = window.ApiClient.getApiBase();
-
-        try {
-          await window.ApiClient.healthcheck();
-        } catch (error) {
-          setApiStatus("连接失败（healthz）: " + (error.message || "unknown"), true);
-          return;
-        }
-
-        try {
-          var data = await window.ApiClient.getLeaderboard("standard", "all", 1, 0);
-          var count = data && data.items ? data.items.length : 0;
-          setApiStatus("连接成功，healthz 与排行榜都正常（" + count + " 条）", false);
-        } catch (error) {
-          setApiStatus("healthz 正常，但业务接口失败: " + (error.message || "unknown") + "（请执行 npm run migrate）", true);
-        }
-      });
-    }
-  }
-
   function renderUser() {
     var user = window.ApiClient.getCurrentUser();
     var panel = el("account-user-panel");
@@ -176,7 +109,6 @@
 
     renderUser();
     refreshPendingQueueInfo();
-    initApiBaseUI();
 
     var regForm = el("register-form");
     if (regForm) regForm.addEventListener("submit", handleRegister);

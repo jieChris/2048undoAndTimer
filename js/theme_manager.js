@@ -108,7 +108,7 @@
   }
 
   var themes = {
-    classic: makeTheme("classic", "经典 (Classic)", [
+    classic: makeTheme("classic", "经典", [
       "#eee4da", "#ede0c8", "#f2b179", "#f59563",
       "#f67c5f", "#f65e3b", "#edcf72", "#edcc61",
       "#edc850", "#edc53f", "#edc22e", "#aa44cc",
@@ -124,13 +124,13 @@
         cellBg: "#eee4da",
         cellText: "#776e65",
         cellShadow: "0 0 0 1px rgba(255,255,255,0.16) inset",
-        buttonBg: "#eee4da",
-        buttonText: "#776e65",
-        buttonHoverBg: "#ded4c8",
-        buttonHoverText: "#5a534c"
+        buttonBg: "#8f7a66",
+        buttonText: "#fff",
+        buttonHoverBg: "#7f6a56",
+        buttonHoverText: "#fff"
       }
     }),
-    ocean: makeTheme("ocean", "海洋之风 (Ocean Breeze)", [
+    ocean: makeTheme("ocean", "海洋之风", [
       "#e8f8ff", "#d1f1ff", "#b8e8ff", "#8fdcff",
       "#6accfb", "#4fb8ef", "#3ca3df", "#2f8fce",
       "#2a7bb9", "#2569a5", "#21588f", "#1c4878",
@@ -153,7 +153,7 @@
         buttonHoverText: "#1d3a49"
       }
     }),
-    vaporwave: makeTheme("vaporwave", "蒸汽波 (Vaporwave)", [
+    vaporwave: makeTheme("vaporwave", "蒸汽波", [
       "#ff71ce", "#01cdfe", "#05ffa1", "#b967ff",
       "#fffb96", "#ff71ce", "#01cdfe", "#05ffa1",
       "#b967ff", "#fffb96", "#ff71ce", "#01cdfe",
@@ -176,7 +176,7 @@
         buttonHoverText: "#000"
       }
     }),
-    matcha: makeTheme("matcha", "抹茶 (Matcha)", [
+    matcha: makeTheme("matcha", "抹茶", [
       "#f7f8f0", "#e8f0e0", "#d4e6c3", "#b9dba3",
       "#9ecf80", "#86c260", "#6fa848", "#598f35",
       "#467528", "#355c1e", "#264215", "#4a3b2a",
@@ -199,7 +199,7 @@
         buttonHoverText: "#fff"
       }
     }),
-    dracula: makeTheme("dracula", "吸血鬼 (Dracula)", [
+    dracula: makeTheme("dracula", "吸血鬼", [
       "#282a36", "#44475a", "#f8f8f2", "#6272a4",
       "#8be9fd", "#50fa7b", "#ffb86c", "#ff79c6",
       "#bd93f9", "#ff5555", "#f1fa8c", "#282a36",
@@ -222,7 +222,7 @@
         buttonHoverText: "#f8f8f2"
       }
     }),
-    sunset: makeTheme("sunset", "日落 (Sunset)", [
+    sunset: makeTheme("sunset", "日落", [
       "#ffe0b2", "#ffcc80", "#ffb74d", "#ffa726",
       "#ff9800", "#fb8c00", "#f57c00", "#ef6c00",
       "#e65100", "#d84315", "#bf360c", "#8e24aa",
@@ -245,7 +245,7 @@
         buttonHoverText: "#fff"
       }
     }),
-    blueprint: makeTheme("blueprint", "蓝图 (Blueprint)", [
+    blueprint: makeTheme("blueprint", "蓝图", [
       "#e3f2fd", "#bbdefb", "#90caf9", "#64b5f6",
       "#42a5f5", "#2196f3", "#1e88e5", "#1976d2",
       "#1565c0", "#0d47a1", "#82b1ff", "#448aff",
@@ -268,7 +268,7 @@
         buttonHoverText: "#ffffff"
       }
     }),
-    candy: makeTheme("candy", "糖果 (Candy)", [
+    candy: makeTheme("candy", "糖果", [
       "#ff9aa2", "#ffb7b2", "#ffdac1", "#e2f0cb",
       "#b5ead7", "#c7ceea", "#f8bbd0", "#f48fb1",
       "#f06292", "#ec407a", "#e91e63", "#d81b60",
@@ -291,7 +291,7 @@
         buttonHoverText: "#fff"
       }
     }),
-    terminal: makeTheme("terminal", "终端 (Terminal)", [
+    terminal: makeTheme("terminal", "终端", [
       "#000000", "#001100", "#002200", "#003300",
       "#004400", "#005500", "#006600", "#007700",
       "#008800", "#009900", "#00aa00", "#00bb00",
@@ -315,7 +315,7 @@
         buttonHoverText: "#00ff00"
       }
     }),
-    paper: makeTheme("paper", "纸张 (Paper)", [
+    paper: makeTheme("paper", "纸张", [
       "#fdfbf7", "#f5f5dc", "#f0ead6", "#e8e0d5",
       "#dbd3c9", "#beb3a8", "#a89f91", "#8d857a",
       "#756d64", "#5e5750", "#4b453f", "#333333",
@@ -338,7 +338,7 @@
         buttonHoverText: "#000"
       }
     }),
-    coffee: makeTheme("coffee", "咖啡 (Coffee)", [
+    coffee: makeTheme("coffee", "咖啡", [
       "#fff8e1", "#ffecb3", "#ffe082", "#ffd54f",
       "#ffca28", "#ffc107", "#ffb300", "#ffa000",
       "#ff8f00", "#ff6f00", "#3e2723", "#4e342e",
@@ -361,7 +361,7 @@
         buttonHoverText: "#fff"
       }
     }),
-    ink: makeTheme("ink", "水墨 (Ink)", [
+    ink: makeTheme("ink", "水墨", [
       "#cfd8dc", "#b0bec5", "#90a4ae", "#78909c",
       "#546e7a", "#455a64", "#37474f", "#263238",
       "#b71c1c", "#c62828", "#d32f2f", "#e53935",
@@ -384,7 +384,7 @@
         buttonHoverText: "#fff"
       }
     }),
-    lava: makeTheme("lava", "岩浆 (Lava)", [
+    lava: makeTheme("lava", "岩浆", [
       "#3e2723", "#4e342e", "#5d4037", "#6d4c41",
       "#d84315", "#e64a19", "#f34607", "#ff5722",
       "#ff7043", "#ff8a65", "#ffab91", "#ffccbc",
@@ -408,7 +408,7 @@
         buttonHoverText: "#000"
       }
     }),
-    chalkboard: makeTheme("chalkboard", "黑板 (Chalkboard)", [
+    chalkboard: makeTheme("chalkboard", "黑板", [
       "#ffffff", "#f0f0f0", "#e0e0e0", "#d0d0d0",
       "#fff9c4", "#fff59d", "#fff176", "#ffee58",
       "#ffeb3b", "#fdd835", "#fbc02d", "#f9a825",
@@ -431,7 +431,7 @@
         buttonHoverText: "#fff"
       }
     }),
-    comic: makeTheme("comic", "美漫 (Comic)", [
+    comic: makeTheme("comic", "美漫", [
       "#ffffff", "#e0f7fa", "#b2ebf2", "#80deea",
       "#4dd0e1", "#26c6da", "#00bcd4", "#00acc1",
       "#0097a7", "#00838f", "#006064", "#ffeb3b",
@@ -454,7 +454,7 @@
         buttonHoverText: "#000"
       }
     }),
-    leather: makeTheme("leather", "皮革 (Leather)", [
+    leather: makeTheme("leather", "皮革", [
       "#d7ccc8", "#bcaaa4", "#a1887f", "#8d6e63",
       "#795548", "#6d4c41", "#5d4037", "#4e342e",
       "#3e2723", "#5d4037", "#795548", "#8d6e63",
@@ -500,7 +500,7 @@
       }
     }),
 
-    pop: makeTheme("pop", "高对比 (High Contrast)", [
+    pop: makeTheme("pop", "高对比", [
       "#fff2e0", "#ffe2b8", "#ffd08d", "#ffbd63",
       "#ffa53d", "#ff8820", "#ff6a2e", "#f84b4b",
       "#e33580", "#c92bbb", "#9c38de", "#6d45ef",
@@ -522,7 +522,7 @@
         buttonHoverText: "#44295a"
       }
     }),
-    neon_flux: makeTheme("neon_flux", "动态霓虹 (Neon Flux)", [
+    neon_flux: makeTheme("neon_flux", "动态霓虹", [
       "#50f2ff", "#33e2ff", "#2dd0ff", "#38bbff",
       "#4da2ff", "#6b88ff", "#8a70ff", "#ab56ff",
       "#cf42ff", "#f22eff", "#ff37d8", "#ff42aa",
@@ -544,7 +544,7 @@
         buttonHoverText: "#f2efff"
       }
     }),
-    neon_black: makeTheme("neon_black", "炫彩闪烁 (Cyber Noir)", [
+    neon_black: makeTheme("neon_black", "炫彩闪烁", [
       "#00f0ff", "#11d9ff", "#2cc1ff", "#45a9ff",
       "#5f90ff", "#7d78ff", "#a05fff", "#c247ff",
       "#e931ff", "#ff35da", "#ff45b1", "#ff5a8d",
@@ -568,7 +568,7 @@
         buttonHoverText: "#ffffff"
       }
     }),
-    cyberpunk: makeTheme("cyberpunk", "赛博朋克 (Cyberpunk)", [
+    cyberpunk: makeTheme("cyberpunk", "赛博朋克", [
       "#00f0ff", "#00ff9f", "#e400ff", "#ff0055",
       "#ffff00", "#001eff", "#bd00ff", "#ffae00",
       "#00ffff", "#ff0099", "#7df9ff", "#bf00ff",
@@ -593,7 +593,7 @@
         buttonHoverText: "#fff"
       }
     }),
-    retro: makeTheme("retro", "复古像素 (Retro Pixel)", [
+    retro: makeTheme("retro", "复古像素", [
       "#0f380f", "#306230", "#8bac0f", "#9bbc0f",
       "#0f380f", "#306230", "#8bac0f", "#9bbc0f",
       "#0f380f", "#306230", "#8bac0f", "#9bbc0f",
@@ -616,7 +616,7 @@
         buttonHoverText: "#0f380f"
       }
     }),
-    glass: makeTheme("glass", "磨砂玻璃 (Glassmorphism)", [
+    glass: makeTheme("glass", "磨砂玻璃", [
       "#ffe0e9", "#ffe0e9", "#e0f7fa", "#e1bee7",
       "#ffcdd2", "#f8bbd0", "#e1bee7", "#d1c4e9",
       "#c5cae9", "#b3e5fc", "#b2dfdb", "#c8e6c9",
@@ -639,7 +639,7 @@
         buttonHoverText: "#000"
       }
     }),
-    space: makeTheme("space", "深邃太空 (Deep Space)", [
+    space: makeTheme("space", "深邃太空", [
       "#cfd8dc", "#b0bec5", "#90a4ae", "#78909c",
       "#37474f", "#263238", "#cfd8dc", "#b0bec5",
       "#546e7a", "#455a64", "#37474f", "#263238",
@@ -663,7 +663,7 @@
         buttonHoverText: "#ffffff"
       }
     }),
-    sakura: makeTheme("sakura", "樱花漫舞 (Sakura)", [
+    sakura: makeTheme("sakura", "樱花漫舞", [
       "#ffebee", "#ffcdd2", "#ef9a9a", "#e57373",
       "#ef5350", "#f44336", "#e53935", "#d32f2f",
       "#c62828", "#b71c1c", "#ff8a80", "#ff5252",
@@ -686,7 +686,7 @@
         buttonHoverText: "#880e4f"
       }
     }),
-    mecha: makeTheme("mecha", "机械装甲 (Mecha)", [
+    mecha: makeTheme("mecha", "机械装甲", [
       "#cfd8dc", "#b0bec5", "#ffcc80", "#ffb74d",
       "#ffa726", "#ff9800", "#fb8c00", "#f57c00",
       "#ef6c00", "#e65100", "#ffd600", "#ffea00",
@@ -710,7 +710,7 @@
         buttonHoverText: "#ffd740"
       }
     }),
-    neumorphism: makeTheme("neumorphism", "新拟态 (Neumorphism)", [
+    neumorphism: makeTheme("neumorphism", "新拟态", [
       "#e0e5ec", "#e0e5ec", "#e0e5ec", "#e0e5ec",
       "#e0e5ec", "#e0e5ec", "#e0e5ec", "#e0e5ec",
       "#e0e5ec", "#e0e5ec", "#e0e5ec", "#e0e5ec",
@@ -733,7 +733,7 @@
         buttonHoverText: "#4d5b6b"
       }
     }),
-    clay: makeTheme("clay", "黏土拟态 (Claymorphism)", [
+    clay: makeTheme("clay", "黏土拟态", [
       "#ff8a80", "#ff80ab", "#ea80fc", "#b388ff",
       "#8c9eff", "#82b1ff", "#80d8ff", "#84ffff",
       "#a7ffeb", "#b9f6ca", "#ccff90", "#f4ff81",
@@ -756,7 +756,7 @@
         buttonHoverText: "#000"
       }
     }),
-    bauhaus: makeTheme("bauhaus", "包豪斯 (Bauhaus)", [
+    bauhaus: makeTheme("bauhaus", "包豪斯", [
       "#E4002B", "#FFD700", "#0057B7", "#000000",
       "#E4002B", "#FFD700", "#0057B7", "#000000",
       "#E4002B", "#FFD700", "#0057B7", "#000000",
@@ -779,7 +779,7 @@
         buttonHoverText: "#ffffff"
       }
     }),
-    nordic: makeTheme("nordic", "北欧冰霜 (Nordic Frost)", [
+    nordic: makeTheme("nordic", "北欧冰霜", [
       "#eceff1", "#cfd8dc", "#b0bec5", "#90a4ae",
       "#78909c", "#607d8b", "#546e7a", "#455a64",
       "#37474f", "#263238", "#dbeff3", "#b2ebf2",
@@ -802,7 +802,7 @@
         buttonHoverText: "#263238"
       }
     }),
-    luxury: makeTheme("luxury", "黑金奢华 (Luxury Gold)", [
+    luxury: makeTheme("luxury", "黑金奢华", [
       "#1a1a1a", "#1a1a1a", "#262626", "#333333",
       "#d4af37", "#c5a028", "#b69121", "#a6821a",
       "#e5c15b", "#f2d378", "#ffeaa0", "#fff2c2",
@@ -825,7 +825,7 @@
         buttonHoverText: "#f2d378"
       }
     }),
-    horse_year: makeTheme("horse_year", "农历马年 (Year of Horse)", [
+    horse_year: makeTheme("horse_year", "农历马年", [
       "#fffaf4", "#ffe0b2", "#ffcc80", "#ffa726",
       "#ff9800", "#f44336", "#d32f2f", "#b71c1c",
       "#880e4f", "#5e0d16", "#ffd700", "#ffca28",
@@ -1059,7 +1059,7 @@
     if (theme.glass) {
       css += "@keyframes float { 0% { transform: translate(0, 0) rotate(0deg); } 33% { transform: translate(30px, -50px) rotate(10deg); } 66% { transform: translate(-20px, 20px) rotate(-5deg); } 100% { transform: translate(0, 0) rotate(0deg); } }\n";
       
-      css += "html, body { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%) !important; overflow-x: hidden; }\n";
+      css += "html { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%) !important; } body { background: transparent !important; overflow-x: hidden; }\n";
       // Add floating blobs via pseudo-elements on body
       css += "body:before { content: ''; position: fixed; top: -10%; left: -10%; width: 50vw; height: 50vw; background: linear-gradient(180deg, #ffc0cb 0%, #ff69b4 100%); border-radius: 50%; filter: blur(80px); opacity: 0.4; animation: float 15s ease-in-out infinite; z-index: -1; }\n";
       css += "body:after { content: ''; position: fixed; bottom: -10%; right: -10%; width: 60vw; height: 60vw; background: linear-gradient(180deg, #87cefa 0%, #00bfff 100%); border-radius: 50%; filter: blur(90px); opacity: 0.4; animation: float 20s ease-in-out infinite reverse; z-index: -1; }\n";
@@ -1089,7 +1089,7 @@
        css += "@keyframes twinkling { 0% { opacity: 0; transform: scale(0.5); } 50% { opacity: 1; transform: scale(1.2); } 100% { opacity: 0; transform: scale(0.5); } }\n";
        css += "@keyframes warp { 0% { transform: scale(1); opacity: 0; } 50% { opacity: 0.5; } 100% { transform: scale(3); opacity: 0; } }\n";
        
-       css += "html, body { background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%) !important; overflow: hidden; }\n";
+       css += "html { background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%) !important; } body { background: transparent !important; overflow: hidden; }\n";
        // Stars
        css += "body:before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: transparent; box-shadow: 124px 235px #FFF, 532px 123px #FFF, 843px 432px #FFF, 234px 843px #FFF, 123px 432px #FFF, 654px 123px #FFF, 893px 645px #FFF; animation: twinkling 10s linear infinite; z-index: -2; opacity: 0.5; }\n";
        css += "body:after { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: transparent; box-shadow: 345px 654px #FFF, 123px 512px #263238, 765px 234px #FFF, 342px 765px #FFF; animation: twinkling 7s linear infinite reverse; z-index: -2; opacity: 0.3; transform: scale(0.8); }\n";
@@ -1117,7 +1117,7 @@
     if (theme.sakura) {
        css += "@keyframes fall { 0% { opacity: 1; top: -10%; transform: translateX(20px) rotate(0deg); } 20% { opacity: 0.8; transform: translateX(-20px) rotate(45deg); } 40% { transform: translateX(-20px) rotate(90deg); } 60% { transform: translateX(20px) rotate(180deg); } 100% { opacity: 0; top: 110%; transform: translateX(-20px) rotate(225deg); } }\n";
        
-       css += "html, body { background: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%) !important; position: relative; overflow-x: hidden; }\n";
+       css += "html { background: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%) !important; } body { background: transparent !important; position: relative; overflow-x: hidden; }\n";
        // Petals
        css += "body:before { content: ''; position: fixed; top: -10%; left: 20%; width: 15px; height: 15px; background: #ffcdd2; border-radius: 15px 0 15px 0; animation: fall 10s linear infinite; z-index: -1; }\n";
        css += "body:after { content: ''; position: fixed; top: -10%; left: 80%; width: 10px; height: 10px; background: #ef9a9a; border-radius: 10px 0 10px 0; animation: fall 7s linear infinite 2s; z-index: -1; }\n";
@@ -1147,7 +1147,7 @@
        css += "@keyframes pulse-warning { 0% { box-shadow: 0 0 0 rgba(255, 152, 0, 0); } 50% { box-shadow: 0 0 10px rgba(255, 152, 0, 0.8); } 100% { box-shadow: 0 0 0 rgba(255, 152, 0, 0); } }\n";
        css += "@keyframes slide-panel { 0% { background-position: 0 0; } 100% { background-position: 50px 50px; } }\n";
        
-       css += "html, body { background: #263238 !important; color: #cfd8dc !important; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important; }\n";
+       css += "html { background: #263238 !important; } body { background: transparent !important; color: #cfd8dc !important; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important; overflow-x: hidden !important; }\n";
        // Industrial background pattern
        css += "body:before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(45deg, #263238, #263238 10px, #37474f 10px, #37474f 20px); opacity: 0.3; z-index: -1; animation: slide-panel 20s linear infinite; }\n";
        
@@ -1207,7 +1207,7 @@
     if (theme.clay) {
        css += "@keyframes float-clay { 0% { transform: translateY(0px) rotate(0deg); } 50% { transform: translateY(-20px) rotate(5deg); } 100% { transform: translateY(0px) rotate(0deg); } }\n";
        
-       css += "html, body { background: #ffffff !important; color: #333 !important; font-family: 'Varela Round', sans-serif !important; }\n";
+       css += "html { background: #ffffff !important; } body { background: transparent !important; color: #333 !important; font-family: 'Varela Round', sans-serif !important; overflow-x: hidden !important; }\n";
        // Background blobs
        css += "body:before { content: ''; position: fixed; top: 10%; left: -10%; width: 50vw; height: 50vw; background: #b388ff; border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; opacity: 0.2; animation: float-clay 8s ease-in-out infinite; z-index: -1; }\n";
        css += "body:after { content: ''; position: fixed; bottom: 10%; right: -10%; width: 60vw; height: 60vw; background: #ff80ab; border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; opacity: 0.2; animation: float-clay 10s ease-in-out infinite reverse; z-index: -1; }\n";
@@ -1215,7 +1215,7 @@
        css += ".game-container { background: rgba(255, 255, 255, 0.4) !important; backdrop-filter: blur(20px); border-radius: 30px !important; box-shadow: 0 20px 40px rgba(0,0,0,0.1) !important; border: 2px solid #fff; }\n";
        css += ".grid-cell { background: rgba(255, 255, 255, 0.5) !important; border-radius: 20px !important; box-shadow: inset 4px 4px 8px rgba(0,0,0,0.05) !important; }\n";
        
-       css += ".tile .tile-inner, .theme-preview-tile { border-radius: 20px !important; box-shadow: inset -6px -6px 10px rgba(0,0,0,0.1), inset 6px 6px 10px rgba(255,255,255,0.5), 8px 8px 16px rgba(0,0,0,0.1) !important; color: #fff !important; font-weight: 800 !important; transform: perspective(500px) !important; }\n";
+       css += ".tile .tile-inner, .theme-preview-tile { border-radius: 20px !important; box-shadow: inset -6px -6px 10px rgba(0,0,0,0.1), inset 6px 6px 10px rgba(255,255,255,0.5), 8px 8px 16px rgba(0,0,0,0.1) !important; color: #fff !important; font-weight: 800 !important; }\n";
        
        css += ".tile-2 .tile-inner, .theme-preview-tile.theme-color-2 { background: #ff8a80 !important; }\n";
        css += ".tile-4 .tile-inner, .theme-preview-tile.theme-color-4 { background: #ff80ab !important; }\n";
@@ -1240,7 +1240,7 @@
     if (theme.bauhaus) {
        css += "@keyframes geo-move { 0% { background-position: 0 0; } 100% { background-position: 100px 100px; } }\n";
        
-       css += "html, body { background: #f0f0f0 !important; color: #1a1a1a !important; font-family: 'Helvetica Neue', Arial, sans-serif !important; }\n";
+       css += "html { background: #f0f0f0 !important; } body { background: transparent !important; color: #1a1a1a !important; font-family: 'Helvetica Neue', Arial, sans-serif !important; overflow-x: hidden !important; }\n";
        // Geometric background
        css += "body:before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #E4002B 20%, transparent 20%), radial-gradient(circle, #FFD700 20%, transparent 20%), radial-gradient(circle, #0057B7 20%, transparent 20%); background-position: 0 0, 50px 50px, 100px 0; background-size: 100px 100px; opacity: 0.1; animation: geo-move 30s linear infinite; z-index: -1; }\n";
        
@@ -1274,7 +1274,7 @@
     if (theme.nordic) {
        css += "@keyframes snow { 0% { transform: translateY(-10vh) translateX(0); opacity: 1; } 100% { transform: translateY(110vh) translateX(20px); opacity: 0; } }\n";
        
-       css += "html, body { background: #f5f7fa !important; color: #37474f !important; font-family: 'Raleway', sans-serif !important; }\n";
+       css += "html { background: #f5f7fa !important; } body { background: transparent !important; color: #37474f !important; font-family: 'Raleway', sans-serif !important; overflow-x: hidden !important; }\n";
        // Snowflakes
        css += "body:before { content: '❄'; position: fixed; top: -5%; left: 10%; color: #b2ebf2; font-size: 20px; animation: snow 10s linear infinite; opacity: 0.6; z-index: -1; text-shadow: 0 0 5px rgba(255,255,255,0.8); }\n";
        css += "body:after { content: '❄'; position: fixed; top: -10%; left: 80%; color: #80deea; font-size: 15px; animation: snow 15s linear infinite 5s; opacity: 0.4; z-index: -1; text-shadow: 0 0 5px rgba(255,255,255,0.8); }\n";
@@ -1309,7 +1309,7 @@
        css += "@keyframes shine { 0% { background-position: -100px; } 20% { background-position: 200px; } 100% { background-position: 200px; } }\n";
        css += "@keyframes sparkle { 0%, 100% { opacity: 0.8; transform: scale(1); } 50% { opacity: 1; transform: scale(1.1); box-shadow: 0 0 10px #f2d378; } }\n";
        
-       css += "html, body { background: #0c0c0c !important; color: #d4af37 !important; font-family: 'Playfair Display', serif !important; }\n";
+       css += "html { background: #0c0c0c !important; } body { background: transparent !important; color: #d4af37 !important; font-family: 'Playfair Display', serif !important; overflow-x: hidden !important; }\n";
        // Elegant texture
        css += "body:before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000000 100%); opacity: 1; z-index: -2; }\n";
        css += "body:after { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjMDAwIj48L3JlY3Q+CjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiMzMzMiPjwvcmVjdD4KPC9zdmc+'); opacity: 0.1; z-index: -1; }\n";
@@ -1341,7 +1341,7 @@
     if (theme.ocean) {
        css += "@keyframes wave { 0% { transform: translateX(0) translateZ(0) scaleY(1); } 50% { transform: translateX(-25%) translateZ(0) scaleY(0.55); } 100% { transform: translateX(-50%) translateZ(0) scaleY(1); } }\n";
        
-       css += "html, body { background: linear-gradient(to bottom, #72cce8 0%, #4facfe 100%) !important; color: #0b1d34 !important; }\n";
+       css += "html { background: linear-gradient(to bottom, #72cce8 0%, #4facfe 100%) !important; } body { background: transparent !important; color: #0b1d34 !important; overflow-x: hidden !important; }\n";
        // Wave background
        css += "body:before { content: ''; position: fixed; bottom: 0; left: 0; width: 200%; height: 30%; background-color: rgba(255,255,255,0.4); border-radius: 45%; animation: wave 10s linear infinite; z-index: -1; }\n";
        css += "body:after { content: ''; position: fixed; bottom: 0; left: 0; width: 200%; height: 35%; background-color: rgba(255,255,255,0.2); border-radius: 43%; animation: wave 15s linear infinite; z-index: -2; }\n";
@@ -1360,7 +1360,7 @@
        css += ".top-action-btn { background: rgba(255,255,255,0.4) !important; border-radius: 15px !important; color: #0f2642 !important; }\n";
     }
     if (theme.vaporwave) {
-       css += "html, body { background: #2c2137 !important; color: #01cdfe !important; font-family: 'Verdana', sans-serif !important; letter-spacing: 1px; }\n";
+       css += "html { background: #2c2137 !important; } body { background: transparent !important; color: #01cdfe !important; font-family: 'Verdana', sans-serif !important; letter-spacing: 1px; overflow-x: hidden !important; }\n";
        css += "body:before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, #2c2137 0%, #1a1a2e 100%); z-index: -2; }\n";
        css += "body:after { content: ''; position: fixed; bottom: 0; left: 0; width: 100%; height: 30%; background: repeating-linear-gradient(0deg, transparent, transparent 1px, #b967ff 2px, #b967ff 4px); opacity: 0.2; transform: perspective(500px) rotateX(60deg); z-index: -1; }\n";
        
@@ -1429,7 +1429,7 @@
        css += ".top-action-btn { background: #282a36 !important; color: #8be9fd !important; border: 1px solid #6272a4 !important; }\n";
     }
     if (theme.sunset) {
-       css += "html, body { background: linear-gradient(to bottom, #4a148c, #bf360c) !important; color: #ffe0b2 !important; min-height: 100vh; }\n";
+       css += "html { background: linear-gradient(to bottom, #4a148c, #bf360c) !important; min-height: 100vh; } body { background: transparent !important; color: #ffe0b2 !important; overflow-x: hidden !important; }\n";
        css += ".game-container { background: rgba(0, 0, 0, 0.3) !important; border-radius: 12px !important; box-shadow: 0 0 30px rgba(255, 152, 0, 0.3) !important; border: 1px solid rgba(255, 255, 255, 0.1); }\n";
        css += ".grid-cell { background: rgba(255, 255, 255, 0.1) !important; border-radius: 8px !important; }\n";
        css += ".tile .tile-inner, .theme-preview-tile { border-radius: 8px !important; box-shadow: 0 5px 15px rgba(255, 87, 34, 0.3), 0 2px 4px rgba(0,0,0,0.2) !important; background-image: linear-gradient(180deg, rgba(255,255,255,0.1), rgba(0,0,0,0.1)) !important; }\n";
@@ -1446,7 +1446,7 @@
        css += "body:after { content: ''; position: fixed; bottom: 0; width: 100%; height: 200px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); pointer-events: none; z-index: -1; }\n";
     }
     if (theme.blueprint) {
-       css += "html, body { background: #1565c0 !important; color: #ffffff !important; font-family: 'Courier New', Courier, monospace !important; }\n";
+       css += "html { background: #1565c0 !important; } body { background: transparent !important; color: #ffffff !important; font-family: 'Courier New', Courier, monospace !important; overflow-x: hidden !important; }\n";
        css += ".game-container { background: #1976d2 !important; border: 2px dashed #90caf9; box-shadow: none !important; border-radius: 0 !important; }\n";
        css += "body:before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px); background-size: 20px 20px; background-position: -1px -1px; opacity: 0.1; z-index: -1; }\n";
        
@@ -1476,7 +1476,7 @@
        css += ".top-action-btn { background: #1976d2 !important; color: #fff !important; border: 1px dashed #fff !important; }\n";
     }
     if (theme.candy) {
-       css += "html, body { background: #ffe0e9 !important; color: #d81b60 !important; font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif !important; }\n";
+       css += "html { background: #ffe0e9 !important; } body { background: transparent !important; color: #d81b60 !important; font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif !important; overflow-x: hidden !important; }\n";
        css += "body:before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(45deg, #ffe0e9, #ffe0e9 10px, #fff 10px, #fff 20px); opacity: 0.5; z-index: -1; }\n";
        
        css += ".game-container { background: #fff !important; border-radius: 30px !important; border: 4px solid #f8bbd0; box-shadow: 0 10px 0 #f48fb1 !important; }\n";
@@ -1546,7 +1546,7 @@
        css += ".top-action-btn { background: #fff !important; color: #333 !important; border: 1px dashed #333 !important; }\n";
     }
     if (theme.coffee) {
-       css += "html, body { background: #d7ccc8 !important; color: #3e2723 !important; font-family: 'Verdana', sans-serif !important; }\n";
+       css += "html { background: #d7ccc8 !important; } body { background: transparent !important; color: #3e2723 !important; font-family: 'Verdana', sans-serif !important; overflow-x: hidden !important; }\n";
        css += "body:before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #efebe9 20%, transparent 20%); background-size: 20px 20px; opacity: 0.5; z-index: -1; }\n";
        
        css += ".game-container { background: #4e342e !important; border-radius: 12px !important; border: 4px solid #3e2723; box-shadow: 0 10px 20px rgba(62, 39, 35, 0.4) !important; }\n";
@@ -1571,20 +1571,67 @@
     css += pageCss(theme);
 
     if (theme.horse_year) {
-       // --- Assets (Base64 SVGs) ---
-       var cloudPattern = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0yMCAzMGMtNS41IDAtMTAuNS00LjUtMTAuNS0xMFMyMCAxNSAyMCAxNXQxMC41IDUuNVMzMi41IDMwIDIwIDMweiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZDRhZjM3IiBzdHJva2Utb3BhY2l0eT0iMC4xIiBzdHJva2Utd2lkdGg9IjEiLz4KPC9zdmc+";
-       
-       // Global Fonts & Background
-       css += "html, body { background: radial-gradient(circle at 50% 30%, #a71e32, #7a0c1e) !important; color: #f2d378 !important; font-family: 'KaiTi', 'STKaiti', 'Microsoft YaHei', serif !important; }\n";
-       css += "body:before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url('" + cloudPattern + "'); opacity: 0.3; z-index: -1; }\n";
+        // --- Assets: User Provided Images ---
+        // 1. Center: Calligraphy 'Ma' (Horse)
+        var bgCenter = "images/horse/马.png"; // Needs URL encoding if not handled by browser, but usually safe in quotes. 
+        // Actually, let's play it safe and encodeURI component for Chinese chars in URL()
+        // But path is relative to the CSS/HTML? No, inline style on page, so relative to index.html.
+        // index.html is in root. images/ is in root.
+        // So: "images/horse/%E9%A9%AC.png"
+        
+        // Let's use exact filenames but URL encoded for safety in CSS string
+        var bgCenterUrl = "images/horse/" + encodeURIComponent("马") + ".png";
+        var bgHeadUrl = "images/horse/" + encodeURIComponent("马头") + ".png";
+        var bgGallopUrl = "images/horse/" + encodeURIComponent("战马") + ".png";
+
+        // --- CSS Generation ---
+        // HTML: Gradient Background
+        css += "html { background: radial-gradient(circle at 50% 30%, #a71e32, #7a0c1e) !important; }\n";
+        
+        // Body: Center Ma
+        css += "body { " + 
+               "background-color: transparent !important; " +
+               "background-image: url('" + bgCenterUrl + "') !important; " +
+               "background-repeat: no-repeat !important; " +
+               "background-position: center center !important; " +
+               "background-size: 80vh 80vh !important; " + 
+               "color: #f2d378 !important; " +
+               "font-family: 'KaiTi', 'STKaiti', 'Microsoft YaHei', serif !important; " +
+               "overflow-x: hidden !important; " +
+               "}\n";
+        
+        // Body:Before -> War Horse (Bottom Left)
+        css += "body:before { " +
+               "content: ''; position: fixed; " +
+               "left: 1.4vw; bottom: 0vh; " +  // Down 10% (10->0)
+               "width: 55vh; height: 55vh; " + // Size set to 55vh
+               "background-image: url('" + bgGallopUrl + "'); " +
+               "background-repeat: no-repeat; " +
+               "background-size: contain; " +
+               "z-index: -1; " +
+               "opacity: 1; " +
+               "}\n";
+
+        // Body:After -> Horse Head (Top Right)
+        css += "body:after { " +
+               "content: ''; position: fixed; " +
+               "right: 1.5vw; top: 5vh; " + // Right -70% (5->1.5)
+               "width: 28vh; height: 28vh; " + // Size 0.7x (40->28)
+               "background-image: url('" + bgHeadUrl + "'); " +
+               "background-repeat: no-repeat; " +
+               "background-size: contain; " +
+               "transform: rotate(0deg); " + 
+               "z-index: -1; " +
+               "opacity: 1; " +
+               "}\n";
        
        // Decorate Title
        css += "h1.title { color: #f2d378 !important; text-shadow: 0 2px 4px rgba(0,0,0,0.5); font-weight: normal; letter-spacing: 4px; }\n";
        css += "p, .game-intro, .game-explanation { color: #ffcc80 !important; }\n";
 
-       // Game Container (Sandalwood / Dark Red)
-       css += ".game-container { background: #5e0d16 !important; border: 4px solid #d4af37; border-radius: 8px !important; box-shadow: 0 10px 40px rgba(0,0,0,0.6), inset 0 0 30px rgba(0,0,0,0.6) !important; }\n";
-       css += ".grid-cell { background: #3e080f !important; border: 1px solid #7a0c1e; border-radius: 4px !important; box-shadow: inset 0 0 10px rgba(0,0,0,0.5) !important; border: none !important; }\n";
+       // Game Container (Sandalwood / Dark Red) - TRANSPARENT as requested
+       css += ".game-container { background: rgba(94, 13, 22, 0.3) !important; border: 4px solid rgba(212, 175, 55, 0.6); border-radius: 8px !important; box-shadow: 0 10px 40px rgba(0,0,0,0.3) !important; }\n";
+       css += ".grid-cell { background: rgba(62, 8, 15, 0.25) !important; border: 1px solid rgba(122, 12, 30, 0.3); border-radius: 4px !important; box-shadow: none !important; border: none !important; }\n";
 
        // UI Elements
        css += ".score-container, .best-container { background: #5e0d16 !important; color: #f2d378 !important; border: 2px solid #d4af37; border-radius: 6px !important; box-shadow: 0 4px 10px rgba(0,0,0,0.4) !important; }\n";

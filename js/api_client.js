@@ -4,7 +4,8 @@
     accessToken: "auth_access_token_v1",
     refreshToken: "auth_refresh_token_v1",
     user: "auth_user_v1",
-    pendingSessions: "pending_sessions_v1"
+    pendingSessions: "pending_sessions_v1",
+    deviceId: "device_id_v1"
   };
 
   function readJson(key, fallback) {
@@ -19,6 +20,43 @@
 
   function writeJson(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  function createDeviceId() {
+    var bytes = [];
+    if (typeof window !== "undefined" && window.crypto && window.crypto.getRandomValues) {
+      var arr = new Uint8Array(16);
+      window.crypto.getRandomValues(arr);
+      for (var i = 0; i < arr.length; i++) {
+        bytes.push(arr[i]);
+      }
+    } else {
+      for (var j = 0; j < 16; j++) {
+        bytes.push(Math.floor(Math.random() * 256));
+      }
+    }
+
+    var hex = "";
+    for (var k = 0; k < bytes.length; k++) {
+      var h = bytes[k].toString(16);
+      if (h.length < 2) h = "0" + h;
+      hex += h;
+    }
+    return "dev_" + hex;
+  }
+
+  function getDeviceId() {
+    try {
+      var existing = localStorage.getItem(STORAGE.deviceId);
+      if (existing && /^[A-Za-z0-9._:-]{8,128}$/.test(existing)) {
+        return existing;
+      }
+      var created = createDeviceId();
+      localStorage.setItem(STORAGE.deviceId, created);
+      return created;
+    } catch (_err) {
+      return createDeviceId();
+    }
   }
 
   function getApiBase() {
@@ -70,7 +108,8 @@
   async function rawRequest(method, path, body, options) {
     options = options || {};
     var headers = {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      "X-Device-Id": getDeviceId()
     };
 
     var token = getAccessToken();

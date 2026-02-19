@@ -68,6 +68,7 @@ window.exportReplay = function() {
    }
 };
 
+
 function copyToClipboard(text) {
     if (navigator.clipboard) {
         navigator.clipboard.writeText(text).then(function() {
@@ -244,7 +245,7 @@ function initThemeSettingsUI() {
       var currentThemeId = window.ThemeManager.getCurrentTheme();
       
       // Update Trigger Text
-      var label = "Select Theme";
+      var label = "选择主题";
       for (var i = 0; i < themes.length; i++) {
           if (themes[i].id === currentThemeId) {
               label = themes[i].label;
@@ -397,6 +398,7 @@ document.addEventListener('DOMContentLoaded', function() {
             window.exportReplay();
         });
     }
+
 
     // Settings Button (Top Bar)
     var settingsBtn = document.getElementById("top-settings-btn");
