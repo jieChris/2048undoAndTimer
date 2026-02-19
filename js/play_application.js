@@ -1,7 +1,12 @@
 (function () {
   function parseModeKey() {
     var params = new URLSearchParams(window.location.search);
-    return params.get("mode_key") || "standard_4x4_pow2_no_undo";
+    var raw = params.get("mode_key");
+    var key = raw && raw.trim() ? raw.trim() : "standard_4x4_pow2_no_undo";
+    if (key.toLowerCase() === "challenge") {
+      return "capped_4x4_pow2_64_no_undo";
+    }
+    return key;
   }
 
   function parseChallengeId() {
@@ -26,19 +31,28 @@
     var title = document.getElementById("play-mode-title");
     var intro = document.getElementById("play-mode-intro");
     var body = document.body;
+    var isChallengeMode = modeConfig && modeConfig.key === "capped_4x4_pow2_64_no_undo";
 
     if (body) {
       body.setAttribute("data-mode-id", modeConfig.key);
       body.setAttribute("data-ruleset", modeConfig.ruleset);
     }
 
-    if (title) title.textContent = modeConfig.label;
+    if (title) {
+      title.textContent = isChallengeMode ? "新春快乐，马年大吉！" : modeConfig.label;
+      title.style.display = "";
+    }
     if (intro) {
-      var modeText = compactModeLabel(modeConfig);
-      var boardText = modeConfig.board_width + "x" + modeConfig.board_height;
-      var rulesText = (modeConfig.ruleset === "fibonacci" ? "Fib" : "2幂");
-      intro.textContent =
-        modeText + "｜" + boardText + "｜" + rulesText;
+      if (isChallengeMode) {
+        intro.textContent = "挑战模式自有惊喜";
+      } else {
+        var modeText = compactModeLabel(modeConfig);
+        var boardText = modeConfig.board_width + "x" + modeConfig.board_height;
+        var rulesText = (modeConfig.ruleset === "fibonacci" ? "Fib" : "2幂");
+        intro.textContent =
+          modeText + "｜" + boardText + "｜" + rulesText;
+      }
+      intro.style.display = "";
     }
   }
 

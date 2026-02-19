@@ -637,6 +637,7 @@ GameManager.prototype.updateTimerLegendLabels = function () {
 
 GameManager.prototype.recordTimerMilestone = function (value, timeStr) {
   if (!Number.isInteger(value) || value <= 0) return;
+  this.unlockProgressiveCapped64Row(value);
   var slotId = this.timerMilestoneSlotByValue ? this.timerMilestoneSlotByValue[String(value)] : null;
   if (!slotId) return;
   var el = document.getElementById("timer" + slotId);
@@ -652,6 +653,10 @@ GameManager.prototype.isCappedMode = function () {
 
 GameManager.prototype.getCappedTargetValue = function () {
   return this.isCappedMode() ? Number(this.maxTile) : null;
+};
+
+GameManager.prototype.isProgressiveCapped64Mode = function () {
+  return this.isCappedMode() && this.getCappedTargetValue() === 64;
 };
 
 GameManager.prototype.getTimerRowEl = function (value) {
@@ -675,6 +680,29 @@ GameManager.prototype.setTimerRowVisibleState = function (value, visible, keepSp
   }
 };
 
+GameManager.prototype.setCapped64RowVisible = function (value, visible) {
+  this.setTimerRowVisibleState(value, visible, true);
+};
+
+GameManager.prototype.resetProgressiveCapped64Rows = function () {
+  this.capped64Unlocked = { "16": false, "32": false, "64": false };
+  var values = [16, 32, 64];
+  for (var i = 0; i < values.length; i++) {
+    this.setCapped64RowVisible(values[i], false);
+  }
+};
+
+GameManager.prototype.unlockProgressiveCapped64Row = function (value) {
+  if (!this.isProgressiveCapped64Mode()) return;
+  if (value !== 16 && value !== 32 && value !== 64) return;
+  if (!this.capped64Unlocked) {
+    this.capped64Unlocked = { "16": false, "32": false, "64": false };
+  }
+  if (this.capped64Unlocked[String(value)]) return;
+  this.capped64Unlocked[String(value)] = true;
+  this.setCapped64RowVisible(value, true);
+};
+
 GameManager.prototype.repositionCappedTimerContainer = function () {
   var container = document.getElementById("capped-timer-container");
   if (!container) return;
@@ -694,6 +722,13 @@ GameManager.prototype.applyCappedRowVisibility = function () {
     for (i = 0; i < GameManager.TIMER_SLOT_IDS.length; i++) {
       this.setTimerRowVisibleState(GameManager.TIMER_SLOT_IDS[i], true, false);
     }
+    return;
+  }
+  if (this.isProgressiveCapped64Mode()) {
+    for (i = 0; i < GameManager.TIMER_SLOT_IDS.length; i++) {
+      this.setTimerRowVisibleState(GameManager.TIMER_SLOT_IDS[i], false, true);
+    }
+    this.resetProgressiveCapped64Rows();
     return;
   }
   var cap = this.getCappedTargetValue();
@@ -725,32 +760,66 @@ GameManager.prototype.getCappedTimerFontSize = function () {
   return "22px";
 };
 
+GameManager.prototype.getCappedPlaceholderRowValues = function () {
+  if (!this.isCappedMode()) return [];
+  var cap = this.getCappedTargetValue();
+  var values = [];
+  for (var i = 0; i < GameManager.TIMER_SLOT_IDS.length; i++) {
+    var value = GameManager.TIMER_SLOT_IDS[i];
+    if (value > cap) values.push(value);
+  }
+  return values;
+};
+
+GameManager.prototype.fillNextCappedPlaceholderRow = function (labelText, timeStr) {
+  if (!this.isCappedMode()) return false;
+  var values = this.getCappedPlaceholderRowValues();
+  for (var i = 0; i < values.length; i++) {
+    var slotId = String(values[i]);
+    var row = this.getTimerRowEl(slotId);
+    var timerEl = document.getElementById("timer" + slotId);
+    if (!row || !timerEl) continue;
+    if (row.style.visibility !== "hidden") continue;
+
+    var legends = row.querySelectorAll(".timer-legend-" + slotId);
+    var j;
+    for (j = 0; j < legends.length; j++) {
+      legends[j].textContent = labelText;
+    }
+
+    timerEl.textContent = timeStr;
+    this.setTimerRowVisibleState(slotId, true, true);
+    return true;
+  }
+  return false;
+};
+
 GameManager.prototype.recordCappedMilestone = function (timeStr) {
   if (!this.isCappedMode()) return;
 
   this.cappedMilestoneCount += 1;
   var capLabel = String(this.getCappedTargetValue());
   var baseTimerEl = document.getElementById("timer" + capLabel);
-  var pendingVal = document.getElementById("capped-timer-pending");
   var container = document.getElementById("capped-timer-container");
 
   if (this.cappedMilestoneCount === 1) {
     if (baseTimerEl && baseTimerEl.textContent === "") {
       baseTimerEl.textContent = timeStr;
     }
-  } else if (pendingVal) {
-    pendingVal.textContent = timeStr;
-    pendingVal.removeAttribute("id");
+    return;
   }
-
-  if (!container) return;
 
   var circled = [
     "\u2460","\u2461","\u2462","\u2463","\u2464","\u2465","\u2466","\u2467","\u2468","\u2469",
     "\u246a","\u246b","\u246c","\u246d","\u246e","\u246f","\u2470","\u2471","\u2472","\u2473"
   ];
-  var nextIdx = this.cappedMilestoneCount + 1;
-  var nextLabel = capLabel + (circled[nextIdx - 2] || ("(" + nextIdx + ")"));
+  var extraIndex = this.cappedMilestoneCount - 1;
+  var nextLabel = capLabel + (circled[extraIndex - 1] || ("(" + extraIndex + ")"));
+
+  // Prefer replacing reserved hidden rows so the timer module height stays stable.
+  if (this.fillNextCappedPlaceholderRow(nextLabel, timeStr)) return;
+
+  if (!container) return;
 
   var rowDiv = document.createElement("div");
   rowDiv.className = "timer-row-item";
@@ -762,7 +831,6 @@ GameManager.prototype.recordCappedMilestone = function (timeStr) {
 
   var val = document.createElement("div");
   val.className = "timertile";
-  val.id = "capped-timer-pending";
   val.style.cssText = "margin-left:6px; width:187px;";
   val.textContent = "";
 
@@ -770,6 +838,7 @@ GameManager.prototype.recordCappedMilestone = function (timeStr) {
   rowDiv.appendChild(val);
   rowDiv.appendChild(document.createElement("br"));
   rowDiv.appendChild(document.createElement("br"));
+  val.textContent = timeStr;
   container.appendChild(rowDiv);
 
   if (typeof window.cappedTimerAutoScroll === "function") {

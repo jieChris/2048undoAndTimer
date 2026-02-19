@@ -1603,8 +1603,8 @@
         // Body:Before -> War Horse (Bottom Left)
         css += "body:before { " +
                "content: ''; position: fixed; " +
-               "left: 1.4vw; bottom: 0vh; " +  // Down 10% (10->0)
-               "width: 55vh; height: 55vh; " + // Size set to 55vh
+               "left: 1.4vw; bottom: 0vh; " +
+               "width: 55vh; height: 55vh; " +
                "background-image: url('" + bgGallopUrl + "'); " +
                "background-repeat: no-repeat; " +
                "background-size: contain; " +
@@ -1615,12 +1615,12 @@
         // Body:After -> Horse Head (Top Right)
         css += "body:after { " +
                "content: ''; position: fixed; " +
-               "right: 1.5vw; top: 5vh; " + // Right -70% (5->1.5)
-               "width: 28vh; height: 28vh; " + // Size 0.7x (40->28)
+               "right: 1.5vw; top: 5vh; " +
+               "width: 28vh; height: 28vh; " +
                "background-image: url('" + bgHeadUrl + "'); " +
                "background-repeat: no-repeat; " +
                "background-size: contain; " +
-               "transform: rotate(0deg); " + 
+               "transform: rotate(0deg); " +
                "z-index: -1; " +
                "opacity: 1; " +
                "}\n";
@@ -1631,6 +1631,8 @@
 
        // Game Container (Sandalwood / Dark Red) - TRANSPARENT as requested
        css += ".game-container { background: rgba(94, 13, 22, 0.3) !important; border: 4px solid rgba(212, 175, 55, 0.6); border-radius: 8px !important; box-shadow: 0 10px 40px rgba(0,0,0,0.3) !important; }\n";
+       css += ".game-container .game-message { background: rgba(66, 8, 14, 0.78) !important; }\n";
+       css += ".game-container .game-message p { color: #fffdf2 !important; text-shadow: 0 0 6px rgba(255, 231, 138, 0.95), 0 0 14px rgba(255, 205, 64, 0.8), 0 2px 2px rgba(120, 24, 24, 0.28); -webkit-text-stroke: 0; }\n";
        css += ".grid-cell { background: rgba(62, 8, 15, 0.25) !important; border: 1px solid rgba(122, 12, 30, 0.3); border-radius: 4px !important; box-shadow: none !important; border: none !important; }\n";
 
        // UI Elements
