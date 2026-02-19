@@ -825,7 +825,7 @@
         buttonHoverText: "#f2d378"
       }
     }),
-    horse_year: makeTheme("horse_year", "农历马年", [
+    horse_year: makeTheme("horse_year", "马年大吉", [
       "#F9F7F4", "#FFF59D", "#FFCC80", "#FFA726",
       "#FF7043", "#EF5350", "#E53935", "#C62828",
       "#8E24AA", "#6A1B9A", "#FDD835", "#4E342E",

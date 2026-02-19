@@ -9,6 +9,12 @@
     return key;
   }
 
+  function isChallengeAliasRequest() {
+    var params = new URLSearchParams(window.location.search);
+    var raw = params.get("mode_key");
+    return !!(raw && raw.trim() && raw.trim().toLowerCase() === "challenge");
+  }
+
   function parseChallengeId() {
     var params = new URLSearchParams(window.location.search);
     var v = params.get("challenge_id");
@@ -58,6 +64,7 @@
 
   window.requestAnimationFrame(function () {
     var modeKey = parseModeKey();
+    var fromChallengeAlias = isChallengeAliasRequest();
     var challengeId = parseChallengeId();
     var modeConfig = (window.ModeCatalog && window.ModeCatalog.getMode(modeKey)) ||
       (window.ModeCatalog && window.ModeCatalog.getMode("standard_4x4_pow2_no_undo"));
@@ -66,6 +73,10 @@
       alert("无效模式，已回退到标准模式");
       window.location.href = "play.html?mode_key=standard_4x4_pow2_no_undo";
       return;
+    }
+
+    if (fromChallengeAlias && window.ThemeManager && typeof window.ThemeManager.applyTheme === "function") {
+      window.ThemeManager.applyTheme("horse_year");
     }
 
     window.GAME_MODE_CONFIG = modeConfig;
