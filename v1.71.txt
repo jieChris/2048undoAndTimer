@@ -68,3 +68,32 @@ v1.7 更新日志（相对 v1.61 的汇总）
 备注：
 - 本文档为“自 v1.61 之后到 v1.7 的汇总版”，采用主题分组，不按每个小补丁逐条拆分。
 - 若需要，我可以再生成一份“按时间顺序（日誌式）”的细粒度 changelog。
+
+==============================
+v1.71 增量更新（最近修改）
+==============================
+
+一、后端新增导出 API（用户全量对局导出）
+1. 新增接口：`GET /api/v1/users/:username/export`
+2. 支持参数：
+   - `format=json|ndjson`
+   - `status=all|verified|pending|rejected`
+   - `mode_key`（推荐）
+   - `mode`（兼容旧字段）
+   - `include_replay=true|false`
+3. 导出内容包含：模式信息、分数、终盘棋盘、回放版本、回放数据（可选）、校验状态、结束时间等。
+4. 接口增加下载头（`Content-Disposition`），浏览器可直接下载导出文件。
+5. 增加导出接口限流配置，降低恶意高频导出风险。
+
+二、导出能力兼容性增强
+1. 在导出过滤条件中补充旧字段 `mode` 兼容逻辑，便于历史数据迁移期使用。
+2. 在返回元信息与 filters 中同时写入 `mode_key` 与 `mode`，便于排查和离线处理。
+
+三、文档补充
+1. 新增文档：`backend/EXPORT_API.md`
+2. 文档包含：
+   - 接口地址与查询参数
+   - JSON / NDJSON 返回结构
+   - curl 调用示例
+   - 常见错误说明（如 `user_not_found`、`invalid_status`）
+3. 在 `backend/README.md` 中补充导出 API 条目并加入文档入口链接。
