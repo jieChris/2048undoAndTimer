@@ -1013,6 +1013,8 @@
       css += ".score-container:after, .best-container:after { color: #eee4da !important; opacity: 0.7; }\n";
       css += ".restart-button { background: #8f7a66 !important; color: #f9f6f2 !important; border-radius: 3px !important; box-shadow: none !important; font-weight: bold; }\n";
       css += "a { color: #8f7a66 !important; font-weight: bold; text-shadow: none !important; }\n";
+      css += ".mode-hub-btn { color: #f9f6f2 !important; }\n";
+      css += ".mode-hub-btn:hover { color: #f9f6f2 !important; }\n";
       css += ".top-action-btn { background: #8f7a66 !important; color: #f9f6f2 !important; border-radius: 3px !important; box-shadow: none !important; }\n";
     }
     if (theme.neon) {
