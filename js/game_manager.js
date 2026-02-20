@@ -184,7 +184,7 @@ GameManager.FALLBACK_MODE_CONFIGS = {
     ruleset: "fibonacci",
     undo_enabled: true,
     max_tile: null,
-    spawn_table: [{ value: 1, weight: 75 }, { value: 2, weight: 25 }],
+    spawn_table: [{ value: 1, weight: 90 }, { value: 2, weight: 10 }],
     ranked_bucket: "none"
   },
   fib_4x4_no_undo: {
@@ -195,7 +195,7 @@ GameManager.FALLBACK_MODE_CONFIGS = {
     ruleset: "fibonacci",
     undo_enabled: false,
     max_tile: null,
-    spawn_table: [{ value: 1, weight: 75 }, { value: 2, weight: 25 }],
+    spawn_table: [{ value: 1, weight: 90 }, { value: 2, weight: 10 }],
     ranked_bucket: "none"
   },
   fib_3x3_undo: {
@@ -206,7 +206,7 @@ GameManager.FALLBACK_MODE_CONFIGS = {
     ruleset: "fibonacci",
     undo_enabled: true,
     max_tile: null,
-    spawn_table: [{ value: 1, weight: 75 }, { value: 2, weight: 25 }],
+    spawn_table: [{ value: 1, weight: 90 }, { value: 2, weight: 10 }],
     ranked_bucket: "none"
   },
   fib_3x3_no_undo: {
@@ -217,7 +217,7 @@ GameManager.FALLBACK_MODE_CONFIGS = {
     ruleset: "fibonacci",
     undo_enabled: false,
     max_tile: null,
-    spawn_table: [{ value: 1, weight: 75 }, { value: 2, weight: 25 }],
+    spawn_table: [{ value: 1, weight: 90 }, { value: 2, weight: 10 }],
     ranked_bucket: "none"
   }
 };
@@ -398,7 +398,7 @@ GameManager.prototype.normalizeSpawnTable = function (spawnTable, ruleset) {
     if (out.length > 0) return out;
   }
   if (ruleset === "fibonacci") {
-    return [{ value: 1, weight: 75 }, { value: 2, weight: 25 }];
+    return [{ value: 1, weight: 90 }, { value: 2, weight: 10 }];
   }
   return [{ value: 2, weight: 90 }, { value: 4, weight: 10 }];
 };

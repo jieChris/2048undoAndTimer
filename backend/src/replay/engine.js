@@ -62,7 +62,7 @@ export class ReplayEngine {
     this.spawnTable = Array.isArray(spawnTable) && spawnTable.length
       ? spawnTable.map((item) => ({ value: Number(item.value), weight: Number(item.weight) }))
       : this.ruleset === "fibonacci"
-        ? [{ value: 1, weight: 75 }, { value: 2, weight: 25 }]
+        ? [{ value: 1, weight: 90 }, { value: 2, weight: 10 }]
         : [{ value: 2, weight: 90 }, { value: 4, weight: 10 }];
     this.maxTile = Number.isInteger(maxTile) && maxTile > 0 ? maxTile : Number.POSITIVE_INFINITY;
     this.undoEnabled = typeof undoEnabled === "boolean" ? undoEnabled : true;

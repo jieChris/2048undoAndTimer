@@ -16,7 +16,7 @@
       undo_enabled: !!options.undo_enabled,
       max_tile: Number.isInteger(options.max_tile) && options.max_tile > 0 ? options.max_tile : null,
       spawn_table: clone(options.spawn_table || (ruleset === "fibonacci"
-        ? [{ value: 1, weight: 75 }, { value: 2, weight: 25 }]
+        ? [{ value: 1, weight: 90 }, { value: 2, weight: 10 }]
         : [{ value: 2, weight: 90 }, { value: 4, weight: 10 }])),
       ranked_bucket: options.ranked_bucket || "none",
       mode_family: options.mode_family || (ruleset === "fibonacci" ? "fibonacci" : "pow2"),
@@ -143,7 +143,7 @@
     board_width: 4,
     board_height: 4,
     ruleset: "fibonacci",
-    spawn_table: [{ value: 1, weight: 75 }, { value: 2, weight: 25 }],
+    spawn_table: [{ value: 1, weight: 90 }, { value: 2, weight: 10 }],
     mode_family: "fibonacci",
     rank_policy: "unranked"
   });
@@ -154,7 +154,7 @@
     board_width: 3,
     board_height: 3,
     ruleset: "fibonacci",
-    spawn_table: [{ value: 1, weight: 75 }, { value: 2, weight: 25 }],
+    spawn_table: [{ value: 1, weight: 90 }, { value: 2, weight: 10 }],
     mode_family: "fibonacci",
     rank_policy: "unranked"
   });
@@ -180,7 +180,7 @@
     board_width: 4,
     board_height: 3,
     ruleset: "fibonacci",
-    spawn_table: [{ value: 1, weight: 75 }, { value: 2, weight: 25 }],
+    spawn_table: [{ value: 1, weight: 90 }, { value: 2, weight: 10 }],
     mode_family: "fibonacci",
     rank_policy: "unranked"
   });
@@ -191,7 +191,7 @@
     board_width: 4,
     board_height: 2,
     ruleset: "fibonacci",
-    spawn_table: [{ value: 1, weight: 75 }, { value: 2, weight: 25 }],
+    spawn_table: [{ value: 1, weight: 90 }, { value: 2, weight: 10 }],
     mode_family: "fibonacci",
     rank_policy: "unranked"
   });
