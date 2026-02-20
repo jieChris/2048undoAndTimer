@@ -1261,6 +1261,7 @@
        css += ".tile-128 .tile-inner, .theme-preview-tile.theme-color-128 { background: #FFD700 !important; color: #1a1a1a !important; border-radius: 50% 0 50% 0 !important; }\n";
        css += ".tile-256 .tile-inner, .theme-preview-tile.theme-color-256 { background: #0057B7 !important; transform: rotate(5deg); }\n";
        css += ".tile-512 .tile-inner, .theme-preview-tile.theme-color-512 { background: #1a1a1a !important; border-radius: 50% !important; border: 4px dashed #fff !important; }\n";
+       css += ".tile-8192 .tile-inner, .theme-preview-tile.theme-color-8192 { background: #ffffff !important; color: #1a1a1a !important; border: 4px solid #1a1a1a !important; box-shadow: inset 0 0 0 2px #1a1a1a, 4px 4px 0 #1a1a1a !important; }\n";
        
        css += "@keyframes bauhaus-pop { 0% { transform: scale(0.8); opacity: 0.6; } 100% { transform: scale(1); opacity: 1; } }\n";
        css += ".tile-merged .tile-inner { animation: bauhaus-pop 0.3s cubic-bezier(0.25, 1, 0.5, 1) !important; transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1) !important; }\n";
@@ -1683,7 +1684,168 @@
     return style;
   }
 
+  function ensureTimerLegendProbe() {
+    if (typeof document === "undefined") return null;
+    var probe = document.getElementById("theme-timer-style-probe");
+    if (!probe) {
+      probe = document.createElement("div");
+      probe.id = "theme-timer-style-probe";
+      probe.style.cssText = "position:fixed;left:-9999px;top:-9999px;width:0;height:0;overflow:hidden;visibility:hidden;pointer-events:none;z-index:-1;";
+      var tile = document.createElement("div");
+      tile.className = "tile tile-2";
+      var inner = document.createElement("div");
+      inner.className = "tile-inner";
+      inner.textContent = "2";
+      tile.appendChild(inner);
+      probe.appendChild(tile);
+      (document.querySelector(".game-container") || document.body).appendChild(probe);
+    }
+    return probe;
+  }
+
+  function getComputedTileVisual(value) {
+    if (typeof window === "undefined" || typeof window.getComputedStyle !== "function") return null;
+    var probe = ensureTimerLegendProbe();
+    if (!probe || !probe.firstChild || !probe.firstChild.firstChild) return null;
+    var tile = probe.firstChild;
+    var inner = tile.firstChild;
+    tile.className = "tile tile-" + String(value);
+    inner.textContent = String(value);
+    var st = window.getComputedStyle(inner);
+    return {
+      background: st.background,
+      backgroundColor: st.backgroundColor,
+      backgroundImage: st.backgroundImage,
+      backgroundSize: st.backgroundSize,
+      backgroundPosition: st.backgroundPosition,
+      backgroundRepeat: st.backgroundRepeat,
+      color: st.color,
+      boxShadow: st.boxShadow,
+      border: st.border,
+      borderRadius: st.borderRadius,
+      clipPath: st.clipPath,
+      textShadow: st.textShadow,
+      fontFamily: st.fontFamily,
+      fontWeight: st.fontWeight
+    };
+  }
+
+  function parseCssColor(input) {
+    if (!input || typeof input !== "string") return null;
+    var s = input.trim().toLowerCase();
+    var m;
+    if (s.indexOf("rgb(") === 0 || s.indexOf("rgba(") === 0) {
+      m = s.match(/rgba?\(([^)]+)\)/);
+      if (!m) return null;
+      var parts = m[1].split(",").map(function (x) { return x.trim(); });
+      if (parts.length < 3) return null;
+      return {
+        r: Math.max(0, Math.min(255, parseFloat(parts[0]) || 0)),
+        g: Math.max(0, Math.min(255, parseFloat(parts[1]) || 0)),
+        b: Math.max(0, Math.min(255, parseFloat(parts[2]) || 0))
+      };
+    }
+    if (s.charAt(0) === "#") {
+      var hex = s.slice(1);
+      if (hex.length === 3) {
+        hex = hex.charAt(0) + hex.charAt(0) + hex.charAt(1) + hex.charAt(1) + hex.charAt(2) + hex.charAt(2);
+      }
+      if (hex.length !== 6) return null;
+      return {
+        r: parseInt(hex.slice(0, 2), 16),
+        g: parseInt(hex.slice(2, 4), 16),
+        b: parseInt(hex.slice(4, 6), 16)
+      };
+    }
+    return null;
+  }
+
+  function relativeLuminance(rgb) {
+    if (!rgb) return 0;
+    function channel(v) {
+      var x = v / 255;
+      return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
+    }
+    return 0.2126 * channel(rgb.r) + 0.7152 * channel(rgb.g) + 0.0722 * channel(rgb.b);
+  }
+
+  function contrastRatio(colorA, colorB) {
+    var a = parseCssColor(colorA);
+    var b = parseCssColor(colorB);
+    if (!a || !b) return 99;
+    var la = relativeLuminance(a);
+    var lb = relativeLuminance(b);
+    var hi = Math.max(la, lb);
+    var lo = Math.min(la, lb);
+    return (hi + 0.05) / (lo + 0.05);
+  }
+
+  function getTimerLegendTargetValue(node, fallbackValue) {
+    if (!node) return fallbackValue;
+    var text = (node.textContent || "").trim();
+    var parsed = parseInt(text, 10);
+    if (Number.isInteger(parsed) && parsed > 0) return parsed;
+    return fallbackValue;
+  }
+
+  function syncTimerLegendStyles() {
+    if (typeof document === "undefined") return;
+    var cache = {};
+    for (var i = 0; i < TIMER_VALUES.length; i++) {
+      var slot = TIMER_VALUES[i];
+      var nodes = document.querySelectorAll(".timer-legend-" + String(slot));
+      for (var j = 0; j < nodes.length; j++) {
+        var node = nodes[j];
+        var value = getTimerLegendTargetValue(node, slot);
+        var key = String(value);
+        if (!cache[key]) cache[key] = getComputedTileVisual(value);
+        var visual = cache[key];
+        if (!visual) continue;
+        var finalTextColor = visual.color;
+        if (contrastRatio(visual.color, visual.backgroundColor) < 1.8) {
+          var bg = parseCssColor(visual.backgroundColor);
+          finalTextColor = relativeLuminance(bg) >= 0.55 ? "#1a1a1a" : "#f9f6f2";
+        }
+        node.style.background = visual.background;
+        node.style.backgroundImage = visual.backgroundImage;
+        node.style.backgroundSize = visual.backgroundSize;
+        node.style.backgroundPosition = visual.backgroundPosition;
+        node.style.backgroundRepeat = visual.backgroundRepeat;
+        node.style.color = finalTextColor;
+        node.style.boxShadow = visual.boxShadow;
+        node.style.border = visual.border;
+        node.style.borderRadius = visual.borderRadius;
+        node.style.clipPath = visual.clipPath;
+        node.style.webkitClipPath = visual.clipPath;
+        node.style.textShadow = visual.textShadow;
+        node.style.fontFamily = visual.fontFamily;
+        node.style.fontWeight = visual.fontWeight;
+        // Keep timer layout stable.
+        node.style.transform = "none";
+        node.style.filter = "none";
+      }
+    }
+  }
+
   var currentThemeId = DEFAULT_THEME;
+  var horseSwRegisterAttempted = false;
+
+  function registerHorseCacheServiceWorker() {
+    if (horseSwRegisterAttempted) return;
+    horseSwRegisterAttempted = true;
+    if (typeof window === "undefined" || typeof navigator === "undefined") return;
+    if (!("serviceWorker" in navigator)) return;
+
+    var doRegister = function () {
+      navigator.serviceWorker.register("./horse-cache-sw.js", { scope: "./" }).catch(function () {});
+    };
+
+    if (document.readyState === "complete") {
+      doRegister();
+      return;
+    }
+    window.addEventListener("load", doRegister, { once: true });
+  }
 
   function applyTheme(themeId) {
     var id = themes[themeId] ? themeId : DEFAULT_THEME;
@@ -1693,6 +1855,7 @@
     currentThemeId = id;
     saveTheme(id);
     document.documentElement.setAttribute("data-theme", id);
+    syncTimerLegendStyles();
     if (typeof window.CustomEvent === "function") {
       window.dispatchEvent(new CustomEvent("themechange", { detail: { themeId: id } }));
     }
@@ -1831,8 +1994,10 @@
       return POW2_TILE_VALUES.slice();
     },
     getCurrentTheme: function () { return currentThemeId; },
+    syncTimerLegendStyles: syncTimerLegendStyles,
     applyTheme: applyTheme
   };
 
+  registerHorseCacheServiceWorker();
   applyTheme(getSavedTheme());
 })();

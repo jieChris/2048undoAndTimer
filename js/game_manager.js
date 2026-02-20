@@ -644,6 +644,9 @@ GameManager.prototype.updateTimerLegendLabels = function () {
       nodes[j].textContent = label;
     }
   }
+  if (typeof window !== "undefined" && window.ThemeManager && typeof window.ThemeManager.syncTimerLegendStyles === "function") {
+    window.ThemeManager.syncTimerLegendStyles();
+  }
 };
 
 GameManager.prototype.recordTimerMilestone = function (value, timeStr) {
