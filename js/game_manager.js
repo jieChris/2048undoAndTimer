@@ -30,6 +30,7 @@ function GameManager(size, InputManager, Actuator, ScoreManager) {
   this.undoStack = [];
   this.initCornerStats();
   this.initStatsPanelUi();
+  this.bindGameStatePersistenceEvents();
 
   this.setup();
 }
@@ -49,6 +50,8 @@ GameManager.REPLAY_V4_PREFIX = "REPLAY_v4C_";
 GameManager.UNDO_SETTINGS_KEY = "settings_undo_enabled_by_mode_v1";
 GameManager.STATS_PANEL_VISIBLE_KEY = "stats_panel_visible_v1";
 GameManager.TIMER_MODULE_VIEW_SETTINGS_KEY = "settings_timer_module_view_by_mode_v1";
+GameManager.SAVED_GAME_STATE_VERSION = 1;
+GameManager.SAVED_GAME_STATE_KEY_PREFIX = "savedGameStateByMode:v1:";
 GameManager.DEFAULT_MODE_KEY = "standard_4x4_pow2_no_undo";
 GameManager.DEFAULT_MODE_CONFIG = {
   key: "standard_4x4_pow2_no_undo",
@@ -331,6 +334,352 @@ GameManager.prototype.cloneBoardMatrix = function (board) {
     out.push(board[y].slice());
   }
   return out;
+};
+
+GameManager.prototype.getSavedGameStateKey = function (modeKey) {
+  var key = typeof modeKey === "string" && modeKey ? modeKey : (this.modeKey || this.mode || GameManager.DEFAULT_MODE_KEY);
+  return GameManager.SAVED_GAME_STATE_KEY_PREFIX + key;
+};
+
+GameManager.prototype.shouldUseSavedGameState = function () {
+  if (typeof window === "undefined" || !window.localStorage) return false;
+  if (this.replayMode) return false;
+  var path = (window.location && window.location.pathname) ? String(window.location.pathname) : "";
+  if (path.indexOf("replay.html") !== -1) return false;
+  return true;
+};
+
+GameManager.prototype.bindGameStatePersistenceEvents = function () {
+  if (typeof window === "undefined") return;
+  if (this.savedGameStateBound) return;
+  var self = this;
+  var saveHandler = function () {
+    self.saveGameState({ force: true });
+  };
+  window.addEventListener("beforeunload", saveHandler);
+  window.addEventListener("pagehide", saveHandler);
+  this.savedGameStateBound = true;
+};
+
+GameManager.prototype.clearSavedGameState = function (modeKey) {
+  if (!this.shouldUseSavedGameState()) return;
+  try {
+    window.localStorage.removeItem(this.getSavedGameStateKey(modeKey));
+  } catch (_err) {}
+};
+
+GameManager.prototype.captureTimerFixedRowsState = function () {
+  var out = {};
+  for (var i = 0; i < GameManager.TIMER_SLOT_IDS.length; i++) {
+    var slotId = String(GameManager.TIMER_SLOT_IDS[i]);
+    var row = this.getTimerRowEl(slotId);
+    var timerEl = document.getElementById("timer" + slotId);
+    if (!row || !timerEl) continue;
+
+    var legend = row.querySelector(".timertile");
+    out[slotId] = {
+      display: row.style.display || "",
+      visibility: row.style.visibility || "",
+      pointerEvents: row.style.pointerEvents || "",
+      repeat: row.getAttribute("data-capped-repeat") || "",
+      timerText: timerEl.textContent || "",
+      legendText: legend ? (legend.textContent || "") : "",
+      legendClass: legend ? (legend.className || "") : "",
+      legendFontSize: legend ? (legend.style.fontSize || "") : ""
+    };
+  }
+  return out;
+};
+
+GameManager.prototype.captureTimerDynamicRowsState = function (containerId) {
+  var out = [];
+  var container = document.getElementById(containerId);
+  if (!container) return out;
+  for (var i = 0; i < container.children.length; i++) {
+    var row = container.children[i];
+    if (!row || !row.classList || !row.classList.contains("timer-row-item")) continue;
+    var tiles = row.querySelectorAll(".timertile");
+    var legend = tiles.length > 0 ? tiles[0] : null;
+    var timer = tiles.length > 1 ? tiles[1] : null;
+    out.push({
+      repeat: row.getAttribute("data-capped-repeat") || "",
+      label: legend ? (legend.textContent || "") : "",
+      labelClass: legend ? (legend.className || "") : "",
+      labelFontSize: legend ? (legend.style.fontSize || "") : "",
+      time: timer ? (timer.textContent || "") : ""
+    });
+  }
+  return out;
+};
+
+GameManager.prototype.createSavedDynamicTimerRow = function (rowState) {
+  var repeat = parseInt(rowState && rowState.repeat, 10);
+  var labelText = rowState && typeof rowState.label === "string" ? rowState.label : "";
+  var timeText = rowState && typeof rowState.time === "string" ? rowState.time : "";
+
+  var rowDiv = document.createElement("div");
+  rowDiv.className = "timer-row-item";
+  if (Number.isFinite(repeat) && repeat >= 2) {
+    rowDiv.setAttribute("data-capped-repeat", String(repeat));
+  }
+
+  var legend = document.createElement("div");
+  legend.className = this.getCappedTimerLegendClass();
+  legend.style.cssText = "color: #f9f6f2; font-size: " + this.getCappedTimerFontSize() + ";";
+  legend.textContent = labelText;
+  if (rowState && typeof rowState.labelClass === "string" && rowState.labelClass) {
+    legend.className = rowState.labelClass;
+  }
+  if (rowState && typeof rowState.labelFontSize === "string" && rowState.labelFontSize) {
+    legend.style.fontSize = rowState.labelFontSize;
+  }
+
+  var val = document.createElement("div");
+  val.className = "timertile";
+  val.style.cssText = "margin-left:6px; width:187px;";
+  val.textContent = timeText;
+
+  rowDiv.appendChild(legend);
+  rowDiv.appendChild(val);
+  rowDiv.appendChild(document.createElement("br"));
+  rowDiv.appendChild(document.createElement("br"));
+  return rowDiv;
+};
+
+GameManager.prototype.restoreTimerRowsFromState = function (saved) {
+  if (!saved || typeof saved !== "object") return;
+  var fixed = saved.timer_fixed_rows;
+  if (fixed && typeof fixed === "object") {
+    for (var i = 0; i < GameManager.TIMER_SLOT_IDS.length; i++) {
+      var slotId = String(GameManager.TIMER_SLOT_IDS[i]);
+      var rowState = fixed[slotId];
+      if (!rowState) continue;
+      var row = this.getTimerRowEl(slotId);
+      var timerEl = document.getElementById("timer" + slotId);
+      if (!row || !timerEl) continue;
+      var legend = row.querySelector(".timertile");
+
+      row.style.display = typeof rowState.display === "string" ? rowState.display : "";
+      row.style.visibility = typeof rowState.visibility === "string" ? rowState.visibility : "";
+      row.style.pointerEvents = typeof rowState.pointerEvents === "string" ? rowState.pointerEvents : "";
+      if (typeof rowState.repeat === "string" && rowState.repeat) row.setAttribute("data-capped-repeat", rowState.repeat);
+      else row.removeAttribute("data-capped-repeat");
+
+      timerEl.textContent = typeof rowState.timerText === "string" ? rowState.timerText : "";
+      if (legend) {
+        if (typeof rowState.legendClass === "string" && rowState.legendClass) legend.className = rowState.legendClass;
+        if (typeof rowState.legendText === "string") legend.textContent = rowState.legendText;
+        legend.style.fontSize = typeof rowState.legendFontSize === "string" ? rowState.legendFontSize : "";
+      }
+    }
+  }
+
+  var capped = document.getElementById("capped-timer-container");
+  if (capped) {
+    capped.innerHTML = "";
+    var cappedRows = Array.isArray(saved.timer_dynamic_rows_capped) ? saved.timer_dynamic_rows_capped : [];
+    for (var c = 0; c < cappedRows.length; c++) {
+      capped.appendChild(this.createSavedDynamicTimerRow(cappedRows[c]));
+    }
+  }
+
+  var overflow = this.getCappedOverflowContainer();
+  if (overflow) {
+    overflow.innerHTML = "";
+    var overflowRows = Array.isArray(saved.timer_dynamic_rows_overflow) ? saved.timer_dynamic_rows_overflow : [];
+    for (var o = 0; o < overflowRows.length; o++) {
+      overflow.appendChild(this.createSavedDynamicTimerRow(overflowRows[o]));
+    }
+  }
+
+  var sub8k = document.getElementById("timer8192-sub");
+  if (sub8k && typeof saved.timer_sub_8192 === "string") sub8k.textContent = saved.timer_sub_8192;
+  var sub16k = document.getElementById("timer16384-sub");
+  if (sub16k && typeof saved.timer_sub_16384 === "string") sub16k.textContent = saved.timer_sub_16384;
+  var subContainer = document.getElementById("timer32k-sub-container");
+  if (subContainer && typeof saved.timer_sub_visible === "boolean") {
+    subContainer.style.display = saved.timer_sub_visible ? "block" : "none";
+  }
+
+  if (typeof window !== "undefined" && typeof window.updateTimerScroll === "function") {
+    window.updateTimerScroll();
+  }
+};
+
+GameManager.prototype.tryRestoreSavedGameState = function () {
+  if (!this.shouldUseSavedGameState()) return false;
+  var raw = null;
+  try {
+    raw = window.localStorage.getItem(this.getSavedGameStateKey());
+  } catch (_err) {
+    return false;
+  }
+  if (!raw) return false;
+
+  var saved = null;
+  try {
+    saved = JSON.parse(raw);
+  } catch (_err2) {
+    this.clearSavedGameState();
+    return false;
+  }
+  if (!saved || typeof saved !== "object") {
+    this.clearSavedGameState();
+    return false;
+  }
+  if (Number(saved.v) !== GameManager.SAVED_GAME_STATE_VERSION) {
+    this.clearSavedGameState();
+    return false;
+  }
+  if (saved.terminated) {
+    this.clearSavedGameState();
+    return false;
+  }
+  if (saved.over || (saved.won && !saved.keep_playing)) {
+    this.clearSavedGameState();
+    return false;
+  }
+  if (saved.mode_key !== this.modeKey) {
+    return false;
+  }
+  if (Number(saved.board_width) !== this.width || Number(saved.board_height) !== this.height) {
+    this.clearSavedGameState();
+    return false;
+  }
+  if (saved.ruleset && saved.ruleset !== this.ruleset) {
+    this.clearSavedGameState();
+    return false;
+  }
+  if (!Array.isArray(saved.board) || saved.board.length !== this.height) {
+    this.clearSavedGameState();
+    return false;
+  }
+
+  try {
+    this.setBoardFromMatrix(saved.board);
+  } catch (_err3) {
+    this.clearSavedGameState();
+    return false;
+  }
+
+  this.score = Number.isInteger(saved.score) && saved.score >= 0 ? saved.score : 0;
+  this.over = !!saved.over;
+  this.won = !!saved.won;
+  this.keepPlaying = !!saved.keep_playing;
+  this.initialSeed = Number.isFinite(saved.initial_seed) ? Number(saved.initial_seed) : this.initialSeed;
+  this.seed = Number.isFinite(saved.seed) ? Number(saved.seed) : this.initialSeed;
+  this.moveHistory = Array.isArray(saved.move_history) ? saved.move_history.slice() : [];
+  this.undoStack = Array.isArray(saved.undo_stack) ? saved.undo_stack.slice() : [];
+  this.replayCompactLog = typeof saved.replay_compact_log === "string" ? saved.replay_compact_log : "";
+  this.sessionReplayV3 = saved.session_replay_v3 && typeof saved.session_replay_v3 === "object"
+    ? this.clonePlain(saved.session_replay_v3)
+    : this.sessionReplayV3;
+  this.spawnValueCounts = saved.spawn_value_counts && typeof saved.spawn_value_counts === "object"
+    ? this.clonePlain(saved.spawn_value_counts)
+    : {};
+  this.spawnTwos = this.spawnValueCounts["2"] || 0;
+  this.spawnFours = this.spawnValueCounts["4"] || 0;
+  this.reached32k = !!saved.reached_32k;
+  this.cappedMilestoneCount = Number.isInteger(saved.capped_milestone_count) ? saved.capped_milestone_count : 0;
+  this.capped64Unlocked = saved.capped64_unlocked && typeof saved.capped64_unlocked === "object"
+    ? this.clonePlain(saved.capped64_unlocked)
+    : this.capped64Unlocked;
+  this.comboStreak = Number.isInteger(saved.combo_streak) ? saved.combo_streak : 0;
+  this.successfulMoveCount = Number.isInteger(saved.successful_move_count) ? saved.successful_move_count : 0;
+  this.undoUsed = Number.isInteger(saved.undo_used) ? saved.undo_used : 0;
+  this.lockConsumedAtMoveCount = Number.isInteger(saved.lock_consumed_at_move_count) ? saved.lock_consumed_at_move_count : -1;
+  this.lockedDirectionTurn = Number.isInteger(saved.locked_direction_turn) ? saved.locked_direction_turn : null;
+  this.lockedDirection = Number.isInteger(saved.locked_direction) ? saved.locked_direction : null;
+  this.challengeId = typeof saved.challenge_id === "string" && saved.challenge_id ? saved.challenge_id : null;
+  this.hasGameStarted = !!saved.has_game_started;
+  this.accumulatedTime = Number.isFinite(saved.duration_ms) && saved.duration_ms >= 0 ? Math.floor(saved.duration_ms) : 0;
+  this.time = this.accumulatedTime;
+  this.startTime = null;
+  this.timerStatus = 0;
+  this.sessionSubmitDone = false;
+
+  if (Array.isArray(saved.initial_board_matrix) && saved.initial_board_matrix.length === this.height) {
+    this.initialBoardMatrix = this.cloneBoardMatrix(saved.initial_board_matrix);
+  } else {
+    this.initialBoardMatrix = this.getFinalBoardMatrix();
+  }
+  this.replayStartBoardMatrix = Array.isArray(saved.replay_start_board_matrix) && saved.replay_start_board_matrix.length === this.height
+    ? this.cloneBoardMatrix(saved.replay_start_board_matrix)
+    : this.cloneBoardMatrix(this.initialBoardMatrix);
+
+  this.restoreTimerRowsFromState(saved);
+  if (saved.timer_module_view === "leaderboard") this.timerModuleView = "leaderboard";
+  else this.timerModuleView = "timer";
+
+  var timerEl = document.getElementById("timer");
+  if (timerEl) timerEl.textContent = this.pretty(this.accumulatedTime);
+  if (!this.over && !this.won && saved.timer_status === 1) {
+    this.startTimer();
+  }
+  return true;
+};
+
+GameManager.prototype.saveGameState = function (options) {
+  options = options || {};
+  if (!this.shouldUseSavedGameState()) return;
+  if (this.isSessionTerminated()) {
+    this.clearSavedGameState();
+    return;
+  }
+
+  var now = Date.now();
+  if (!options.force && this.lastSavedGameStateAt && now - this.lastSavedGameStateAt < 150) {
+    return;
+  }
+
+  var payload = {
+    v: GameManager.SAVED_GAME_STATE_VERSION,
+    saved_at: now,
+    terminated: false,
+    mode_key: this.modeKey,
+    board_width: this.width,
+    board_height: this.height,
+    ruleset: this.ruleset,
+    board: this.getFinalBoardMatrix(),
+    score: this.score,
+    over: this.over,
+    won: this.won,
+    keep_playing: this.keepPlaying,
+    initial_seed: this.initialSeed,
+    seed: this.seed,
+    move_history: this.moveHistory ? this.moveHistory.slice() : [],
+    undo_stack: this.undoStack ? this.clonePlain(this.undoStack) : [],
+    replay_compact_log: this.replayCompactLog || "",
+    session_replay_v3: this.sessionReplayV3 ? this.clonePlain(this.sessionReplayV3) : null,
+    spawn_value_counts: this.spawnValueCounts ? this.clonePlain(this.spawnValueCounts) : {},
+    reached_32k: !!this.reached32k,
+    capped_milestone_count: Number.isInteger(this.cappedMilestoneCount) ? this.cappedMilestoneCount : 0,
+    capped64_unlocked: this.capped64Unlocked ? this.clonePlain(this.capped64Unlocked) : null,
+    timer_status: this.timerStatus === 1 ? 1 : 0,
+    duration_ms: this.getDurationMs(),
+    has_game_started: !!this.hasGameStarted,
+    combo_streak: Number.isInteger(this.comboStreak) ? this.comboStreak : 0,
+    successful_move_count: Number.isInteger(this.successfulMoveCount) ? this.successfulMoveCount : 0,
+    undo_used: Number.isInteger(this.undoUsed) ? this.undoUsed : 0,
+    lock_consumed_at_move_count: Number.isInteger(this.lockConsumedAtMoveCount) ? this.lockConsumedAtMoveCount : -1,
+    locked_direction_turn: Number.isInteger(this.lockedDirectionTurn) ? this.lockedDirectionTurn : null,
+    locked_direction: Number.isInteger(this.lockedDirection) ? this.lockedDirection : null,
+    challenge_id: this.challengeId || null,
+    initial_board_matrix: this.initialBoardMatrix ? this.cloneBoardMatrix(this.initialBoardMatrix) : this.getFinalBoardMatrix(),
+    replay_start_board_matrix: this.replayStartBoardMatrix ? this.cloneBoardMatrix(this.replayStartBoardMatrix) : null,
+    timer_module_view: this.getTimerModuleViewMode ? this.getTimerModuleViewMode() : "timer",
+    timer_fixed_rows: this.captureTimerFixedRowsState(),
+    timer_dynamic_rows_capped: this.captureTimerDynamicRowsState("capped-timer-container"),
+    timer_dynamic_rows_overflow: this.captureTimerDynamicRowsState("capped-timer-overflow-container"),
+    timer_sub_8192: (document.getElementById("timer8192-sub") || {}).textContent || "",
+    timer_sub_16384: (document.getElementById("timer16384-sub") || {}).textContent || "",
+    timer_sub_visible: ((document.getElementById("timer32k-sub-container") || {}).style || {}).display === "block"
+  };
+
+  try {
+    window.localStorage.setItem(this.getSavedGameStateKey(), JSON.stringify(payload));
+    this.lastSavedGameStateAt = now;
+  } catch (_err) {}
 };
 
 GameManager.prototype.appendCompactMoveCode = function (rawCode) {
@@ -885,26 +1234,11 @@ GameManager.prototype.recordCappedMilestone = function (timeStr) {
   }
 
   if (!container) return;
-
-  var rowDiv = document.createElement("div");
-  rowDiv.className = "timer-row-item";
-  rowDiv.setAttribute("data-capped-repeat", String(this.cappedMilestoneCount));
-
-  var legend = document.createElement("div");
-  legend.className = this.getCappedTimerLegendClass();
-  legend.style.cssText = "color: #f9f6f2; font-size: " + this.getCappedTimerFontSize() + ";";
-  legend.textContent = nextLabel;
-
-  var val = document.createElement("div");
-  val.className = "timertile";
-  val.style.cssText = "margin-left:6px; width:187px;";
-  val.textContent = "";
-
-  rowDiv.appendChild(legend);
-  rowDiv.appendChild(val);
-  rowDiv.appendChild(document.createElement("br"));
-  rowDiv.appendChild(document.createElement("br"));
-  val.textContent = timeStr;
+  var rowDiv = this.createSavedDynamicTimerRow({
+    repeat: String(this.cappedMilestoneCount),
+    label: nextLabel,
+    time: timeStr
+  });
   container.appendChild(rowDiv);
 
   if (typeof window.cappedTimerAutoScroll === "function") {
@@ -1515,19 +1849,20 @@ GameManager.prototype.restart = function () {
   if (confirm("是否确认开始新游戏?")) {
       this.actuator.continue();
       this.undoStack = [];
-      this.setup();
+      this.clearSavedGameState(this.modeKey);
+      this.setup(undefined, { disableStateRestore: true });
   }
 };
 
 GameManager.prototype.restartWithSeed = function (seed, modeConfig) {
   this.actuator.continue();
-  this.setup(seed, { modeConfig: modeConfig }); // Force setup with specific seed
+  this.setup(seed, { modeConfig: modeConfig, disableStateRestore: true }); // Force setup with specific seed
 };
 
 GameManager.prototype.restartWithBoard = function (board, modeConfig) {
   this.actuator.continue();
   // Seed is irrelevant here; replay spawns are driven by encoded log.
-  this.setup(0, { skipStartTiles: true, modeConfig: modeConfig });
+  this.setup(0, { skipStartTiles: true, modeConfig: modeConfig, disableStateRestore: true });
   this.setBoardFromMatrix(board);
   this.initialBoardMatrix = this.getFinalBoardMatrix();
   this.replayStartBoardMatrix = this.cloneBoardMatrix(this.initialBoardMatrix);
@@ -1663,10 +1998,17 @@ GameManager.prototype.setup = function (inputSeed, options) {
 
   // Add the initial tiles unless a replay imports an explicit board.
   var skipStartTiles = !!(options && options.skipStartTiles);
-  if (!skipStartTiles) {
+  var shouldRestoreState = !hasInputSeed && !skipStartTiles && !(options && options.disableStateRestore);
+  var restoredFromSavedState = false;
+  if (shouldRestoreState) {
+    restoredFromSavedState = this.tryRestoreSavedGameState();
+  }
+  if (!skipStartTiles && !restoredFromSavedState) {
     this.addStartTiles();
   }
-  this.initialBoardMatrix = this.getFinalBoardMatrix();
+  if (!restoredFromSavedState) {
+    this.initialBoardMatrix = this.getFinalBoardMatrix();
+  }
   this.refreshSpawnRateDisplay();
   this.updateUndoUiState();
   this.notifyUndoSettingsStateChanged();
@@ -1674,7 +2016,11 @@ GameManager.prototype.setup = function (inputSeed, options) {
 
   // Update the actuator
   this.actuate();
-  this.updateStatsPanel(0, 0, 0);
+  if (restoredFromSavedState) {
+    this.updateStatsPanel();
+  } else {
+    this.updateStatsPanel(0, 0, 0);
+  }
 
   if (window.ApiClient && typeof window.ApiClient.flushPendingSessions === "function") {
     window.ApiClient.flushPendingSessions().catch(function () {});
@@ -1780,7 +2126,10 @@ GameManager.prototype.actuate = function () {
   }
 
   if (this.isSessionTerminated()) {
+    this.clearSavedGameState(this.modeKey);
     this.tryAutoSubmitOnGameOver();
+  } else {
+    this.saveGameState();
   }
 
 };
