@@ -171,6 +171,35 @@ h1.title {
   margin-bottom: 45px;
 }
 
+.timer-scroll-btn {
+  display: inline-block;
+  background: #eee4da;
+  border-radius: 3px;
+  padding: 0 14px;
+  text-decoration: none;
+  color: #776e65;
+  height: 32px;
+  line-height: 32px;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  user-select: none;
+  margin: 0 3px;
+  font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+}
+
+.timer-scroll-btn:hover {
+  background: #ded4c8;
+  color: #5a534c;
+}
+
+#timer-scroll-controls {
+  display: none;
+  text-align: center;
+  clear: both;
+  padding-top: 14px;
+}
+
 #timerbox.timerbox-leaderboard-mode > :not(.timerbox-leaderboard-panel) {
   display: none !important;
 }

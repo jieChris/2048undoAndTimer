@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <title>2048封顶</title>
 
-  <link href="style/main.css?v=1771559917350" rel="stylesheet" type="text/css">
+  <link href="style/main.css?v=1771559917351" rel="stylesheet" type="text/css">
   <link rel="shortcut icon" href="favicon.ico?v=42">
   <link rel="apple-touch-icon" href="meta/apple-touch-icon.png?v=42">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -276,8 +276,9 @@
   <script src="js/tile.js?v=1771559917350"></script>
   <script src="js/local_score_manager.js?v=1771559917350"></script>
   <script src="js/api_client.js?v=1771559917350"></script>
-  <script src="js/game_manager.js?v=1771559917350"></script>
+  <script src="js/game_manager.js?v=1771559917351"></script>
   <script src="js/capped_application.js?v=1771559917350"></script>
+  <script src="js/capped_timer_scroll.js?v=1771559917351"></script>
   <script src="js/index_ui.js?v=1771559917350"></script>
   <script>
   // === Guide overlay ===
@@ -304,83 +305,6 @@
       }
   })();
 
-  // === Timer scroll navigation ===
-  var _timerScrollOffset = 0;
-  var TIMER_MAX_VISIBLE = 11;
-
-  function getAllTimerRows() {
-      // Collect fixed rows (.timer-row-item) + dynamic rows inside #capped-timer-container
-      var rows = [];
-      var wrapper = document.getElementById('timer-rows-wrapper');
-      if (!wrapper) return rows;
-      // Fixed rows
-      var fixed = wrapper.querySelectorAll(':scope > .timer-row-item');
-      for (var i = 0; i < fixed.length; i++) rows.push(fixed[i]);
-      // Dynamic rows
-      var container = document.getElementById('capped-timer-container');
-      if (container) {
-          var dynamic = container.querySelectorAll('.timer-row-item');
-          for (var j = 0; j < dynamic.length; j++) rows.push(dynamic[j]);
-      }
-      return rows;
-  }
-
-  function updateTimerScroll() {
-      var rows = getAllTimerRows();
-      var total = rows.length;
-      var maxOffset = Math.max(0, total - TIMER_MAX_VISIBLE);
-
-      // Clamp offset
-      if (_timerScrollOffset > maxOffset) _timerScrollOffset = maxOffset;
-      if (_timerScrollOffset < 0) _timerScrollOffset = 0;
-
-      // Show/hide rows
-      for (var i = 0; i < rows.length; i++) {
-          if (i >= _timerScrollOffset && i < _timerScrollOffset + TIMER_MAX_VISIBLE) {
-              rows[i].style.display = '';
-          } else {
-              rows[i].style.display = 'none';
-          }
-      }
-
-      // Show/hide scroll controls container
-      var controls = document.getElementById('timer-scroll-controls');
-      if (total > TIMER_MAX_VISIBLE) {
-          if (controls) controls.style.display = 'block';
-      } else {
-          if (controls) controls.style.display = 'none';
-      }
-  }
-
-  function cappedTimerScroll(dir) {
-      _timerScrollOffset += dir;
-      updateTimerScroll();
-  }
-
-  // Auto-scroll to bottom when new rows are added
-  function cappedTimerAutoScroll() {
-      var rows = getAllTimerRows();
-      var total = rows.length;
-      if (total > TIMER_MAX_VISIBLE) {
-          _timerScrollOffset = total - TIMER_MAX_VISIBLE;
-      }
-      updateTimerScroll();
-  }
-
-  // Reset scroll on new game
-  function cappedTimerReset() {
-      _timerScrollOffset = 0;
-      updateTimerScroll();
-  }
-
-  // Expose globally for game_manager.js to call
-  window.updateTimerScroll = updateTimerScroll;
-  window.cappedTimerScroll = cappedTimerScroll;
-  window.cappedTimerAutoScroll = cappedTimerAutoScroll;
-  window.cappedTimerReset = cappedTimerReset;
-
-  // Initial update
-  updateTimerScroll();
   </script>
 
 </body>
