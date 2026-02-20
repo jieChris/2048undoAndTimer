@@ -219,6 +219,17 @@ GameManager.FALLBACK_MODE_CONFIGS = {
     max_tile: null,
     spawn_table: [{ value: 1, weight: 90 }, { value: 2, weight: 10 }],
     ranked_bucket: "none"
+  },
+  spawn50_3x3_pow2_no_undo: {
+    key: "spawn50_3x3_pow2_no_undo",
+    label: "3x3 概率 50/50（无撤回）",
+    board_width: 3,
+    board_height: 3,
+    ruleset: "pow2",
+    undo_enabled: false,
+    max_tile: null,
+    spawn_table: [{ value: 2, weight: 50 }, { value: 4, weight: 50 }],
+    ranked_bucket: "none"
   }
 };
 GameManager.LEGACY_MODE_BY_KEY = {

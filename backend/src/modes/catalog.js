@@ -262,6 +262,19 @@ addPair({
 });
 
 add({
+  key: "spawn50_3x3_pow2_no_undo",
+  label: "3x3 概率 50/50（无撤回）",
+  board_width: 3,
+  board_height: 3,
+  ruleset: "pow2",
+  undo_enabled: false,
+  spawn_table: [{ value: 2, weight: 50 }, { value: 4, weight: 50 }],
+  ranked_bucket: "none",
+  mode_family: "pow2",
+  rank_policy: "unranked"
+});
+
+add({
   key: "limit3_4x4_pow2_undo",
   label: "限次撤回 4x4（3次）",
   board_width: 4,
