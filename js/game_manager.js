@@ -22,8 +22,13 @@ function GameManager(size, InputManager, Actuator, ScoreManager) {
   this.timerModuleView = "timer";
   this.timerLeaderboardLoadId = 0;
   this.timerModuleBaseHeight = 0;
+  this.timerUpdateIntervalMs = 10;
+  this.lastStatsPanelUpdateAt = 0;
+  this.pendingMoveInput = null;
+  this.moveInputFlushScheduled = false;
+  this.lastMoveInputAt = 0;
 
-  this.inputManager.on("move", this.move.bind(this));
+  this.inputManager.on("move", this.handleMoveInput.bind(this));
   this.inputManager.on("restart", this.restart.bind(this));
   this.inputManager.on("keepPlaying", this.keepPlaying.bind(this));
 
@@ -1727,38 +1732,10 @@ GameManager.prototype.getTotalSpawnCount = function () {
   return total;
 };
 
-GameManager.prototype.getConfiguredSecondaryRate = function () {
-  var table = Array.isArray(this.spawnTable) ? this.spawnTable : [];
-  var pair = this.getSpawnStatPair();
-  var totalWeight = 0;
-  var secondaryWeight = 0;
-  for (var i = 0; i < table.length; i++) {
-    var item = table[i];
-    if (!item || !Number.isFinite(item.weight) || item.weight <= 0) continue;
-    totalWeight += item.weight;
-    if (Number(item.value) === pair.secondary) secondaryWeight += item.weight;
-  }
-  if (totalWeight <= 0 || secondaryWeight <= 0) return "0.00";
-  return ((secondaryWeight / totalWeight) * 100).toFixed(2);
-};
-
-GameManager.prototype.getSmoothedSecondaryRate = function () {
-  var configured = Number(this.getConfiguredSecondaryRate());
-  if (!Number.isFinite(configured) || configured <= 0) return "0.00";
-
-  // Use original 2048 rate as prior (10%) style smoothing to avoid 0/100 spikes at game start.
-  var priorTotal = 20;
-  var priorSecondary = (configured / 100) * priorTotal;
-  var pair = this.getSpawnStatPair();
-  var observedTotal = this.getTotalSpawnCount();
-  var observedSecondary = this.getSpawnCount(pair.secondary);
-  var smoothed = (observedSecondary + priorSecondary) / (observedTotal + priorTotal);
-  return (smoothed * 100).toFixed(2);
-};
-
 GameManager.prototype.refreshSpawnRateDisplay = function () {
-  // Top-left rate: dynamic value with prior smoothing (avoids 0/100 spikes at start).
-  var text = this.getSmoothedSecondaryRate();
+  // Top-left rate: current observed secondary spawn rate.
+  // pow2 => 出4率, fibonacci => 出2率
+  var text = this.getActualSecondaryRate();
   var rateEl = document.getElementById("stats-4-rate");
   if (rateEl) rateEl.textContent = text;
   if (this.cornerRateEl) this.cornerRateEl.textContent = text;
@@ -1952,6 +1929,9 @@ GameManager.prototype.setup = function (inputSeed, options) {
   this.timerID = null;
   this.time = 0;
   this.accumulatedTime = 0; // For pausing logic
+  this.pendingMoveInput = null;
+  this.moveInputFlushScheduled = false;
+  this.lastMoveInputAt = 0;
   this.sessionStartedAt = Date.now();
   this.hasGameStarted = false;
   this.configureTimerMilestones();
@@ -2141,6 +2121,79 @@ GameManager.prototype.prepareTiles = function () {
       tile.mergedFrom = null;
       tile.savePosition();
     }
+  });
+};
+
+GameManager.prototype.getMoveInputThrottleMs = function () {
+  if (this.replayMode) return 0;
+  var area = (this.width || 4) * (this.height || 4);
+  if (area >= 100) return 65;
+  if (area >= 64) return 45;
+  return 0;
+};
+
+GameManager.prototype.flushPendingMoveInput = function () {
+  this.moveInputFlushScheduled = false;
+  if (this.pendingMoveInput === null || typeof this.pendingMoveInput === "undefined") return;
+  var direction = this.pendingMoveInput;
+  this.pendingMoveInput = null;
+
+  var throttleMs = this.getMoveInputThrottleMs();
+  if (throttleMs <= 0) {
+    this.move(direction);
+    return;
+  }
+
+  var now = Date.now();
+  var wait = throttleMs - (now - this.lastMoveInputAt);
+  if (wait <= 0) {
+    this.lastMoveInputAt = now;
+    this.move(direction);
+    return;
+  }
+
+  var self = this;
+  setTimeout(function () {
+    if (self.pendingMoveInput !== null && typeof self.pendingMoveInput !== "undefined") {
+      // Newer input exists; next flush will consume latest direction.
+      if (!self.moveInputFlushScheduled) {
+        self.moveInputFlushScheduled = true;
+        window.requestAnimationFrame(function () {
+          self.flushPendingMoveInput();
+        });
+      }
+      return;
+    }
+    self.lastMoveInputAt = Date.now();
+    self.move(direction);
+  }, wait);
+};
+
+GameManager.prototype.handleMoveInput = function (direction) {
+  if (direction === -1) {
+    this.move(direction);
+    return;
+  }
+
+  var throttleMs = this.getMoveInputThrottleMs();
+  if (throttleMs <= 0) {
+    this.move(direction);
+    return;
+  }
+
+  var now = Date.now();
+  if ((now - this.lastMoveInputAt) >= throttleMs && !this.moveInputFlushScheduled) {
+    this.lastMoveInputAt = now;
+    this.move(direction);
+    return;
+  }
+
+  this.pendingMoveInput = direction;
+  if (this.moveInputFlushScheduled) return;
+  this.moveInputFlushScheduled = true;
+  var self = this;
+  window.requestAnimationFrame(function () {
+    self.flushPendingMoveInput();
   });
 };
 
@@ -2477,10 +2530,24 @@ GameManager.prototype.startTimer = function() {
       this.startTime = new Date(Date.now() - (this.accumulatedTime || 0));
       this.notifyUndoSettingsStateChanged();
       var self = this;
+      this.timerUpdateIntervalMs = this.getTimerUpdateIntervalMs();
+      this.lastStatsPanelUpdateAt = 0;
       this.timerID = setInterval(function() {
           self.updateTimer();
-      }, 10);
+      }, this.timerUpdateIntervalMs);
   }
+};
+
+GameManager.prototype.getTimerUpdateIntervalMs = function () {
+  var area = (this.width || 4) * (this.height || 4);
+  if (area >= 100) return 50;
+  if (area >= 64) return 33;
+  return 10;
+};
+
+GameManager.prototype.isStatsPanelOpen = function () {
+  var overlay = document.getElementById("stats-panel-overlay");
+  return !!(overlay && overlay.style.display !== "none");
 };
 
 GameManager.prototype.endTime = function() {
@@ -2511,7 +2578,12 @@ GameManager.prototype.updateTimer = function() {
       ipsEl.textContent = ipsText;
       if (this.cornerIpsEl) this.cornerIpsEl.textContent = ipsText;
   }
-  this.updateStatsPanel();
+  if (this.isStatsPanelOpen()) {
+    if (!this.lastStatsPanelUpdateAt || (time - this.lastStatsPanelUpdateAt) >= 100) {
+      this.updateStatsPanel();
+      this.lastStatsPanelUpdateAt = time;
+    }
+  }
 };
 
 GameManager.prototype.stopTimer = function() {

@@ -8,6 +8,7 @@ function HTMLActuator() {
 
   this.score = 0;
   this.gridMeta = null;
+  this.lowPerfMode = false;
 }
 
 HTMLActuator.prototype.actuate = function (grid, metadata) {
@@ -81,6 +82,14 @@ HTMLActuator.prototype.ensureGridLayout = function (grid, metadata) {
     boardSize: boardSize,
     blockedSignature: blockedSignature
   };
+
+  var lowPerf = cols * rows >= 64;
+  if (this.lowPerfMode !== lowPerf) {
+    this.lowPerfMode = lowPerf;
+    if (typeof document !== "undefined" && document.body) {
+      document.body.classList.toggle("board-low-perf", lowPerf);
+    }
+  }
 
   this.gridContainer.style.left = "50%";
   this.gridContainer.style.top = "50%";
@@ -227,20 +236,30 @@ HTMLActuator.prototype.addTile = function (tile, isMergedInner) {
   this.applyTileStyle(wrapper, inner, position, tile.value);
 
   if (tile.previousPosition) {
-    window.requestAnimationFrame(function () {
+    if (this.lowPerfMode) {
       classes[2] = self.positionClass({ x: tile.x, y: tile.y });
       self.applyClasses(wrapper, classes);
       self.applyTileStyle(wrapper, inner, { x: tile.x, y: tile.y }, tile.value);
-    });
+    } else {
+      window.requestAnimationFrame(function () {
+        classes[2] = self.positionClass({ x: tile.x, y: tile.y });
+        self.applyClasses(wrapper, classes);
+        self.applyTileStyle(wrapper, inner, { x: tile.x, y: tile.y }, tile.value);
+      });
+    }
   } else if (tile.mergedFrom) {
-    classes.push("tile-merged");
-    this.applyClasses(wrapper, classes);
+    if (!this.lowPerfMode) {
+      classes.push("tile-merged");
+      this.applyClasses(wrapper, classes);
 
-    tile.mergedFrom.forEach(function (merged) {
-      self.addTile(merged, true);
-    });
+      tile.mergedFrom.forEach(function (merged) {
+        self.addTile(merged, true);
+      });
+    }
   } else {
-    classes.push("tile-new");
+    if (!this.lowPerfMode) {
+      classes.push("tile-new");
+    }
     this.applyClasses(wrapper, classes);
   }
 

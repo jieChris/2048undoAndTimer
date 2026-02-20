@@ -999,6 +999,16 @@
     return css;
   }
 
+  function lowPerfCss() {
+    var css = "";
+    css += "body.board-low-perf .tile{transition:none !important;-webkit-transition:none !important;-moz-transition:none !important;}\n";
+    css += "body.board-low-perf .tile .tile-inner{animation:none !important;-webkit-animation:none !important;-moz-animation:none !important;";
+    css += "box-shadow:none !important;background-image:none !important;text-shadow:none !important;filter:none !important;}\n";
+    css += "body.board-low-perf .tile.tile-new .tile-inner,body.board-low-perf .tile.tile-merged .tile-inner{animation:none !important;-webkit-animation:none !important;-moz-animation:none !important;}\n";
+    css += "body.board-low-perf .tile .tile-inner::before,body.board-low-perf .tile .tile-inner::after{display:none !important;animation:none !important;}\n";
+    return css;
+  }
+
   function buildThemeCss(theme) {
     var css = "";
     if (theme.id === "classic") {
@@ -1657,6 +1667,7 @@
     
     css += timerCss(theme);
     css += legendCss(theme);
+    css += lowPerfCss();
     return css;
   }
 

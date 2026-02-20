@@ -686,6 +686,27 @@ hr {
   font-size: 55px;
 }
 
+body.board-low-perf .tile {
+  -webkit-transition: none !important;
+  -moz-transition: none !important;
+  transition: none !important;
+}
+
+body.board-low-perf .tile .tile-inner,
+body.board-low-perf .tile.tile-new .tile-inner,
+body.board-low-perf .tile.tile-merged .tile-inner {
+  -webkit-animation: none !important;
+  -moz-animation: none !important;
+  animation: none !important;
+  box-shadow: none !important;
+  background-image: none !important;
+  text-shadow: none !important;
+}
+
+body.board-low-perf .tile .tile-inner::after {
+  display: none !important;
+}
+
 .tile.tile-2 .tile-inner {
   background: #eee4da;
   box-shadow: 0 0 30px 10px rgba(243, 215, 116, 0), inset 0 0 0 1px rgba(255, 255, 255, 0);
