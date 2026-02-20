@@ -826,10 +826,10 @@
       }
     }),
     horse_year: makeTheme("horse_year", "马年大吉", [
-      "#F9F7F4", "#FFF59D", "#FFCC80", "#FFA726",
-      "#FF7043", "#EF5350", "#E53935", "#C62828",
-      "#8E24AA", "#6A1B9A", "#FDD835", "#4E342E",
-      "#3E2723", "#212121", "#000000", "#000000"
+      "#4f3b36", "#633c3c", "#672422", "#822422",
+      "#9c2220", "#b71d1d", "#672422", "#822422",
+      "#9c2220", "#b71d1d", "#b81414", "#bd9a3a",
+      "#cf9d1f", "#e6ae16", "#ffbb00", "#4f3b36"
     ], {
       lightTextFrom: 4,
       gradient: true,
@@ -1647,8 +1647,8 @@
     }
     
     if (theme.horse_year) {
-         css += horseYearTileCss(theme, POW2_TILE_VALUES, "html[data-theme='horse_year']");
-         css += horseYearTileCss(theme, FIB_TILE_VALUES, "html[data-theme='horse_year']");
+         css += horseYearTileCss(theme, POW2_TILE_VALUES, "html[data-theme='horse_year'] body:not([data-ruleset=\"fibonacci\"])");
+         css += horseYearTileCss(theme, FIB_TILE_VALUES, "html[data-theme='horse_year'] body[data-ruleset=\"fibonacci\"]");
     } else {
          css += tileCssForValues(theme, POW2_TILE_VALUES, "body:not([data-ruleset=\"fibonacci\"])");
          css += tileCssForValues(theme, FIB_TILE_VALUES, "body[data-ruleset=\"fibonacci\"]");
@@ -1773,7 +1773,7 @@
       for (var i = 0; i < values.length; i++) {
         var val = values[i];
         var base = colorForIndex(theme, i, values.length);
-        var text = tileTextColor(i, theme.lightTextFrom);
+        var text = (val >= 128 && val <= 2048) ? "#f0b800" : "#f9f6f2";
         
         // Base selector construction
         var tileSelector = scopeSelector ? (scopeSelector + " .tile.tile-" + val + " .tile-inner") : (".tile.tile-" + val + " .tile-inner");
@@ -1788,24 +1788,17 @@
         css += "font-weight: bold;";
         css += "box-shadow: 0 4px 8px rgba(0,0,0,0.3) !important;";
 
-        // Special handling based on value
-        if (val === 2048) {
-            // 2048: Golden Horse
-            css += "background: linear-gradient(135deg, #ffd700, #ffca28) !important;"; 
-            css += "color: #5e0d16 !important;";
-            css += "border: 2px solid #fff !important;";
-            css += "box-shadow: 0 0 25px rgba(255, 215, 0, 0.6) !important;";
-            css += "text-shadow: none !important;";
-            css += "position: relative;";
-            css += "z-index: 0;"; // Create stacking context
+        // Setup background and border
+        css += "background-color: " + base + " !important;";
+        if (val >= 128) {
+            css += "border: 1px solid rgba(255,215,0, 0.3) !important;";
         } else {
-            // All other values: Standard color with gradient
-            css += "background-color: " + base + " !important;";
-             if (val >= 128) {
-                css += "border: 1px solid rgba(255,215,0, 0.3) !important;";
-             } else {
-                css += "border: 1px solid rgba(0,0,0,0.1) !important;";
-             }
+            css += "border: 1px solid rgba(0,0,0,0.1) !important;";
+        }
+        
+        if (val === 2048) {
+            css += "position: relative;";
+            css += "z-index: 0;"; // Create stacking context for horse icon
         }
         css += "}\n"; // End of main block
 
