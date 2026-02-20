@@ -1496,9 +1496,11 @@ input[type=range]::-webkit-slider-runnable-track {
 
 .announcement-item-head {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
+  gap: 10px;
   margin-bottom: 6px;
+  flex-wrap: wrap;
 }
 
 .announcement-version {
@@ -1509,6 +1511,7 @@ input[type=range]::-webkit-slider-runnable-track {
 .announcement-date {
   color: #9f978d;
   font-size: 12px;
+  margin-left: 2px;
 }
 
 .announcement-title {
