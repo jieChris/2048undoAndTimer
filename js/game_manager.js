@@ -756,7 +756,10 @@ GameManager.prototype.resetCappedDynamicTimers = function () {
   this.cappedMilestoneCount = 0;
   var cappedContainer = document.getElementById("capped-timer-container");
   if (cappedContainer) cappedContainer.innerHTML = "";
+  var overflowContainer = document.getElementById("capped-timer-overflow-container");
+  if (overflowContainer) overflowContainer.innerHTML = "";
   this.resetCappedPlaceholderRows();
+  this.getCappedOverflowContainer();
   if (typeof window.cappedTimerReset === "function") window.cappedTimerReset();
 };
 
@@ -805,32 +808,55 @@ GameManager.prototype.resetCappedPlaceholderRows = function () {
       legend.className = "timertile timer-legend-" + slotId;
       legend.textContent = slotId;
     }
+    row.removeAttribute("data-capped-repeat");
   }
 };
 
-GameManager.prototype.fillNextCappedPlaceholderRow = function (labelText, timeStr) {
+GameManager.prototype.fillCappedPlaceholderRowByRepeat = function (repeatCount, labelText, timeStr) {
   if (!this.isCappedMode()) return false;
+  if (!Number.isInteger(repeatCount) || repeatCount < 2) return false;
+
   var values = this.getCappedPlaceholderRowValues();
-  for (var i = 0; i < values.length; i++) {
-    var slotId = String(values[i]);
-    var row = this.getTimerRowEl(slotId);
-    var timerEl = document.getElementById("timer" + slotId);
-    if (!row || !timerEl) continue;
-    if (row.style.visibility !== "hidden") continue;
+  var placeholderIndex = repeatCount - 2; // x2 => first placeholder row
+  if (placeholderIndex < 0 || placeholderIndex >= values.length) return false;
 
-    var legend = row.querySelector(".timertile");
-    if (legend) {
-      legend.className = this.getCappedTimerLegendClass();
-      legend.style.color = "#f9f6f2";
-      legend.style.fontSize = this.getCappedTimerFontSize();
-      legend.textContent = labelText;
-    }
+  var slotId = String(values[placeholderIndex]);
+  var row = this.getTimerRowEl(slotId);
+  var timerEl = document.getElementById("timer" + slotId);
+  if (!row || !timerEl) return false;
 
-    timerEl.textContent = timeStr;
-    this.setTimerRowVisibleState(slotId, true, true);
-    return true;
+  var legend = row.querySelector(".timertile");
+  if (legend) {
+    legend.className = this.getCappedTimerLegendClass();
+    legend.style.color = "#f9f6f2";
+    legend.style.fontSize = this.getCappedTimerFontSize();
+    legend.textContent = labelText;
   }
-  return false;
+
+  timerEl.textContent = timeStr;
+  row.setAttribute("data-capped-repeat", String(repeatCount));
+  this.setTimerRowVisibleState(slotId, true, true);
+  return true;
+};
+
+GameManager.prototype.getCappedOverflowContainer = function () {
+  if (!this.isCappedMode()) return null;
+  var id = "capped-timer-overflow-container";
+  var container = document.getElementById(id);
+  if (!container) {
+    container = document.createElement("div");
+    container.id = id;
+  }
+
+  var values = this.getCappedPlaceholderRowValues();
+  if (!values.length) return container;
+  var anchor = this.getTimerRowEl(values[values.length - 1]);
+  if (!anchor || !anchor.parentNode) return container;
+
+  if (container.parentNode !== anchor.parentNode || anchor.nextSibling !== container) {
+    anchor.parentNode.insertBefore(container, anchor.nextSibling);
+  }
+  return container;
 };
 
 GameManager.prototype.recordCappedMilestone = function (timeStr) {
@@ -839,7 +865,7 @@ GameManager.prototype.recordCappedMilestone = function (timeStr) {
   this.cappedMilestoneCount += 1;
   var capLabel = String(this.getCappedTargetValue());
   var baseTimerEl = document.getElementById("timer" + capLabel);
-  var container = document.getElementById("capped-timer-container");
+  var container = this.getCappedOverflowContainer();
 
   if (this.cappedMilestoneCount === 1) {
     if (baseTimerEl && baseTimerEl.textContent === "") {
@@ -851,7 +877,7 @@ GameManager.prototype.recordCappedMilestone = function (timeStr) {
   var nextLabel = this.getCappedRepeatLabel(this.cappedMilestoneCount);
 
   // Prefer replacing reserved hidden rows so the timer module height stays stable.
-  if (this.fillNextCappedPlaceholderRow(nextLabel, timeStr)) {
+  if (this.fillCappedPlaceholderRowByRepeat(this.cappedMilestoneCount, nextLabel, timeStr)) {
     if (typeof window.cappedTimerAutoScroll === "function") {
       window.cappedTimerAutoScroll();
     }
@@ -862,6 +888,7 @@ GameManager.prototype.recordCappedMilestone = function (timeStr) {
 
   var rowDiv = document.createElement("div");
   rowDiv.className = "timer-row-item";
+  rowDiv.setAttribute("data-capped-repeat", String(this.cappedMilestoneCount));
 
   var legend = document.createElement("div");
   legend.className = this.getCappedTimerLegendClass();
