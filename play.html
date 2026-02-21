@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <title>2048 多玩法</title>
 
-  <link href="style/main.css?v=1771715200000" rel="stylesheet" type="text/css">
+  <link href="style/main.css?v=1771778000000" rel="stylesheet" type="text/css">
   <link rel="shortcut icon" href="favicon.ico?v=42">
   <link rel="apple-touch-icon" href="meta/apple-touch-icon.png?v=42">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -25,11 +25,17 @@
     <div class="stats-right" id="stats-ips">IPS: 0</div>
     <div class="heading">
       <div class="top-action-buttons">
+        <a class="top-action-btn" id="top-mode-intro-btn" title="模式简介" style="display:none;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        </a>
         <a class="top-action-btn stats-panel-toggle" id="stats-panel-toggle" title="统计">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
         </a>
         <a class="top-action-btn" id="top-export-replay-btn" title="导出回放">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        </a>
+        <a class="top-action-btn" id="top-practice-btn" href="Practice_board.html" title="直通练习板">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 3h3v3"></path><path d="M11 13L21 3"></path><path d="M21 14v7h-7"></path><path d="M3 10v11h11"></path></svg>
         </a>
         <a class="top-action-btn" href="replay.html" title="高级回放">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
@@ -200,20 +206,36 @@
     </div>
   </div>
 
+  <div id="mode-intro-modal" class="replay-modal-overlay" style="display: none;">
+    <div class="replay-modal-content settings-modal-content">
+      <h3 id="mode-intro-title">模式简介</h3>
+      <div id="mode-intro-desc" class="mode-intro-desc"></div>
+      <div class="mode-intro-leaderboard-wrap">
+        <div class="mode-intro-leaderboard-title">模式排名榜单</div>
+        <div id="mode-intro-leaderboard" class="mode-intro-leaderboard">
+          榜单功能即将上线，这里将展示 64 封顶模式排行榜。
+        </div>
+      </div>
+      <div class="replay-modal-actions">
+        <button id="mode-intro-close-btn" class="replay-button">关闭</button>
+      </div>
+    </div>
+  </div>
+
   <script src="js/seedrandom.js?v=1771589027738"></script>
   <script src="js/animframe_polyfill.js?v=1771589027738"></script>
   <script src="js/keyboard_input_manager.js?v=1771589027738"></script>
   <script src="js/theme_manager.js?v=1771600400000"></script>
-  <script src="js/mode_catalog.js?v=1771589027738"></script>
+  <script src="js/mode_catalog.js?v=1771728000000"></script>
   <script src="js/html_actuator.js?v=1771599800000"></script>
   <script src="js/grid.js?v=1771589027738"></script>
   <script src="js/tile.js?v=1771589027738"></script>
   <script src="js/local_score_manager.js?v=1771589027738"></script>
   
   <script src="js/local_history_store.js?v=1771701000000"></script>
-  <script src="js/game_manager.js?v=1771701000000"></script>
-  <script src="js/play_application.js?v=1771589027738"></script>
-  <script src="js/capped_timer_scroll.js?v=1771589027738"></script>
-  <script src="js/index_ui.js?v=1771717000000"></script>
+  <script src="js/game_manager.js?v=1771777000000"></script>
+  <script src="js/play_application.js?v=1771778001000"></script>
+  <script src="js/capped_timer_scroll.js?v=1771750000000"></script>
+  <script src="js/index_ui.js?v=1771772000000"></script>
 </body>
 </html>

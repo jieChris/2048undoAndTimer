@@ -27,6 +27,8 @@ function GameManager(size, InputManager, Actuator, ScoreManager) {
   this.pendingMoveInput = null;
   this.moveInputFlushScheduled = false;
   this.lastMoveInputAt = 0;
+  this.practiceRestartBoardMatrix = null;
+  this.practiceRestartModeConfig = null;
 
   this.inputManager.on("move", this.handleMoveInput.bind(this));
   this.inputManager.on("restart", this.restart.bind(this));
@@ -57,6 +59,8 @@ GameManager.STATS_PANEL_VISIBLE_KEY = "stats_panel_visible_v1";
 GameManager.TIMER_MODULE_VIEW_SETTINGS_KEY = "settings_timer_module_view_by_mode_v1";
 GameManager.SAVED_GAME_STATE_VERSION = 1;
 GameManager.SAVED_GAME_STATE_KEY_PREFIX = "savedGameStateByMode:v1:";
+GameManager.SAVED_GAME_STATE_LITE_KEY_PREFIX = "savedGameStateLiteByMode:v1:";
+GameManager.SAVED_GAME_STATE_WINDOW_NAME_KEY = "__gm_saved_state_v1__";
 GameManager.DEFAULT_MODE_KEY = "standard_4x4_pow2_no_undo";
 GameManager.DEFAULT_MODE_CONFIG = {
   key: "standard_4x4_pow2_no_undo",
@@ -87,7 +91,7 @@ GameManager.FALLBACK_MODE_CONFIGS = {
   },
   capped_4x4_pow2_no_undo: {
     key: "capped_4x4_pow2_no_undo",
-    label: "封顶版 4x4（2048，无撤回）",
+    label: "4x4（2048，无撤回）",
     board_width: 4,
     board_height: 4,
     ruleset: "pow2",
@@ -246,7 +250,7 @@ GameManager.LEGACY_MODE_BY_KEY = {
   capped_4x4_pow2_no_undo: "capped",
   practice_legacy: "practice"
 };
-GameManager.TIMER_SLOT_IDS = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768];
+GameManager.TIMER_SLOT_IDS = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536];
 
 GameManager.prototype.getActionKind = function (action) {
   if (action === -1) return "u";
@@ -346,8 +350,139 @@ GameManager.prototype.getSavedGameStateKey = function (modeKey) {
   return GameManager.SAVED_GAME_STATE_KEY_PREFIX + key;
 };
 
+GameManager.prototype.getSavedGameStateLiteKey = function (modeKey) {
+  var key = typeof modeKey === "string" && modeKey ? modeKey : (this.modeKey || this.mode || GameManager.DEFAULT_MODE_KEY);
+  return GameManager.SAVED_GAME_STATE_LITE_KEY_PREFIX + key;
+};
+
+GameManager.prototype.getWebStorageByName = function (name) {
+  try {
+    return (typeof window !== "undefined" && window[name]) ? window[name] : null;
+  } catch (_err) {
+    return null;
+  }
+};
+
+GameManager.prototype.getSavedGameStateStorages = function () {
+  var out = [];
+  var localStore = this.getWebStorageByName("localStorage");
+  var sessionStore = this.getWebStorageByName("sessionStorage");
+  if (localStore) out.push(localStore);
+  if (sessionStore && sessionStore !== localStore) out.push(sessionStore);
+  return out;
+};
+
+GameManager.prototype.readSavedPayloadByKey = function (key) {
+  var stores = this.getSavedGameStateStorages();
+  var best = null;
+  var bestSavedAt = -1;
+  for (var i = 0; i < stores.length; i++) {
+    var raw = null;
+    try {
+      raw = stores[i].getItem(key);
+    } catch (_errRead) {
+      raw = null;
+    }
+    if (!raw) continue;
+    var parsed = null;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (_errParse) {
+      try {
+        stores[i].removeItem(key);
+      } catch (_errRemove) {}
+      continue;
+    }
+    if (!parsed || typeof parsed !== "object") continue;
+    var savedAt = Number(parsed.saved_at) || 0;
+    if (savedAt >= bestSavedAt) {
+      bestSavedAt = savedAt;
+      best = parsed;
+    }
+  }
+  return best;
+};
+
+GameManager.prototype.readWindowNameSavedPayload = function (modeKey) {
+  if (typeof window === "undefined") return null;
+  var raw = "";
+  try {
+    raw = typeof window.name === "string" ? window.name : "";
+  } catch (_errName) {
+    return null;
+  }
+  if (!raw) return null;
+  var marker = GameManager.SAVED_GAME_STATE_WINDOW_NAME_KEY + "=";
+  var parts = raw.split("&");
+  var encoded = "";
+  for (var i = 0; i < parts.length; i++) {
+    if (parts[i].indexOf(marker) === 0) {
+      encoded = parts[i].substring(marker.length);
+      break;
+    }
+  }
+  if (!encoded) return null;
+  var map = null;
+  try {
+    map = JSON.parse(decodeURIComponent(encoded));
+  } catch (_errParse) {
+    return null;
+  }
+  if (!map || typeof map !== "object") return null;
+  var key = typeof modeKey === "string" && modeKey ? modeKey : (this.modeKey || this.mode || GameManager.DEFAULT_MODE_KEY);
+  var payload = map[key];
+  if (!payload || typeof payload !== "object") return null;
+  return payload;
+};
+
+GameManager.prototype.writeWindowNameSavedPayload = function (modeKey, payload) {
+  if (typeof window === "undefined") return false;
+  var key = typeof modeKey === "string" && modeKey ? modeKey : (this.modeKey || this.mode || GameManager.DEFAULT_MODE_KEY);
+  var raw = "";
+  try {
+    raw = typeof window.name === "string" ? window.name : "";
+  } catch (_errNameRead) {
+    raw = "";
+  }
+  var marker = GameManager.SAVED_GAME_STATE_WINDOW_NAME_KEY + "=";
+  var parts = raw ? raw.split("&") : [];
+  var kept = [];
+  var map = {};
+  for (var i = 0; i < parts.length; i++) {
+    var part = parts[i];
+    if (!part) continue;
+    if (part.indexOf(marker) === 0) {
+      var encoded = part.substring(marker.length);
+      try {
+        var parsed = JSON.parse(decodeURIComponent(encoded));
+        if (parsed && typeof parsed === "object") map = parsed;
+      } catch (_errParse) {}
+      continue;
+    }
+    kept.push(part);
+  }
+  if (!payload || typeof payload !== "object") {
+    delete map[key];
+  } else {
+    map[key] = payload;
+  }
+  var encodedMap = "";
+  try {
+    encodedMap = encodeURIComponent(JSON.stringify(map));
+  } catch (_errEncode) {
+    return false;
+  }
+  kept.push(marker + encodedMap);
+  try {
+    window.name = kept.join("&");
+    return true;
+  } catch (_errWrite) {
+    return false;
+  }
+};
+
 GameManager.prototype.shouldUseSavedGameState = function () {
-  if (typeof window === "undefined" || !window.localStorage) return false;
+  if (typeof window === "undefined") return false;
   if (this.replayMode) return false;
   var path = (window.location && window.location.pathname) ? String(window.location.pathname) : "";
   if (path.indexOf("replay.html") !== -1) return false;
@@ -367,10 +502,20 @@ GameManager.prototype.bindGameStatePersistenceEvents = function () {
 };
 
 GameManager.prototype.clearSavedGameState = function (modeKey) {
+  this.writeWindowNameSavedPayload(modeKey, null);
   if (!this.shouldUseSavedGameState()) return;
-  try {
-    window.localStorage.removeItem(this.getSavedGameStateKey(modeKey));
-  } catch (_err) {}
+  var keys = [
+    this.getSavedGameStateKey(modeKey),
+    this.getSavedGameStateLiteKey(modeKey)
+  ];
+  var stores = this.getSavedGameStateStorages();
+  for (var i = 0; i < stores.length; i++) {
+    for (var k = 0; k < keys.length; k++) {
+      try {
+        stores[i].removeItem(keys[k]);
+      } catch (_err) {}
+    }
+  }
 };
 
 GameManager.prototype.captureTimerFixedRowsState = function () {
@@ -547,21 +692,23 @@ GameManager.prototype.restoreTimerRowsFromState = function (saved) {
 
 GameManager.prototype.tryRestoreSavedGameState = function () {
   if (!this.shouldUseSavedGameState()) return false;
-  var raw = null;
-  try {
-    raw = window.localStorage.getItem(this.getSavedGameStateKey());
-  } catch (_err) {
-    return false;
-  }
-  if (!raw) return false;
-
+  var savedFull = this.readSavedPayloadByKey(this.getSavedGameStateKey());
+  var savedLite = this.readSavedPayloadByKey(this.getSavedGameStateLiteKey());
+  var savedWindow = this.readWindowNameSavedPayload(this.modeKey);
   var saved = null;
-  try {
-    saved = JSON.parse(raw);
-  } catch (_err2) {
-    this.clearSavedGameState();
-    return false;
+  var candidates = [savedFull, savedLite, savedWindow];
+  var bestAt = -1;
+  for (var c = 0; c < candidates.length; c++) {
+    var item = candidates[c];
+    if (!item || typeof item !== "object") continue;
+    var at = Number(item.saved_at) || 0;
+    if (at >= bestAt) {
+      bestAt = at;
+      saved = item;
+    }
   }
+  if (!saved) return false;
+
   if (!saved || typeof saved !== "object") {
     this.clearSavedGameState();
     return false;
@@ -574,7 +721,7 @@ GameManager.prototype.tryRestoreSavedGameState = function () {
     this.clearSavedGameState();
     return false;
   }
-  if (saved.over || (saved.won && !saved.keep_playing)) {
+  if ((saved.over || (saved.won && !saved.keep_playing)) && saved.mode_key !== "practice_legacy") {
     this.clearSavedGameState();
     return false;
   }
@@ -645,6 +792,12 @@ GameManager.prototype.tryRestoreSavedGameState = function () {
   this.replayStartBoardMatrix = Array.isArray(saved.replay_start_board_matrix) && saved.replay_start_board_matrix.length === this.height
     ? this.cloneBoardMatrix(saved.replay_start_board_matrix)
     : this.cloneBoardMatrix(this.initialBoardMatrix);
+  this.practiceRestartBoardMatrix = Array.isArray(saved.practice_restart_board_matrix) && saved.practice_restart_board_matrix.length === this.height
+    ? this.cloneBoardMatrix(saved.practice_restart_board_matrix)
+    : null;
+  this.practiceRestartModeConfig = saved.practice_restart_mode_config && typeof saved.practice_restart_mode_config === "object"
+    ? this.clonePlain(saved.practice_restart_mode_config)
+    : null;
 
   this.restoreTimerRowsFromState(saved);
   if (saved.timer_module_view === "hidden") this.timerModuleView = "hidden";
@@ -661,7 +814,7 @@ GameManager.prototype.tryRestoreSavedGameState = function () {
 GameManager.prototype.saveGameState = function (options) {
   options = options || {};
   if (!this.shouldUseSavedGameState()) return;
-  if (this.isSessionTerminated()) {
+  if (this.isSessionTerminated() && this.modeKey !== "practice_legacy") {
     this.clearSavedGameState();
     return;
   }
@@ -687,13 +840,13 @@ GameManager.prototype.saveGameState = function (options) {
     initial_seed: this.initialSeed,
     seed: this.seed,
     move_history: this.moveHistory ? this.moveHistory.slice() : [],
-    undo_stack: this.undoStack ? this.clonePlain(this.undoStack) : [],
+    undo_stack: this.undoStack ? this.safeClonePlain(this.undoStack, []) : [],
     replay_compact_log: this.replayCompactLog || "",
-    session_replay_v3: this.sessionReplayV3 ? this.clonePlain(this.sessionReplayV3) : null,
-    spawn_value_counts: this.spawnValueCounts ? this.clonePlain(this.spawnValueCounts) : {},
+    session_replay_v3: this.sessionReplayV3 ? this.safeClonePlain(this.sessionReplayV3, null) : null,
+    spawn_value_counts: this.spawnValueCounts ? this.safeClonePlain(this.spawnValueCounts, {}) : {},
     reached_32k: !!this.reached32k,
     capped_milestone_count: Number.isInteger(this.cappedMilestoneCount) ? this.cappedMilestoneCount : 0,
-    capped64_unlocked: this.capped64Unlocked ? this.clonePlain(this.capped64Unlocked) : null,
+    capped64_unlocked: this.capped64Unlocked ? this.safeClonePlain(this.capped64Unlocked, null) : null,
     timer_status: this.timerStatus === 1 ? 1 : 0,
     duration_ms: this.getDurationMs(),
     has_game_started: !!this.hasGameStarted,
@@ -706,6 +859,8 @@ GameManager.prototype.saveGameState = function (options) {
     challenge_id: this.challengeId || null,
     initial_board_matrix: this.initialBoardMatrix ? this.cloneBoardMatrix(this.initialBoardMatrix) : this.getFinalBoardMatrix(),
     replay_start_board_matrix: this.replayStartBoardMatrix ? this.cloneBoardMatrix(this.replayStartBoardMatrix) : null,
+    practice_restart_board_matrix: this.practiceRestartBoardMatrix ? this.cloneBoardMatrix(this.practiceRestartBoardMatrix) : null,
+    practice_restart_mode_config: this.practiceRestartModeConfig ? this.safeClonePlain(this.practiceRestartModeConfig, null) : null,
     timer_module_view: this.getTimerModuleViewMode ? this.getTimerModuleViewMode() : "timer",
     timer_fixed_rows: this.captureTimerFixedRowsState(),
     timer_dynamic_rows_capped: this.captureTimerDynamicRowsState("capped-timer-container"),
@@ -716,7 +871,22 @@ GameManager.prototype.saveGameState = function (options) {
   };
 
   try {
-    window.localStorage.setItem(this.getSavedGameStateKey(), JSON.stringify(payload));
+    var key = this.getSavedGameStateKey();
+    var liteKey = this.getSavedGameStateLiteKey();
+    var litePayload = this.buildLiteSavedGameStatePayload(payload);
+    this.writeWindowNameSavedPayload(this.modeKey, litePayload);
+    var persisted = this.writeSavedGameStatePayload(key, payload);
+    if (!persisted) {
+      persisted = this.writeSavedGameStatePayload(key, litePayload);
+    }
+    var litePersisted = this.writeSavedGameStatePayload(liteKey, litePayload);
+    if (!persisted && !litePersisted) {
+      // Quota fallback: remove old snapshots for this mode, then retry a tiny snapshot.
+      this.clearSavedGameState(this.modeKey);
+      persisted = this.writeSavedGameStatePayload(key, litePayload);
+      litePersisted = this.writeSavedGameStatePayload(liteKey, litePayload);
+    }
+    if (!persisted && !litePersisted) return;
     this.lastSavedGameStateAt = now;
   } catch (_err) {}
 };
@@ -773,6 +943,82 @@ GameManager.prototype.detectMode = function () {
 
 GameManager.prototype.clonePlain = function (value) {
   return JSON.parse(JSON.stringify(value));
+};
+
+GameManager.prototype.safeClonePlain = function (value, fallback) {
+  try {
+    return this.clonePlain(value);
+  } catch (_err) {
+    return fallback;
+  }
+};
+
+GameManager.prototype.writeSavedGameStatePayload = function (key, payloadObj) {
+  var stores = this.getSavedGameStateStorages();
+  if (!stores || stores.length === 0) return false;
+  var serialized = null;
+  try {
+    serialized = JSON.stringify(payloadObj);
+  } catch (_errJson) {
+    return false;
+  }
+  for (var i = 0; i < stores.length; i++) {
+    try {
+      stores[i].setItem(key, serialized);
+      return true;
+    } catch (_errStore) {}
+  }
+  return false;
+};
+
+GameManager.prototype.buildLiteSavedGameStatePayload = function (payload) {
+  if (!payload || typeof payload !== "object") return null;
+  return {
+    v: GameManager.SAVED_GAME_STATE_VERSION,
+    saved_at: Number(payload.saved_at) || Date.now(),
+    terminated: false,
+    mode_key: payload.mode_key || this.modeKey,
+    board_width: Number(payload.board_width) || this.width,
+    board_height: Number(payload.board_height) || this.height,
+    ruleset: payload.ruleset || this.ruleset,
+    board: Array.isArray(payload.board) ? this.cloneBoardMatrix(payload.board) : this.getFinalBoardMatrix(),
+    score: Number.isInteger(payload.score) ? payload.score : this.score,
+    over: !!payload.over,
+    won: !!payload.won,
+    keep_playing: !!payload.keep_playing,
+    initial_seed: Number.isFinite(payload.initial_seed) ? Number(payload.initial_seed) : this.initialSeed,
+    seed: Number.isFinite(payload.seed) ? Number(payload.seed) : this.seed,
+    timer_status: payload.timer_status === 1 ? 1 : 0,
+    duration_ms: Number.isFinite(payload.duration_ms) ? Math.floor(payload.duration_ms) : this.getDurationMs(),
+    has_game_started: !!payload.has_game_started,
+    initial_board_matrix: Array.isArray(payload.initial_board_matrix)
+      ? this.cloneBoardMatrix(payload.initial_board_matrix)
+      : (this.initialBoardMatrix ? this.cloneBoardMatrix(this.initialBoardMatrix) : this.getFinalBoardMatrix()),
+    replay_start_board_matrix: Array.isArray(payload.replay_start_board_matrix)
+      ? this.cloneBoardMatrix(payload.replay_start_board_matrix)
+      : (this.replayStartBoardMatrix ? this.cloneBoardMatrix(this.replayStartBoardMatrix) : null),
+    practice_restart_board_matrix: Array.isArray(payload.practice_restart_board_matrix)
+      ? this.cloneBoardMatrix(payload.practice_restart_board_matrix)
+      : (this.practiceRestartBoardMatrix ? this.cloneBoardMatrix(this.practiceRestartBoardMatrix) : null),
+    practice_restart_mode_config: payload.practice_restart_mode_config
+      ? this.safeClonePlain(payload.practice_restart_mode_config, null)
+      : (this.practiceRestartModeConfig ? this.safeClonePlain(this.practiceRestartModeConfig, null) : null),
+    move_history: [],
+    undo_stack: [],
+    replay_compact_log: "",
+    session_replay_v3: null,
+    spawn_value_counts: {},
+    reached_32k: !!payload.reached_32k,
+    capped_milestone_count: Number.isInteger(payload.capped_milestone_count) ? payload.capped_milestone_count : 0,
+    capped64_unlocked: null,
+    combo_streak: Number.isInteger(payload.combo_streak) ? payload.combo_streak : 0,
+    successful_move_count: Number.isInteger(payload.successful_move_count) ? payload.successful_move_count : 0,
+    undo_used: Number.isInteger(payload.undo_used) ? payload.undo_used : 0,
+    lock_consumed_at_move_count: Number.isInteger(payload.lock_consumed_at_move_count) ? payload.lock_consumed_at_move_count : -1,
+    locked_direction_turn: Number.isInteger(payload.locked_direction_turn) ? payload.locked_direction_turn : null,
+    locked_direction: Number.isInteger(payload.locked_direction) ? payload.locked_direction : null,
+    challenge_id: payload.challenge_id || null
+  };
 };
 
 GameManager.prototype.getModeConfigFromCatalog = function (modeKey) {
@@ -1002,8 +1248,8 @@ GameManager.prototype.getMergedValue = function (a, b) {
 
 GameManager.prototype.getTimerMilestoneValues = function () {
   if (this.isFibonacciMode()) {
-    // 12 slots mapped to Fibonacci milestones.
-    return [13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584];
+    // 13 slots mapped to Fibonacci milestones.
+    return [13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181];
   }
   return GameManager.TIMER_SLOT_IDS.slice();
 };
@@ -1058,7 +1304,8 @@ GameManager.prototype.getCappedTargetValue = function () {
 };
 
 GameManager.prototype.isProgressiveCapped64Mode = function () {
-  return this.isCappedMode() && this.getCappedTargetValue() === 64;
+  // Disable progressive hidden timer rows for 64-capped mode.
+  return false;
 };
 
 GameManager.prototype.getTimerRowEl = function (value) {
@@ -1339,14 +1586,31 @@ GameManager.prototype.initStatsPanelUi = function () {
   if (!btn) {
     btn = document.createElement("a");
     btn.id = "stats-panel-toggle";
-    btn.textContent = "统计";
+  }
+  btn.title = "统计";
+  btn.setAttribute("aria-label", "统计");
+  if (!btn.querySelector("svg")) {
+    btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>';
   }
   btn.className = "top-action-btn stats-panel-toggle";
   var exportBtn = document.getElementById("top-export-replay-btn");
-  if (exportBtn && exportBtn.parentNode) {
+  var topActionHost = null;
+  var practiceStatsActions = document.getElementById("practice-stats-actions");
+  if (practiceStatsActions) {
+    topActionHost = practiceStatsActions;
+  } else if (exportBtn && exportBtn.parentNode) {
+    topActionHost = exportBtn.parentNode;
+  } else {
+    topActionHost = document.querySelector(".heading .top-action-buttons") || document.querySelector(".top-action-buttons");
+  }
+  if (topActionHost) {
     btn.classList.remove("is-floating");
-    if (btn.parentNode !== exportBtn.parentNode || btn.nextSibling !== exportBtn) {
-      exportBtn.parentNode.insertBefore(btn, exportBtn);
+    if (exportBtn && exportBtn.parentNode === topActionHost) {
+      if (btn.parentNode !== topActionHost || btn.nextSibling !== exportBtn) {
+        topActionHost.insertBefore(btn, exportBtn);
+      }
+    } else if (btn.parentNode !== topActionHost) {
+      topActionHost.insertBefore(btn, topActionHost.firstChild);
     }
   } else {
     if (btn.parentNode !== document.body) {
@@ -1743,6 +2007,15 @@ GameManager.prototype.restart = function () {
       this.actuator.continue();
       this.undoStack = [];
       this.clearSavedGameState(this.modeKey);
+      if (this.modeKey === "practice_legacy" && this.practiceRestartBoardMatrix) {
+        this.restartWithBoard(
+          this.practiceRestartBoardMatrix,
+          this.practiceRestartModeConfig || this.modeConfig,
+          { preservePracticeRestartBase: true }
+        );
+        this.isTestMode = true;
+        return;
+      }
       this.setup(undefined, { disableStateRestore: true });
   }
 };
@@ -1752,13 +2025,23 @@ GameManager.prototype.restartWithSeed = function (seed, modeConfig) {
   this.setup(seed, { modeConfig: modeConfig, disableStateRestore: true }); // Force setup with specific seed
 };
 
-GameManager.prototype.restartWithBoard = function (board, modeConfig) {
+GameManager.prototype.setPracticeRestartBase = function (board, modeConfig) {
+  if (!Array.isArray(board) || board.length !== this.height) return;
+  this.practiceRestartBoardMatrix = this.cloneBoardMatrix(board);
+  this.practiceRestartModeConfig = modeConfig ? this.clonePlain(modeConfig) : this.clonePlain(this.modeConfig);
+};
+
+GameManager.prototype.restartWithBoard = function (board, modeConfig, options) {
+  options = options || {};
   this.actuator.continue();
   // Seed is irrelevant here; replay spawns are driven by encoded log.
   this.setup(0, { skipStartTiles: true, modeConfig: modeConfig, disableStateRestore: true });
   this.setBoardFromMatrix(board);
   this.initialBoardMatrix = this.getFinalBoardMatrix();
   this.replayStartBoardMatrix = this.cloneBoardMatrix(this.initialBoardMatrix);
+  if (this.modeKey === "practice_legacy" && (options.setPracticeRestartBase || options.preservePracticeRestartBase)) {
+    this.setPracticeRestartBase(this.initialBoardMatrix, modeConfig || this.modeConfig);
+  }
   this.actuate();
 };
 
@@ -2019,7 +2302,7 @@ GameManager.prototype.actuate = function () {
     }
   }
 
-  if (this.isSessionTerminated()) {
+  if (this.isSessionTerminated() && this.modeKey !== "practice_legacy") {
     this.clearSavedGameState(this.modeKey);
     this.tryAutoSubmitOnGameOver();
   } else {

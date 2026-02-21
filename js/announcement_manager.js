@@ -143,6 +143,24 @@
     }
   }
 
+  function bindDelegatedFallback() {
+    if (typeof document === "undefined" || document.__announcementDelegatedBound) return;
+    document.__announcementDelegatedBound = true;
+    document.addEventListener("click", function (e) {
+      var target = e && e.target && e.target.closest ? e.target.closest("#top-announcement-btn") : null;
+      if (target) {
+        e.preventDefault();
+        openAnnouncementModal();
+        return;
+      }
+      var closeBtn = e && e.target && e.target.closest ? e.target.closest("#announcement-close-btn") : null;
+      if (closeBtn) {
+        e.preventDefault();
+        closeAnnouncementModal();
+      }
+    }, true);
+  }
+
   window.AnnouncementManager = {
     hasUnread: hasUnread,
     markLatestAsRead: markLatestAsRead,
@@ -151,8 +169,14 @@
     refresh: updateUnreadDot
   };
 
-  document.addEventListener("DOMContentLoaded", function () {
+  bindDelegatedFallback();
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", function () {
+      bindEvents();
+      updateUnreadDot();
+    });
+  } else {
     bindEvents();
     updateUnreadDot();
-  });
+  }
 })();

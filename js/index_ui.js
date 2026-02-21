@@ -69,6 +69,158 @@ window.exportReplay = function() {
    }
 };
 
+var PRACTICE_TRANSFER_KEY = "practice_board_transfer_v1";
+var PRACTICE_TRANSFER_SESSION_KEY = "practice_board_transfer_session_v1";
+var PRACTICE_GUIDE_SHOWN_KEY = "practice_guide_shown_v2";
+var PRACTICE_GUIDE_SEEN_FLAG = "practice_guide_seen_v2=1";
+
+function getStorageByName(name) {
+  try {
+    return window && window[name] ? window[name] : null;
+  } catch (_err) {
+    return null;
+  }
+}
+
+function safeSetStorageItem(storage, key, value) {
+  if (!storage || !key) return false;
+  try {
+    storage.setItem(key, value);
+    return true;
+  } catch (_err) {
+    return false;
+  }
+}
+
+function safeReadStorageItem(storage, key) {
+  if (!storage || !key) return null;
+  try {
+    return storage.getItem(key);
+  } catch (_err) {
+    return null;
+  }
+}
+
+function hasCookieFlag(key, value) {
+  try {
+    var all = document.cookie || "";
+    return all.indexOf(key + "=" + value) !== -1;
+  } catch (_err) {
+    return false;
+  }
+}
+
+function hasWindowNameFlag(flag) {
+  try {
+    return typeof window.name === "string" && window.name.indexOf(flag) !== -1;
+  } catch (_err) {
+    return false;
+  }
+}
+
+function appendQueryParam(url, key, value) {
+  var sep = url.indexOf("?") === -1 ? "?" : "&";
+  return url + sep + encodeURIComponent(key) + "=" + encodeURIComponent(value);
+}
+
+function hasPracticeGuideSeen() {
+  var localStore = getStorageByName("localStorage");
+  var sessionStore = getStorageByName("sessionStorage");
+  return (
+    safeReadStorageItem(localStore, PRACTICE_GUIDE_SHOWN_KEY) === "1" ||
+    safeReadStorageItem(sessionStore, PRACTICE_GUIDE_SHOWN_KEY) === "1" ||
+    hasCookieFlag(PRACTICE_GUIDE_SHOWN_KEY, "1") ||
+    hasWindowNameFlag(PRACTICE_GUIDE_SEEN_FLAG)
+  );
+}
+
+function cloneJsonSafe(value) {
+  try {
+    return JSON.parse(JSON.stringify(value));
+  } catch (_err) {
+    return null;
+  }
+}
+
+function buildPracticeModeConfigFromCurrent(gm) {
+  var cfg = (window.GAME_MODE_CONFIG && typeof window.GAME_MODE_CONFIG === "object")
+    ? window.GAME_MODE_CONFIG
+    : ((gm && gm.modeConfig && typeof gm.modeConfig === "object") ? gm.modeConfig : {});
+  var ruleset = cfg.ruleset === "fibonacci" ? "fibonacci" : "pow2";
+  var width = Number.isInteger(cfg.board_width) && cfg.board_width > 0
+    ? cfg.board_width
+    : (Number.isInteger(gm.width) && gm.width > 0 ? gm.width : 4);
+  var height = Number.isInteger(cfg.board_height) && cfg.board_height > 0
+    ? cfg.board_height
+    : (Number.isInteger(gm.height) && gm.height > 0 ? gm.height : width);
+  var spawnTable = (Array.isArray(cfg.spawn_table) && cfg.spawn_table.length > 0)
+    ? cloneJsonSafe(cfg.spawn_table)
+    : (ruleset === "fibonacci"
+      ? [{ value: 1, weight: 90 }, { value: 2, weight: 10 }]
+      : [{ value: 2, weight: 90 }, { value: 4, weight: 10 }]);
+  var modeConfig = {
+    key: "practice_legacy",
+    label: "练习板（直通）",
+    board_width: width,
+    board_height: height,
+    ruleset: ruleset,
+    undo_enabled: true,
+    spawn_table: spawnTable,
+    ranked_bucket: "none",
+    mode_family: cfg.mode_family || (ruleset === "fibonacci" ? "fibonacci" : "pow2"),
+    rank_policy: "unranked",
+    special_rules: cloneJsonSafe(cfg.special_rules) || {}
+  };
+  if (Number.isInteger(cfg.max_tile) && cfg.max_tile > 0) {
+    modeConfig.max_tile = cfg.max_tile;
+  }
+  return modeConfig;
+}
+
+window.openPracticeBoardFromCurrent = function () {
+  var gm = window.game_manager;
+  if (!gm || typeof gm.getFinalBoardMatrix !== "function") {
+    alert("当前局面尚未就绪，稍后再试。");
+    return;
+  }
+  var board = gm.getFinalBoardMatrix();
+  if (!Array.isArray(board) || board.length === 0) {
+    alert("未读取到有效盘面。");
+    return;
+  }
+
+  var token = "p" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
+  var payload = {
+    token: token,
+    created_at: Date.now(),
+    board: cloneJsonSafe(board) || board,
+    mode_config: buildPracticeModeConfigFromCurrent(gm)
+  };
+
+  var payloadStr = JSON.stringify(payload);
+  var baseUrl = "Practice_board.html?practice_token=" + encodeURIComponent(token);
+  if (hasPracticeGuideSeen()) {
+    baseUrl = appendQueryParam(baseUrl, "practice_guide_seen", "1");
+  }
+  var persisted = false;
+  var localStore = getStorageByName("localStorage");
+  var sessionStore = getStorageByName("sessionStorage");
+
+  persisted = safeSetStorageItem(localStore, PRACTICE_TRANSFER_KEY, payloadStr);
+  if (!persisted) {
+    persisted = safeSetStorageItem(sessionStore, PRACTICE_TRANSFER_SESSION_KEY, payloadStr);
+  }
+
+  if (persisted) {
+    window.open(baseUrl, "_blank");
+    return;
+  }
+
+  // Final fallback: pass payload through URL when both storages are unavailable.
+  var urlWithPayload = baseUrl + "&practice_payload=" + encodeURIComponent(payloadStr);
+  window.open(urlWithPayload, "_blank");
+};
+
 
 function copyToClipboard(text) {
     if (navigator.clipboard) {
@@ -412,6 +564,7 @@ function getHomeGuideSteps() {
     { selector: "#top-announcement-btn", title: "版本公告", desc: "查看版本更新内容，红点表示有未读公告。" },
     { selector: "#stats-panel-toggle", title: "统计", desc: "打开统计汇总面板，查看步数和出数数据。" },
     { selector: "#top-export-replay-btn", title: "导出回放", desc: "导出当前对局回放字符串，便于保存和复盘。" },
+    { selector: "#top-practice-btn", title: "直通练习板", desc: "把当前盘面复制到练习板，并在新页继续调试。" },
     { selector: "#top-advanced-replay-btn", title: "高级回放", desc: "进入高级回放页，导入并控制回放进度。" },
     { selector: "#top-modes-btn", title: "模式选择", desc: "进入模式页面，切换不同棋盘和玩法。" },
     { selector: "#top-history-btn", title: "历史记录", desc: "查看本地历史记录，支持删除/导入/导出。" },
@@ -737,6 +890,14 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             window.exportReplay();
         });
+    }
+
+    var practiceBtn = document.getElementById("top-practice-btn");
+    if (practiceBtn) {
+      practiceBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        window.openPracticeBoardFromCurrent();
+      });
     }
 
 

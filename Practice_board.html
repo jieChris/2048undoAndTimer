@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <title>2048练习板</title>
 
-  <link href="style/main.css?v=1771715200000" rel="stylesheet" type="text/css">
+  <link href="style/main.css?v=1771778000000" rel="stylesheet" type="text/css">
   <link rel="shortcut icon" href="favicon.ico?v=42">
   <link rel="apple-touch-icon" href="meta/apple-touch-icon.png?v=42">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -158,6 +158,13 @@
           box-shadow: 0 0 0 5px #faf8ef, 0 0 20px 10px rgba(255, 255, 255, 0.5);
           border-radius: 4px;
       }
+      #practice-stats-actions {
+          position: static;
+          display: flex;
+          justify-content: flex-start;
+          gap: 8px;
+          margin: -2px 0 8px;
+      }
   </style>
 </head>
 <body data-mode-id="practice_legacy">
@@ -167,20 +174,17 @@
           点击这里返回首页
       </div>
   </div>
-  <a class="top-action-btn floating-settings-btn" id="top-settings-btn" title="设置">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-  </a>
   <div class="container">
     <!-- Dashboard Layout (Two Boxes at Top) -->
     <div class="dashboard-container">
         <!-- Box 1: Stats -->
         <div class="dashboard-box dashboard-stats">
             <div class="dashboard-stats-grid">
-                <div id="stats-4-rate">4率: 10%</div>
-                <div id="stats-total">总步数: 0</div>
-                <div id="stats-moves">移动步数: 0</div>
-                <div id="stats-undo">撤回步数: 0</div>
-                <div id="stats-ips">IPS: 0</div>
+                <div id="practice-stats-actions">
+                    <a class="top-action-btn" id="top-settings-btn" title="设置">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -210,13 +214,13 @@
         </div>
     </div>
     <div class="heading">
-      <h1 class="title" style="float: left;"><a href="index.html" style="text-decoration: none; color: inherit; cursor: pointer;">2048</a>练习板</h1>
+      <h1 class="title" style="float: left;"><a href="index.html" style="text-decoration: none; color: inherit; cursor: pointer;">2048</a></h1>
       <div class="scores-container" style="float: right;">
         <div class="score-container">0</div>
         <div class="best-container">0</div>
       </div>
       <div class="above-game" style="clear: both; padding-top: 15px;">
-      <p class="game-intro">挑战模式自有惊喜</p>
+      <p class="game-intro">点击下方数字后点击棋盘，可自定义当前盘面。</p>
       <a class="restart-button" title="新游戏">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
       </a>
@@ -236,36 +240,61 @@
             <div class="timertile" id="timer32" style="margin-left:6px; width:187px"></div>
             <br><br>
         </div>
-        <div class="timertile timer-legend-64" style="color: #f9f6f2; font-size: 22px;">64</div>
-        <div class="timertile" id="timer64" style="margin-left:6px; width:187px"></div>
-        <br><br>
-        <div class="timertile timer-legend-128" style="color: #f9f6f2; font-size: 18px;">128</div>
-        <div class="timertile" id="timer128" style="margin-left:6px; width:187px"></div>
-        <br><br>
-        <div class="timertile timer-legend-256" style="color: #f9f6f2; font-size: 18px;">256</div>
-        <div class="timertile" id="timer256" style="margin-left:6px; width:187px"></div>
-        <br><br>
-        <div class="timertile timer-legend-512" style="color: #f9f6f2; font-size: 18px;">512</div>
-        <div class="timertile" id="timer512" style="margin-left:6px; width:187px"></div>
-        <br><br>
-        <div class="timertile timer-legend-1024" style="color: #f9f6f2; font-size: 14px;">1024</div>
-        <div class="timertile" id="timer1024" style="margin-left:6px; width:187px"></div>
-        <br><br>
-        <div class="timertile timer-legend-2048" style="color: #f9f6f2; font-size: 14px;">2048</div>
-        <div class="timertile" id="timer2048" style="margin-left:6px; width:187px"></div>
-        <br><br>
-        <div class="timertile timer-legend-4096" style="color: #f9f6f2; font-size: 14px;">4096</div>
-        <div class="timertile" id="timer4096" style="margin-left:6px; width:187px"></div>
-        <br><br>
-        <div class="timertile timer-legend-8192" style="color: #f9f6f2; font-size: 14px;">8192</div>
-        <div class="timertile" id="timer8192" style="margin-left:6px; width:187px"></div>
-        <br><br>
-        <div class="timertile timer-legend-16384" style="color: #f9f6f2; font-size: 13px;">16384</div>
-        <div class="timertile" id="timer16384" style="margin-left:6px; width:187px"></div>
-        <br><br>
-        <div class="timertile timer-legend-32768" style="color: #f9f6f2; font-size: 13px;">32768</div>
-        <div class="timertile" id="timer32768" style="margin-left:6px; width:187px"></div>
-        <br><br>
+        <div id="timer-row-64">
+            <div class="timertile timer-legend-64" style="color: #f9f6f2; font-size: 22px;">64</div>
+            <div class="timertile" id="timer64" style="margin-left:6px; width:187px"></div>
+            <br><br>
+        </div>
+        <div id="timer-row-128">
+            <div class="timertile timer-legend-128" style="color: #f9f6f2; font-size: 18px;">128</div>
+            <div class="timertile" id="timer128" style="margin-left:6px; width:187px"></div>
+            <br><br>
+        </div>
+        <div id="timer-row-256">
+            <div class="timertile timer-legend-256" style="color: #f9f6f2; font-size: 18px;">256</div>
+            <div class="timertile" id="timer256" style="margin-left:6px; width:187px"></div>
+            <br><br>
+        </div>
+        <div id="timer-row-512">
+            <div class="timertile timer-legend-512" style="color: #f9f6f2; font-size: 18px;">512</div>
+            <div class="timertile" id="timer512" style="margin-left:6px; width:187px"></div>
+            <br><br>
+        </div>
+        <div id="timer-row-1024">
+            <div class="timertile timer-legend-1024" style="color: #f9f6f2; font-size: 14px;">1024</div>
+            <div class="timertile" id="timer1024" style="margin-left:6px; width:187px"></div>
+            <br><br>
+        </div>
+        <div id="timer-row-2048">
+            <div class="timertile timer-legend-2048" style="color: #f9f6f2; font-size: 14px;">2048</div>
+            <div class="timertile" id="timer2048" style="margin-left:6px; width:187px"></div>
+            <br><br>
+        </div>
+        <div id="timer-row-4096">
+            <div class="timertile timer-legend-4096" style="color: #f9f6f2; font-size: 14px;">4096</div>
+            <div class="timertile" id="timer4096" style="margin-left:6px; width:187px"></div>
+            <br><br>
+        </div>
+        <div id="timer-row-8192">
+            <div class="timertile timer-legend-8192" style="color: #f9f6f2; font-size: 14px;">8192</div>
+            <div class="timertile" id="timer8192" style="margin-left:6px; width:187px"></div>
+            <br><br>
+        </div>
+        <div id="timer-row-16384">
+            <div class="timertile timer-legend-16384" style="color: #f9f6f2; font-size: 13px;">16384</div>
+            <div class="timertile" id="timer16384" style="margin-left:6px; width:187px"></div>
+            <br><br>
+        </div>
+        <div id="timer-row-32768">
+            <div class="timertile timer-legend-32768" style="color: #f9f6f2; font-size: 13px;">32768</div>
+            <div class="timertile" id="timer32768" style="margin-left:6px; width:187px"></div>
+            <br><br>
+        </div>
+        <div id="timer-row-65536">
+            <div class="timertile timer-legend-65536" style="color: #f9f6f2; font-size: 12px;">65536</div>
+            <div class="timertile" id="timer65536" style="margin-left:6px; width:187px"></div>
+            <br><br>
+        </div>
         <!-- Sub-timers for 32k+ -->
         <div id="timer32k-sub-container" style="display:none;">
             <div class="timertile timer-legend-8192" style="color: #f9f6f2; font-size: 12px; margin-left: 25px; width: 40px;">8192</div>
@@ -273,6 +302,10 @@
             <br><br>
             <div class="timertile timer-legend-16384" style="color: #f9f6f2; font-size: 12px; margin-left: 25px; width: 40px;">16384</div>
             <div class="timertile" id="timer16384-sub" style="margin-left:6px; width:162px;"></div>
+        </div>
+        <div id="timer-scroll-controls">
+            <a class="timer-scroll-btn" data-scroll-dir="-1">▲ 上移</a>
+            <a class="timer-scroll-btn" data-scroll-dir="1">▼ 下移</a>
         </div>
     </div>
 
@@ -321,7 +354,7 @@
     </div>
     <hr>
     <p class="game-explanation">
-      <strong class="important">新春快乐，马年大吉！</strong>
+      <strong class="important">练习板支持直通局面与基线重试。</strong>
     </p>
     
     </div>
@@ -373,12 +406,13 @@
   <script src="js/local_score_manager.js?v=1771589027738"></script>
   
   <script src="js/local_history_store.js?v=1771701000000"></script>
-  <script src="js/game_manager.js?v=1771701000000"></script>
+  <script src="js/game_manager.js?v=1771777000000"></script>
   <script src="js/application.js?v=1771589027738"></script>
-  <script src="js/index_ui.js?v=1771717000000"></script>
+  <script src="js/capped_timer_scroll.js?v=1771750000000"></script>
+  <script src="js/index_ui.js?v=1771772000000"></script>
   
   <!-- Test UI Logic -->
-  <script src="js/test_ui.js?v=1771589027738"></script>
+  <script src="js/test_ui.js?v=1771772001000"></script>
 
 </body>
 </html>

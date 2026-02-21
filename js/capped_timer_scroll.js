@@ -2,12 +2,13 @@
   var timerScrollOffset = 0;
   var TIMER_MAX_VISIBLE = 11;
 
-  function isCappedMode() {
+  function isTimerScrollEnabledMode() {
     if (typeof document === "undefined" || !document.body) return false;
     var modeId = String(document.body.getAttribute("data-mode-id") || "");
-    if (modeId.indexOf("capped") !== -1) return true;
+    if (modeId.indexOf("capped") !== -1 || modeId.indexOf("practice") !== -1) return true;
     if (window.GAME_MODE_CONFIG && typeof window.GAME_MODE_CONFIG.key === "string") {
-      return window.GAME_MODE_CONFIG.key.indexOf("capped") !== -1;
+      var key = window.GAME_MODE_CONFIG.key;
+      return key.indexOf("capped") !== -1 || key.indexOf("practice") !== -1;
     }
     return false;
   }
@@ -77,7 +78,7 @@
   function updateTimerScroll() {
     var rows = getAllTimerRows();
     var controls = document.getElementById("timer-scroll-controls");
-    if (!isCappedMode() || rows.length === 0) {
+    if (!isTimerScrollEnabledMode() || rows.length === 0) {
       if (controls) controls.style.display = "none";
       return;
     }
@@ -130,7 +131,7 @@
 
   function cappedTimerAutoScroll() {
     var rows = getAllTimerRows();
-    if (!isCappedMode() || rows.length === 0) return;
+    if (!isTimerScrollEnabledMode() || rows.length === 0) return;
     var total = 0;
     for (var i = 0; i < rows.length; i++) {
       if (isRowActive(rows[i])) total += 1;

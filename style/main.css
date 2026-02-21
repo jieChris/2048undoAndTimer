@@ -255,7 +255,7 @@ h1.title a {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: clip;
-  font-size: 24px;
+  font-size: 18px;
 }
 
 .restart-button {
@@ -1277,6 +1277,36 @@ input[type=range]::-webkit-slider-runnable-track {
 .replay-modal-content h3 {
   color: #776e65;
   margin-top: 0;
+}
+
+.mode-intro-desc {
+  color: #776e65;
+  line-height: 1.6;
+  font-size: 15px;
+  white-space: pre-line;
+  text-align: left;
+  margin-bottom: 14px;
+}
+
+.mode-intro-leaderboard-wrap {
+  border: 1px solid #d8d4d0;
+  border-radius: 6px;
+  background: #fffdfa;
+  padding: 10px;
+  margin-bottom: 14px;
+}
+
+.mode-intro-leaderboard-title {
+  color: #776e65;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.mode-intro-leaderboard {
+  min-height: 90px;
+  color: #8a8178;
+  line-height: 1.5;
+  font-size: 14px;
 }
 
 .replay-textarea {

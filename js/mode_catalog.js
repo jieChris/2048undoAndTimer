@@ -90,7 +90,7 @@
 
   add({
     key: "capped_4x4_pow2_no_undo",
-    label: "封顶版 4x4（2048，无撤回）",
+    label: "4x4（2048，无撤回）",
     board_width: 4,
     board_height: 4,
     ruleset: "pow2",
