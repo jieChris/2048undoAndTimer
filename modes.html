@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <title>2048 模式选择</title>
 
-  <link href="style/main.css?v=1771599800000" rel="stylesheet" type="text/css">
+  <link href="style/main.css?v=1771701000000" rel="stylesheet" type="text/css">
   <link rel="shortcut icon" href="favicon.ico?v=42">
   <link rel="apple-touch-icon" href="meta/apple-touch-icon.png?v=42">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="HandheldFriendly" content="True">
   <meta name="MobileOptimized" content="320">
   <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0, maximum-scale=1, user-scalable=no, minimal-ui">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' http://127.0.0.1:3001 http://localhost:3001; script-src 'self'; style-src 'self' 'unsafe-inline';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';">
   <style>
     .mode-hub {
       margin-top: 24px;
@@ -76,11 +76,11 @@
 
     <div class="mode-hub">
       <h2>选择你要进入的模式</h2>
-      <p>排行榜主桶仅统计：标准无撤回、经典可撤回、封顶2048。其余模式默认仅进历史与回放，不进主榜。</p>
+      <p>本站为本地练习工具，所有记录保存在本地。可在历史页面查看、导出、导入和回放。</p>
 
       <div class="mode-major-title">不可撤回模式</div>
 
-      <div class="mode-group-title">主榜/核心</div>
+      <div class="mode-group-title">推荐入口</div>
       <div class="mode-hub-actions">
         <a class="mode-hub-btn" href="index.html">标准版 4x4（无撤回）</a>
         <a class="mode-hub-btn" href="capped_2048.html">封顶版 4x4（2048）</a>
@@ -118,7 +118,7 @@
 
       <div class="mode-major-title">可撤回模式</div>
 
-      <div class="mode-group-title">主榜/核心</div>
+      <div class="mode-group-title">推荐入口</div>
       <div class="mode-hub-actions">
         <a class="mode-hub-btn" href="undo_2048.html">经典版 4x4（可撤回）</a>
       </div>
@@ -157,25 +157,16 @@
         <a class="mode-hub-btn" href="play.html?mode_key=combo_4x4_pow2_undo">连击加分</a>
       </div>
 
-      <div class="mode-major-title">特殊入口</div>
-
-      <div class="mode-group-title">挑战</div>
-      <div class="mode-hub-actions">
-        <a class="mode-hub-btn" id="daily-challenge-btn" href="#">进入今日挑战</a>
-      </div>
-      <div id="daily-challenge-status" style="color:#8a8178; margin-bottom: 10px;"></div>
+      <div class="mode-major-title">工具入口</div>
 
       <div class="mode-group-title">其他页面</div>
       <div class="mode-hub-actions">
         <a class="mode-hub-btn" href="Practice_board.html">练习板（Legacy）</a>
-        <a class="mode-hub-btn" href="leaderboard.html">排行榜</a>
         <a class="mode-hub-btn" href="history.html">历史</a>
-        <a class="mode-hub-btn" href="account.html">账号</a>
+        <a class="mode-hub-btn" href="replay.html">回放</a>
       </div>
     </div>
   </div>
   <script src="js/theme_manager.js?v=1771600400000"></script>
-  <script src="js/api_client.js?v=1771589027738"></script>
-  <script src="js/modes_page.js?v=1771589027738"></script>
 </body>
 </html>

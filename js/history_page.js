@@ -3,6 +3,14 @@
     return document.getElementById(id);
   }
 
+  var state = {
+    page: 1,
+    pageSize: 30,
+    modeKey: "",
+    keyword: "",
+    sortBy: "ended_desc"
+  };
+
   function setStatus(text, isError) {
     var status = el("history-status");
     if (!status) return;
@@ -16,7 +24,7 @@
     var w = Number.isInteger(width) && width > 0 ? width : (Array.isArray(board[0]) ? board[0].length : 0);
     if (w <= 0 || h <= 0) return "";
 
-    var style = "grid-template-columns: repeat(" + w + ", 52px); grid-template-rows: repeat(" + h + ", 52px);";
+    var style = "grid-template-columns: repeat(" + w + ", 48px); grid-template-rows: repeat(" + h + ", 48px);";
     var html = "<div class='final-board-grid' style='" + style + "'>";
     for (var y = 0; y < h; y++) {
       var row = Array.isArray(board[y]) ? board[y] : [];
@@ -37,74 +45,144 @@
       var mode = window.ModeCatalog.getMode(modeKey);
       if (mode && mode.label) return mode.label;
     }
-    if (modeKey) return modeKey;
-
-    if (item.mode === "classic") return "经典";
-    if (item.mode === "capped") return "封顶";
-    if (item.mode === "practice") return "练习";
-    return item.mode || "未知";
+    return modeKey || item.mode || "未知";
   }
 
-  function renderHistory(username, items) {
+  function formatDuration(ms) {
+    var value = Number(ms);
+    if (!Number.isFinite(value) || value < 0) value = 0;
+    var totalSec = Math.floor(value / 1000);
+    var h = Math.floor(totalSec / 3600);
+    var m = Math.floor((totalSec % 3600) / 60);
+    var s = totalSec % 60;
+    if (h > 0) return h + "h " + m + "m " + s + "s";
+    if (m > 0) return m + "m " + s + "s";
+    return s + "s";
+  }
+
+  function buildSummary(result) {
+    var summary = el("history-summary");
+    if (!summary) return;
+    var total = result && Number.isFinite(result.total) ? result.total : 0;
+    summary.textContent = "共 " + total + " 条记录" +
+      " · 当前第 " + state.page + " 页" +
+      " · 每页 " + state.pageSize + " 条";
+  }
+
+  function downloadSingleRecord(item) {
+    if (!window.LocalHistoryStore) return;
+    var payload = window.LocalHistoryStore.exportRecords([item.id]);
+    var safeMode = (item.mode_key || "mode").replace(/[^a-zA-Z0-9_-]/g, "_");
+    var file = "history_" + safeMode + "_" + item.id + ".json";
+    window.LocalHistoryStore.download(file, payload);
+  }
+
+  function renderHistory(result) {
     var list = el("history-list");
     if (!list) return;
-    var title = el("history-title");
-    if (title) title.textContent = username + " 的历史对局";
-
     list.innerHTML = "";
+
+    var items = result && Array.isArray(result.items) ? result.items : [];
     if (!items.length) {
-      list.innerHTML = "<div class='history-item'>暂无历史数据</div>";
+      list.innerHTML = "<div class='history-item'>暂无历史记录。你可以开始一局游戏后再回来查看。</div>";
       return;
     }
 
     for (var i = 0; i < items.length; i++) {
-      var item = items[i];
-      var node = document.createElement("div");
-      node.className = "history-item";
+      (function () {
+        var item = items[i];
+        var node = document.createElement("div");
+        node.className = "history-item";
 
-      var dimText = (item.board_width || 4) + "x" + (item.board_height || 4);
-      var ruleText = item.ruleset === "fibonacci" ? "Fibonacci" : "2幂";
-      var rankedText = item.ranked_bucket && item.ranked_bucket !== "none" ? ("进榜: " + item.ranked_bucket) : "不进榜";
-      var specialRules = item.special_rules_snapshot && typeof item.special_rules_snapshot === "object"
-        ? JSON.stringify(item.special_rules_snapshot)
-        : "{}";
-      var challengeText = item.challenge_id ? ("挑战: " + item.challenge_id) : "普通对局";
+        var endedText = item.ended_at ? new Date(item.ended_at).toLocaleString() : "-";
+        var best = Number.isFinite(item.best_tile) ? item.best_tile : 0;
+        var score = Number.isFinite(item.score) ? item.score : 0;
+        var duration = formatDuration(item.duration_ms);
 
-      node.innerHTML =
-        "<div class='history-item-head'>" +
-          "<span>模式: " + modeText(item) + "</span>" +
-          "<span>棋盘: " + dimText + "</span>" +
-          "<span>规则: " + ruleText + "</span>" +
-          "<span>撤回: " + (item.undo_enabled ? "开" : "关") + "</span>" +
-          "<span>状态: " + item.status + "</span>" +
-          "<span>分数: " + item.score + "</span>" +
-          "<span>最大块: " + item.best_tile + "</span>" +
-          "<span>" + rankedText + "</span>" +
-          "<span>" + challengeText + "</span>" +
-          "<span>规则参数: " + specialRules + "</span>" +
-          "<span>结束: " + new Date(item.ended_at).toLocaleString() + "</span>" +
-          "<a href='replay.html?session_id=" + encodeURIComponent(item.session_id) + "'>回放</a>" +
-        "</div>" +
-        boardToHtml(item.final_board, item.board_width, item.board_height);
-      list.appendChild(node);
+        node.innerHTML =
+          "<div class='history-item-head'>" +
+            "<strong>" + modeText(item) + "</strong>" +
+            "<span>分数: " + score + "</span>" +
+            "<span>最大块: " + best + "</span>" +
+            "<span>时长: " + duration + "</span>" +
+            "<span>结束: " + endedText + "</span>" +
+          "</div>" +
+          "<div class='history-item-actions'>" +
+            "<button class='replay-button history-replay-btn'>回放</button>" +
+            "<button class='replay-button history-export-btn'>导出</button>" +
+            "<button class='replay-button history-delete-btn'>删除</button>" +
+          "</div>" +
+          boardToHtml(item.final_board, item.board_width, item.board_height);
+
+        var replayBtn = node.querySelector(".history-replay-btn");
+        if (replayBtn) {
+          replayBtn.addEventListener("click", function () {
+            window.location.href = "replay.html?local_history_id=" + encodeURIComponent(item.id);
+          });
+        }
+
+        var exportBtn = node.querySelector(".history-export-btn");
+        if (exportBtn) {
+          exportBtn.addEventListener("click", function () {
+            downloadSingleRecord(item);
+          });
+        }
+
+        var deleteBtn = node.querySelector(".history-delete-btn");
+        if (deleteBtn) {
+          deleteBtn.addEventListener("click", function () {
+            if (!window.confirm("确认删除这条历史记录？此操作不可撤销。")) return;
+            var ok = window.LocalHistoryStore.deleteById(item.id);
+            if (!ok) {
+              setStatus("删除失败：记录不存在或已被删除", true);
+              return;
+            }
+            setStatus("记录已删除", false);
+            loadHistory();
+          });
+        }
+
+        list.appendChild(node);
+      })();
     }
   }
 
-  function getDefaultUsername() {
-    var params = new URLSearchParams(window.location.search);
-    var qUser = params.get("username");
-    if (qUser) return qUser;
-    var user = window.ApiClient.getCurrentUser();
-    return user ? user.username : "";
+  function readFilters() {
+    state.modeKey = (el("history-mode").value || "").trim();
+    state.keyword = (el("history-keyword").value || "").trim();
+    state.sortBy = (el("history-sort").value || "ended_desc").trim();
+  }
+
+  function loadHistory(resetPage) {
+    if (!window.LocalHistoryStore) return;
+    if (resetPage) state.page = 1;
+    readFilters();
+
+    var result = window.LocalHistoryStore.listRecords({
+      mode_key: state.modeKey,
+      keyword: state.keyword,
+      sort_by: state.sortBy,
+      page: state.page,
+      page_size: state.pageSize
+    });
+
+    renderHistory(result);
+    buildSummary(result);
+    setStatus("", false);
+
+    var prevBtn = el("history-prev-page");
+    var nextBtn = el("history-next-page");
+    if (prevBtn) prevBtn.disabled = state.page <= 1;
+    if (nextBtn) {
+      var maxPage = Math.max(1, Math.ceil((result.total || 0) / state.pageSize));
+      nextBtn.disabled = state.page >= maxPage;
+    }
   }
 
   function initModeFilter() {
     var select = el("history-mode");
     if (!select) return;
-
-    if (!(window.ModeCatalog && typeof window.ModeCatalog.listModes === "function")) {
-      return;
-    }
+    if (!(window.ModeCatalog && typeof window.ModeCatalog.listModes === "function")) return;
 
     var modes = window.ModeCatalog.listModes();
     for (var i = 0; i < modes.length; i++) {
@@ -115,40 +193,123 @@
     }
   }
 
-  async function loadHistory() {
-    var username = el("history-username").value.trim();
-    var modeKey = el("history-mode").value;
-    if (!username) {
-      setStatus("请输入用户名", true);
-      return;
+  function bindToolbarActions() {
+    var reloadBtn = el("history-load-btn");
+    if (reloadBtn) {
+      reloadBtn.addEventListener("click", function () {
+        loadHistory(true);
+      });
     }
 
-    var options = { page: 1, page_size: 20 };
-    if (modeKey) options.mode_key = modeKey;
+    var exportAllBtn = el("history-export-all-btn");
+    if (exportAllBtn) {
+      exportAllBtn.addEventListener("click", function () {
+        if (!window.LocalHistoryStore) return;
+        var payload = window.LocalHistoryStore.exportRecords();
+        var dateTag = new Date().toISOString().slice(0, 10);
+        window.LocalHistoryStore.download("2048_local_history_" + dateTag + ".json", payload);
+        setStatus("已导出全部历史记录", false);
+      });
+    }
 
-    try {
-      setStatus("加载中...", false);
-      var data = await window.ApiClient.getUserHistory(username, options);
-      renderHistory(data.username, data.items || []);
-      setStatus("", false);
-    } catch (error) {
-      setStatus("加载失败: " + (error.message || "unknown"), true);
+    var clearAllBtn = el("history-clear-all-btn");
+    if (clearAllBtn) {
+      clearAllBtn.addEventListener("click", function () {
+        if (!window.confirm("确认清空全部本地历史记录？此操作不可撤销。")) return;
+        window.LocalHistoryStore.clearAll();
+        setStatus("已清空全部历史记录", false);
+        loadHistory(true);
+      });
+    }
+
+    var importBtn = el("history-import-btn");
+    var importReplaceBtn = el("history-import-replace-btn");
+    var importInput = el("history-import-file");
+    if (importBtn && importInput) {
+      var importMode = "merge";
+      importBtn.addEventListener("click", function () {
+        importMode = "merge";
+        importInput.click();
+      });
+      if (importReplaceBtn) {
+        importReplaceBtn.addEventListener("click", function () {
+          if (!window.confirm("导入并替换会清空当前本地历史后再导入，是否继续？")) return;
+          importMode = "replace";
+          importInput.click();
+        });
+      }
+      importInput.addEventListener("change", function () {
+        var file = importInput.files && importInput.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function () {
+          try {
+            var merge = importMode !== "replace";
+            var result = window.LocalHistoryStore.importRecords(String(reader.result || ""), { merge: merge });
+            setStatus("导入成功：新增 " + result.imported + " 条，覆盖 " + result.replaced + " 条。", false);
+            loadHistory(true);
+          } catch (error) {
+            setStatus("导入失败: " + (error && error.message ? error.message : "unknown"), true);
+          }
+        };
+        reader.onerror = function () {
+          setStatus("读取文件失败", true);
+        };
+        reader.readAsText(file, "utf-8");
+        importInput.value = "";
+      });
+    }
+
+    var prevBtn = el("history-prev-page");
+    if (prevBtn) {
+      prevBtn.addEventListener("click", function () {
+        if (state.page <= 1) return;
+        state.page -= 1;
+        loadHistory(false);
+      });
+    }
+
+    var nextBtn = el("history-next-page");
+    if (nextBtn) {
+      nextBtn.addEventListener("click", function () {
+        state.page += 1;
+        loadHistory(false);
+      });
+    }
+
+    var mode = el("history-mode");
+    if (mode) {
+      mode.addEventListener("change", function () {
+        loadHistory(true);
+      });
+    }
+
+    var sort = el("history-sort");
+    if (sort) {
+      sort.addEventListener("change", function () {
+        loadHistory(true);
+      });
+    }
+
+    var keyword = el("history-keyword");
+    if (keyword) {
+      keyword.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          loadHistory(true);
+        }
+      });
     }
   }
 
   document.addEventListener("DOMContentLoaded", function () {
-    if (!window.ApiClient) return;
+    if (!window.LocalHistoryStore) {
+      setStatus("本地历史模块未加载", true);
+      return;
+    }
 
     initModeFilter();
-
-    var userInput = el("history-username");
-    userInput.value = getDefaultUsername();
-
-    el("history-load-btn").addEventListener("click", loadHistory);
-    el("history-mode").addEventListener("change", loadHistory);
-
-    if (userInput.value) {
-      loadHistory();
-    }
+    bindToolbarActions();
+    loadHistory(true);
   });
 })();

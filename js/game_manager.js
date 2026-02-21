@@ -432,7 +432,12 @@ GameManager.prototype.createSavedDynamicTimerRow = function (rowState) {
   legend.className = this.getCappedTimerLegendClass();
   legend.style.cssText = "color: #f9f6f2; font-size: " + this.getCappedTimerFontSize() + ";";
   legend.textContent = labelText;
-  if (rowState && typeof rowState.labelClass === "string" && rowState.labelClass) {
+  if (
+    !(Number.isFinite(repeat) && repeat >= 2 && this.isCappedMode()) &&
+    rowState &&
+    typeof rowState.labelClass === "string" &&
+    rowState.labelClass
+  ) {
     legend.className = rowState.labelClass;
   }
   if (rowState && typeof rowState.labelFontSize === "string" && rowState.labelFontSize) {
@@ -449,6 +454,29 @@ GameManager.prototype.createSavedDynamicTimerRow = function (rowState) {
   rowDiv.appendChild(document.createElement("br"));
   rowDiv.appendChild(document.createElement("br"));
   return rowDiv;
+};
+
+GameManager.prototype.normalizeCappedRepeatLegendClasses = function () {
+  if (!this.isCappedMode() || typeof document === "undefined") return;
+  var rows = document.querySelectorAll("#timerbox [data-capped-repeat]");
+  var legendClass = this.getCappedTimerLegendClass();
+  var fontSize = this.getCappedTimerFontSize();
+  for (var i = 0; i < rows.length; i++) {
+    var row = rows[i];
+    if (!row || !row.querySelector) continue;
+    var legend = row.querySelector(".timertile");
+    if (!legend) continue;
+    legend.className = legendClass;
+    legend.style.color = "#f9f6f2";
+    legend.style.fontSize = fontSize;
+  }
+  if (
+    typeof window !== "undefined" &&
+    window.ThemeManager &&
+    typeof window.ThemeManager.syncTimerLegendStyles === "function"
+  ) {
+    window.ThemeManager.syncTimerLegendStyles();
+  }
 };
 
 GameManager.prototype.restoreTimerRowsFromState = function (saved) {
@@ -472,7 +500,11 @@ GameManager.prototype.restoreTimerRowsFromState = function (saved) {
 
       timerEl.textContent = typeof rowState.timerText === "string" ? rowState.timerText : "";
       if (legend) {
-        if (typeof rowState.legendClass === "string" && rowState.legendClass) legend.className = rowState.legendClass;
+        if (row.getAttribute("data-capped-repeat") && this.isCappedMode()) {
+          legend.className = this.getCappedTimerLegendClass();
+        } else if (typeof rowState.legendClass === "string" && rowState.legendClass) {
+          legend.className = rowState.legendClass;
+        }
         if (typeof rowState.legendText === "string") legend.textContent = rowState.legendText;
         legend.style.fontSize = typeof rowState.legendFontSize === "string" ? rowState.legendFontSize : "";
       }
@@ -505,6 +537,8 @@ GameManager.prototype.restoreTimerRowsFromState = function (saved) {
   if (subContainer && typeof saved.timer_sub_visible === "boolean") {
     subContainer.style.display = saved.timer_sub_visible ? "block" : "none";
   }
+
+  this.normalizeCappedRepeatLegendClasses();
 
   if (typeof window !== "undefined" && typeof window.updateTimerScroll === "function") {
     window.updateTimerScroll();
@@ -613,7 +647,7 @@ GameManager.prototype.tryRestoreSavedGameState = function () {
     : this.cloneBoardMatrix(this.initialBoardMatrix);
 
   this.restoreTimerRowsFromState(saved);
-  if (saved.timer_module_view === "leaderboard") this.timerModuleView = "leaderboard";
+  if (saved.timer_module_view === "hidden") this.timerModuleView = "hidden";
   else this.timerModuleView = "timer";
 
   var timerEl = document.getElementById("timer");
@@ -1190,6 +1224,7 @@ GameManager.prototype.fillCappedPlaceholderRowByRepeat = function (repeatCount, 
   timerEl.textContent = timeStr;
   row.setAttribute("data-capped-repeat", String(repeatCount));
   this.setTimerRowVisibleState(slotId, true, true);
+  this.normalizeCappedRepeatLegendClasses();
   return true;
 };
 
@@ -1245,6 +1280,7 @@ GameManager.prototype.recordCappedMilestone = function (timeStr) {
     time: timeStr
   });
   container.appendChild(rowDiv);
+  this.normalizeCappedRepeatLegendClasses();
 
   if (typeof window.cappedTimerAutoScroll === "function") {
     window.cappedTimerAutoScroll();
@@ -1390,22 +1426,19 @@ GameManager.prototype.closeStatsPanel = function () {
 };
 
 GameManager.prototype.isTimerLeaderboardAvailableByMode = function (mode) {
-  var modeCfg = this.resolveModeConfig(mode || this.mode);
-  if (!modeCfg) return false;
-  // Current leaderboard API supports all no-undo modes.
-  return modeCfg.undo_enabled === false;
+  void mode;
+  return true;
 };
 
 GameManager.prototype.isTimerLeaderboardAvailable = function () {
-  return this.isTimerLeaderboardAvailableByMode(this.mode);
+  return true;
 };
 
 GameManager.prototype.getTimerModuleViewMode = function () {
-  return this.timerModuleView === "leaderboard" ? "leaderboard" : "timer";
+  return this.timerModuleView === "hidden" ? "hidden" : "timer";
 };
 
 GameManager.prototype.loadTimerModuleViewForMode = function (mode) {
-  if (!this.isTimerLeaderboardAvailableByMode(mode)) return "timer";
   var map = {};
   try {
     map = JSON.parse(localStorage.getItem(GameManager.TIMER_MODULE_VIEW_SETTINGS_KEY) || "{}");
@@ -1413,18 +1446,17 @@ GameManager.prototype.loadTimerModuleViewForMode = function (mode) {
     map = {};
   }
   var value = map[mode];
-  return value === "leaderboard" ? "leaderboard" : "timer";
+  return value === "hidden" ? "hidden" : "timer";
 };
 
 GameManager.prototype.persistTimerModuleViewForMode = function (mode, view) {
-  if (!this.isTimerLeaderboardAvailableByMode(mode)) return;
   var map = {};
   try {
     map = JSON.parse(localStorage.getItem(GameManager.TIMER_MODULE_VIEW_SETTINGS_KEY) || "{}");
   } catch (_err) {
     map = {};
   }
-  map[mode] = view === "leaderboard" ? "leaderboard" : "timer";
+  map[mode] = view === "hidden" ? "hidden" : "timer";
   try {
     localStorage.setItem(GameManager.TIMER_MODULE_VIEW_SETTINGS_KEY, JSON.stringify(map));
   } catch (_err2) {}
@@ -1445,132 +1477,16 @@ GameManager.prototype.captureTimerModuleBaseHeight = function () {
   }
 };
 
-GameManager.prototype.ensureTimerLeaderboardPanel = function () {
-  var timerBox = document.getElementById("timerbox");
-  if (!timerBox) return null;
-  var panel = document.getElementById("timerbox-leaderboard-panel");
-  if (panel) return panel;
-
-  panel = document.createElement("div");
-  panel.id = "timerbox-leaderboard-panel";
-  panel.className = "timerbox-leaderboard-panel";
-  panel.innerHTML =
-    "<div class='timerbox-leaderboard-header'>" +
-    "<div class='timerbox-leaderboard-title'>排行榜</div>" +
-    "</div>" +
-    "<div id='timerbox-leaderboard-list' class='timerbox-leaderboard-list'></div>";
-  timerBox.appendChild(panel);
-  return panel;
-};
-
-GameManager.prototype.renderTimerLeaderboardRows = function (items, selfUsername) {
-  var list = document.getElementById("timerbox-leaderboard-list");
-  if (!list) return;
-  list.innerHTML = "";
-
-  if (!Array.isArray(items) || items.length === 0) {
-    var empty = document.createElement("div");
-    empty.className = "timerbox-leaderboard-empty";
-    empty.textContent = "暂无排行数据";
-    list.appendChild(empty);
-    return;
-  }
-
-  var top = items.slice(0, 10);
-  var selfItem = null;
-  if (selfUsername) {
-    for (var i = 0; i < items.length; i++) {
-      if (items[i] && items[i].username === selfUsername) {
-        selfItem = items[i];
-        break;
-      }
-    }
-  }
-
-  function createRow(item, extraClass) {
-    if (!item) return null;
-    var row = document.createElement("div");
-    row.className = "timerbox-leaderboard-row" + (extraClass ? " " + extraClass : "");
-
-    var rank = document.createElement("div");
-    rank.className = "timerbox-leaderboard-rank";
-    if (item.rank <= 3) rank.className += " timerbox-leaderboard-rank-top" + item.rank;
-    rank.textContent = String(item.rank || "-");
-
-    var entry = document.createElement("div");
-    entry.className = "timerbox-leaderboard-entry";
-    entry.textContent = String(item.score || 0) + " - " + String(item.username || "unknown");
-
-    row.appendChild(rank);
-    row.appendChild(entry);
-    return row;
-  }
-
-  for (var j = 0; j < top.length; j++) {
-    var cls = selfUsername && top[j].username === selfUsername ? "is-self" : "";
-    var node = createRow(top[j], cls);
-    if (node) list.appendChild(node);
-  }
-
-  if (selfItem && selfItem.rank > 10) {
-    var selfNode = createRow(selfItem, "is-self");
-    if (selfNode) list.appendChild(selfNode);
-  }
-};
-
-GameManager.prototype.refreshTimerLeaderboard = function () {
-  if (!this.isTimerLeaderboardAvailable()) return;
-  this.ensureTimerLeaderboardPanel();
-  var list = document.getElementById("timerbox-leaderboard-list");
-  if (!list) return;
-  list.innerHTML = "<div class='timerbox-leaderboard-empty'>加载中...</div>";
-
-  if (!window.ApiClient || typeof window.ApiClient.getLeaderboard !== "function") {
-    list.innerHTML = "<div class='timerbox-leaderboard-empty'>排行榜不可用</div>";
-    return;
-  }
-
-  var self = this;
-  var loadId = ++this.timerLeaderboardLoadId;
-  var modeKey = this.modeKey;
-  var me = window.ApiClient.getCurrentUser ? window.ApiClient.getCurrentUser() : null;
-  var meName = me && me.username ? me.username : null;
-
-  window.ApiClient.getLeaderboard(modeKey, "all", 200, 0)
-    .then(function (data) {
-      if (loadId !== self.timerLeaderboardLoadId) return;
-      self.renderTimerLeaderboardRows(data && data.items ? data.items : [], meName);
-    })
-    .catch(function () {
-      if (loadId !== self.timerLeaderboardLoadId) return;
-      list.innerHTML = "<div class='timerbox-leaderboard-empty'>加载失败</div>";
-    });
-};
-
 GameManager.prototype.applyTimerModuleView = function (view, skipPersist) {
   var timerBox = document.getElementById("timerbox");
   if (!timerBox) return;
-  var wasLeaderboard = timerBox.classList.contains("timerbox-leaderboard-mode");
-  if (!wasLeaderboard) {
-    this.captureTimerModuleBaseHeight();
-  }
-
-  var allowed = this.isTimerLeaderboardAvailable();
-  var next = (allowed && view === "leaderboard") ? "leaderboard" : "timer";
+  this.captureTimerModuleBaseHeight();
+  var next = view === "hidden" ? "hidden" : "timer";
   this.timerModuleView = next;
-
-  var panel = this.ensureTimerLeaderboardPanel();
-  if (next === "leaderboard") {
-    timerBox.classList.add("timerbox-leaderboard-mode");
-    if (this.timerModuleBaseHeight > 0) {
-      timerBox.style.minHeight = this.timerModuleBaseHeight + "px";
-      if (panel) panel.style.minHeight = this.timerModuleBaseHeight + "px";
-    }
-    this.refreshTimerLeaderboard();
-  } else {
-    timerBox.classList.remove("timerbox-leaderboard-mode");
-    timerBox.style.minHeight = "";
-    if (panel) panel.style.minHeight = "";
+  if (next === "hidden") timerBox.classList.add("timerbox-hidden-mode");
+  else timerBox.classList.remove("timerbox-hidden-mode");
+  if (this.timerModuleBaseHeight > 0) {
+    timerBox.style.minHeight = this.timerModuleBaseHeight + "px";
   }
 
   if (!skipPersist) {
@@ -2002,9 +1918,7 @@ GameManager.prototype.setup = function (inputSeed, options) {
     this.updateStatsPanel(0, 0, 0);
   }
 
-  if (window.ApiClient && typeof window.ApiClient.flushPendingSessions === "function") {
-    window.ApiClient.flushPendingSessions().catch(function () {});
-  }
+  // 在线补传链路已移除，历史记录统一保存在本地。
 };
 
 // Set up the initial tiles to start the game with
@@ -2772,25 +2686,42 @@ GameManager.prototype.serializeV3 = function () {
 };
 
 GameManager.prototype.tryAutoSubmitOnGameOver = function () {
-  var self = this;
-  function setSkip(reason) {
+  function setResult(payload) {
     try {
-      localStorage.setItem("last_session_submit_result_v1", JSON.stringify({
-        at: new Date().toISOString(),
-        ok: false,
-        skipped: true,
-        reason: reason
-      }));
+      localStorage.setItem("last_session_submit_result_v1", JSON.stringify(payload));
     } catch (_err) {}
   }
 
   if (this.sessionSubmitDone) return;
-  if (this.replayMode) { setSkip("replay_mode"); return; }
-  if (this.disableSessionSync) { setSkip("sync_disabled"); return; }
-  if (!this.isSessionTerminated()) { setSkip("not_terminated"); return; }
-  if (!window.ApiClient || typeof window.ApiClient.completeSession !== "function") { setSkip("api_client_missing"); return; }
+  if (this.replayMode) {
+    setResult({
+      at: new Date().toISOString(),
+      ok: false,
+      skipped: true,
+      reason: "replay_mode"
+    });
+    return;
+  }
+  if (!this.isSessionTerminated()) {
+    setResult({
+      at: new Date().toISOString(),
+      ok: false,
+      skipped: true,
+      reason: "not_terminated"
+    });
+    return;
+  }
+  if (!window.LocalHistoryStore || typeof window.LocalHistoryStore.saveRecord !== "function") {
+    setResult({
+      at: new Date().toISOString(),
+      ok: false,
+      reason: "local_history_store_missing"
+    });
+    return;
+  }
 
   this.sessionSubmitDone = true;
+  var endedAt = new Date().toISOString();
   var payload = {
     mode: this.getServerMode(this.modeKey),
     mode_key: this.modeKey,
@@ -2802,46 +2733,37 @@ GameManager.prototype.tryAutoSubmitOnGameOver = function () {
     mode_family: this.modeFamily,
     rank_policy: this.rankPolicy,
     special_rules_snapshot: this.clonePlain(this.specialRules || {}),
-    challenge_id: this.challengeId,
+    challenge_id: this.challengeId || null,
     score: this.score,
     best_tile: this.getBestTileValue(),
     duration_ms: this.getDurationMs(),
     final_board: this.getFinalBoardMatrix(),
-    ended_at: new Date().toISOString(),
+    ended_at: endedAt,
     replay: this.serializeV3(),
-    client_version: (window.GAME_CLIENT_VERSION || "1.61"),
+    replay_string: this.serialize(),
+    client_version: (window.GAME_CLIENT_VERSION || "1.8"),
     end_reason: this.over ? "game_over" : "win_stop"
   };
 
-  window.ApiClient.completeSession(payload)
-    .then(function (res) {
-      try {
-        localStorage.setItem("last_session_submit_result_v1", JSON.stringify({
-          at: new Date().toISOString(),
-          ok: true,
-          queued: !!(res && res.queued),
-          mode: payload.mode,
-          score: payload.score,
-          end_reason: payload.end_reason,
-          skip_state: {
-            replayMode: self.replayMode,
-            disableSessionSync: self.disableSessionSync
-          }
-        }));
-      } catch (_err) {}
-    })
-    .catch(function (error) {
-      try {
-        localStorage.setItem("last_session_submit_result_v1", JSON.stringify({
-          at: new Date().toISOString(),
-          ok: false,
-          mode: payload.mode,
-          score: payload.score,
-          end_reason: payload.end_reason,
-          error: error && error.message ? error.message : "submit_failed"
-        }));
-      } catch (_err2) {}
+  try {
+    var saved = window.LocalHistoryStore.saveRecord(payload);
+    setResult({
+      at: endedAt,
+      ok: true,
+      local_saved: true,
+      mode_key: payload.mode_key,
+      score: payload.score,
+      record_id: saved && saved.id ? saved.id : null
     });
+  } catch (error) {
+    setResult({
+      at: endedAt,
+      ok: false,
+      mode_key: payload.mode_key,
+      score: payload.score,
+      error: error && error.message ? error.message : "local_save_failed"
+    });
+  }
 };
 
 GameManager.prototype.isSessionTerminated = function () {

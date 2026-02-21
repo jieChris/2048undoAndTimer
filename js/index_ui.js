@@ -119,7 +119,7 @@ window.pretty = function(time) {
 };
 
 function formatPreviewValue(value) {
-  if (value >= 1024) {
+  if (value >= 1024 && value % 1024 === 0) {
     return (value / 1024) + "K";
   }
   return "" + value;
@@ -338,10 +338,10 @@ function ensureTimerModuleSettingsDom() {
   var row = document.createElement("div");
   row.className = "settings-row";
   row.innerHTML =
-    "<label for='timer-module-view-toggle'>右侧模块</label>" +
+    "<label for='timer-module-view-toggle'>计时器显示</label>" +
     "<label class='settings-switch-row'>" +
     "<input id='timer-module-view-toggle' type='checkbox'>" +
-    "<span>排行榜模式（关闭为计时器模式）</span>" +
+    "<span>显示计时器（关闭后隐藏）</span>" +
     "</label>" +
     "<div id='timer-module-view-note' class='settings-note'></div>";
 
@@ -366,14 +366,11 @@ function initTimerModuleSettingsUI() {
   function sync() {
     var gm = window.game_manager;
     if (!gm) return;
-    var available = gm.isTimerLeaderboardAvailable ? gm.isTimerLeaderboardAvailable() : false;
     var view = gm.getTimerModuleViewMode ? gm.getTimerModuleViewMode() : "timer";
-    toggle.disabled = !available;
-    toggle.checked = view === "leaderboard";
+    toggle.disabled = false;
+    toggle.checked = view !== "hidden";
     if (note) {
-      note.textContent = available
-        ? "开启后右侧显示当前模式总榜（前10 + 本人名次）。"
-        : "当前模式不支持排行榜模块，仅显示计时器。";
+      note.textContent = "关闭后仅隐藏右侧计时器栏，不影响棋盘和回放。";
     }
   }
   window.syncTimerModuleSettingsUI = sync;
@@ -382,7 +379,7 @@ function initTimerModuleSettingsUI() {
     toggle.__timerViewBound = true;
     toggle.addEventListener("change", function () {
       if (!window.game_manager || !window.game_manager.setTimerModuleViewMode) return;
-      window.game_manager.setTimerModuleViewMode(this.checked ? "leaderboard" : "timer");
+      window.game_manager.setTimerModuleViewMode(this.checked ? "timer" : "hidden");
       sync();
     });
   }

@@ -138,54 +138,41 @@ function updateReplayUI() {
 
 async function loadReplayFromSessionId() {
     var params = new URLSearchParams(window.location.search);
+    var localHistoryId = params.get("local_history_id");
     var sessionId = params.get("session_id");
-    if (!sessionId || !window.ApiClient) return;
+    if (!localHistoryId && !sessionId) return;
     if (!window.game_manager) {
         setTimeout(loadReplayFromSessionId, 60);
         return;
     }
 
-    try {
-        var session = await window.ApiClient.getSession(sessionId);
-        if (!session || !session.replay) return;
-        if (session.mode_key && !session.replay.mode_key) {
-            session.replay.mode_key = session.mode_key;
-        }
-        if (session.board_width && session.replay.board_width === undefined) {
-            session.replay.board_width = session.board_width;
-        }
-        if (session.board_height && session.replay.board_height === undefined) {
-            session.replay.board_height = session.board_height;
-        }
-        if (session.ruleset && !session.replay.ruleset) {
-            session.replay.ruleset = session.ruleset;
-        }
-        if (session.undo_enabled !== undefined && session.replay.undo_enabled === undefined) {
-            session.replay.undo_enabled = !!session.undo_enabled;
-        }
-        if (session.mode_family && !session.replay.mode_family) {
-            session.replay.mode_family = session.mode_family;
-        }
-        if (session.rank_policy && !session.replay.rank_policy) {
-            session.replay.rank_policy = session.rank_policy;
-        }
-        if (session.special_rules_snapshot && !session.replay.special_rules_snapshot) {
-            session.replay.special_rules_snapshot = session.special_rules_snapshot;
-        }
-        if (session.challenge_id && !session.replay.challenge_id) {
-            session.replay.challenge_id = session.challenge_id;
-        }
+    if (localHistoryId) {
+        try {
+            if (!window.LocalHistoryStore || typeof window.LocalHistoryStore.getById !== "function") {
+                throw new Error("local_history_store_missing");
+            }
+            var record = window.LocalHistoryStore.getById(localHistoryId);
+            if (!record) throw new Error("record_not_found");
 
-        var replayPayload = JSON.stringify(session.replay);
-        window.game_manager.import(replayPayload);
+            var replayPayload = record.replay_string
+              ? record.replay_string
+              : (record.replay ? JSON.stringify(record.replay) : "");
+            if (!replayPayload) throw new Error("replay_missing");
 
-        var title = document.querySelector(".heading .title");
-        if (title) {
-            title.innerHTML = "<a href='index.html' style='text-decoration: none; color: inherit; cursor: pointer;'>2048</a> 回放 - " + session.username;
+            window.game_manager.import(replayPayload);
+            var titleLocal = document.querySelector(".heading .title");
+            if (titleLocal) {
+                titleLocal.innerHTML = "<a href='index.html' style='text-decoration: none; color: inherit; cursor: pointer;'>2048</a> 回放 - 本地记录";
+            }
+            updateReplayUI();
+        } catch (errorLocal) {
+            alert("加载本地回放失败: " + (errorLocal.message || "unknown"));
         }
-        updateReplayUI();
-    } catch (error) {
-        alert("加载服务端回放失败: " + (error.message || "unknown"));
+        return;
+    }
+
+    if (sessionId) {
+        alert("在线回放已移除。请从本地历史页面打开回放。");
     }
 }
 

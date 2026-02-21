@@ -2,62 +2,34 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>2048 排行榜</title>
-  <link href="style/main.css?v=1771599800000" rel="stylesheet" type="text/css">
+  <title>2048 排行榜功能已移除</title>
+  <link href="style/main.css?v=1771701000000" rel="stylesheet" type="text/css">
   <link rel="shortcut icon" href="favicon.ico?v=42">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' http://127.0.0.1:3001 http://localhost:3001; script-src 'self'; style-src 'self' 'unsafe-inline';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';">
 </head>
 <body>
   <div class="container portal-container">
     <div class="portal-header">
-      <h1 class="title"><a href="index.html" style="text-decoration:none;color:inherit;">2048</a> 排行榜</h1>
+      <h1 class="title"><a href="index.html" style="text-decoration:none;color:inherit;">2048</a> 功能调整</h1>
       <div class="portal-nav">
-        <a href="account.html">账号</a>
-        <a href="history.html">历史</a>
+        <a href="index.html">首页</a>
         <a href="modes.html">模式</a>
+        <a href="history.html">本地历史</a>
       </div>
     </div>
 
     <div class="portal-card">
-      <div class="portal-actions-inline">
-        <label>模式（无撤回）</label>
-        <select id="leaderboard-mode" class="settings-select portal-inline-select">
-          <option value="standard_4x4_pow2_no_undo">标准版 4x4（无撤回）</option>
-        </select>
-
-        <label>周期</label>
-        <select id="leaderboard-period" class="settings-select portal-inline-select">
-          <option value="all">总榜</option>
-          <option value="week">周榜</option>
-        </select>
-
-        <button class="replay-button" id="leaderboard-refresh-btn">刷新</button>
-      </div>
-      <div id="leaderboard-status" class="portal-status"></div>
-
-      <div class="portal-table-wrap">
-        <table class="portal-table">
-          <thead>
-            <tr>
-              <th>排名</th>
-              <th>用户</th>
-              <th>分数</th>
-              <th>最大块</th>
-              <th>时长</th>
-              <th>结束时间</th>
-              <th>回放</th>
-            </tr>
-          </thead>
-          <tbody id="leaderboard-body"></tbody>
-        </table>
+      <h3 style="margin-top:0;">在线排行榜已下线</h3>
+      <p>本站当前专注本地训练与回放，不再提供在线排行服务。</p>
+      <p>你可以在本地历史中查看所有模式对局，支持删除、导出和导入。</p>
+      <div class="portal-actions-inline" style="margin-top:10px;">
+        <a class="replay-button" href="history.html">打开本地历史</a>
+        <a class="replay-button" href="replay.html">打开回放页</a>
       </div>
     </div>
   </div>
 
   <script src="js/theme_manager.js?v=1771600400000"></script>
-  <script src="js/mode_catalog.js?v=1771589027738"></script>
-  <script src="js/api_client.js?v=1771589027738"></script>
-  <script src="js/leaderboard_page.js?v=1771589027738"></script>
 </body>
 </html>

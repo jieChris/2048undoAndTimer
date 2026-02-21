@@ -2,61 +2,34 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>2048 账号</title>
-  <link href="style/main.css?v=1771599800000" rel="stylesheet" type="text/css">
+  <title>2048 账号功能已移除</title>
+  <link href="style/main.css?v=1771701000000" rel="stylesheet" type="text/css">
   <link rel="shortcut icon" href="favicon.ico?v=42">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' http://127.0.0.1:3001 http://localhost:3001; script-src 'self'; style-src 'self' 'unsafe-inline';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';">
 </head>
 <body>
   <div class="container portal-container">
     <div class="portal-header">
-      <h1 class="title"><a href="index.html" style="text-decoration:none;color:inherit;">2048</a> 账号中心</h1>
+      <h1 class="title"><a href="index.html" style="text-decoration:none;color:inherit;">2048</a> 功能调整</h1>
       <div class="portal-nav">
-        <a href="leaderboard.html">排行榜</a>
-        <a href="history.html">历史</a>
+        <a href="index.html">首页</a>
         <a href="modes.html">模式</a>
+        <a href="history.html">本地历史</a>
       </div>
     </div>
 
     <div class="portal-card">
-      <div id="account-user-panel"><strong>当前未登录</strong></div>
-      <div id="account-queue-info" class="portal-muted"></div>
-      <div id="account-last-submit" class="portal-muted"></div>
-      <div id="account-status" class="portal-status"></div>
-      <div class="portal-actions-inline">
-        <button class="replay-button" id="logout-btn">退出登录</button>
-        <button class="replay-button" id="flush-queue-btn">补传离线对局</button>
-      </div>
-    </div>
-
-    <div class="portal-grid-2">
-      <div class="portal-card">
-        <h3>登录</h3>
-        <form id="login-form" class="portal-form">
-          <label>用户名</label>
-          <input id="login-username" autocomplete="username" required>
-          <label>密码</label>
-          <input id="login-password" type="password" autocomplete="current-password" required>
-          <button type="submit" class="replay-button">登录</button>
-        </form>
-      </div>
-
-      <div class="portal-card">
-        <h3>注册</h3>
-        <form id="register-form" class="portal-form">
-          <label>用户名（3-20，仅字母数字下划线）</label>
-          <input id="reg-username" autocomplete="username" required>
-          <label>密码（>=8，需包含字母和数字）</label>
-          <input id="reg-password" type="password" autocomplete="new-password" required>
-          <button type="submit" class="replay-button">注册并登录</button>
-        </form>
+      <h3 style="margin-top:0;">账号中心已下线</h3>
+      <p>登录、注册、在线上传等功能已移除。</p>
+      <p>当前版本定位为本地练习工具，游戏记录统一保存在浏览器本地。</p>
+      <div class="portal-actions-inline" style="margin-top:10px;">
+        <a class="replay-button" href="history.html">查看本地历史</a>
+        <a class="replay-button" href="modes.html">返回模式选择</a>
       </div>
     </div>
   </div>
 
   <script src="js/theme_manager.js?v=1771600400000"></script>
-  <script src="js/api_client.js?v=1771589027738"></script>
-  <script src="js/account_page.js?v=1771589027738"></script>
 </body>
 </html>

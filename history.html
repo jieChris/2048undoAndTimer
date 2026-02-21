@@ -2,45 +2,66 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>2048 历史记录</title>
-  <link href="style/main.css?v=1771599800000" rel="stylesheet" type="text/css">
+  <title>2048 本地历史记录</title>
+  <link href="style/main.css?v=1771701000000" rel="stylesheet" type="text/css">
   <link rel="shortcut icon" href="favicon.ico?v=42">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' http://127.0.0.1:3001 http://localhost:3001; script-src 'self'; style-src 'self' 'unsafe-inline';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';">
 </head>
 <body>
   <div class="container portal-container">
     <div class="portal-header">
-      <h1 class="title"><a href="index.html" style="text-decoration:none;color:inherit;">2048</a> 对局历史</h1>
+      <h1 class="title"><a href="index.html" style="text-decoration:none;color:inherit;">2048</a> 本地历史</h1>
       <div class="portal-nav">
-        <a href="account.html">账号</a>
-        <a href="leaderboard.html">排行榜</a>
+        <a href="index.html">首页</a>
         <a href="modes.html">模式</a>
+        <a href="replay.html">回放</a>
       </div>
     </div>
 
     <div class="portal-card">
       <div class="portal-actions-inline">
-        <label>用户名</label>
-        <input id="history-username" class="portal-inline-input" placeholder="输入用户名">
-
         <label>模式</label>
         <select id="history-mode" class="settings-select portal-inline-select">
-          <option value="">全部</option>
+          <option value="">全部模式</option>
         </select>
 
-        <button class="replay-button" id="history-load-btn">加载历史</button>
+        <label>关键词</label>
+        <input id="history-keyword" class="portal-inline-input" placeholder="模式/分数/ID">
+
+        <label>排序</label>
+        <select id="history-sort" class="settings-select portal-inline-select">
+          <option value="ended_desc">按时间（新到旧）</option>
+          <option value="ended_asc">按时间（旧到新）</option>
+          <option value="score_desc">按分数（高到低）</option>
+        </select>
+
+        <button class="replay-button" id="history-load-btn">刷新</button>
       </div>
+
+      <div class="portal-actions-inline" style="margin-top:8px;">
+        <button class="replay-button" id="history-export-all-btn">导出全部</button>
+        <button class="replay-button" id="history-import-btn">导入合并</button>
+        <button class="replay-button" id="history-import-replace-btn">导入并替换</button>
+        <button class="replay-button" id="history-clear-all-btn">清空全部</button>
+        <input id="history-import-file" type="file" accept="application/json,.json" style="display:none;">
+      </div>
+
       <div id="history-status" class="portal-status"></div>
+      <div id="history-summary" class="portal-muted"></div>
     </div>
 
-    <h2 id="history-title" class="portal-section-title">历史对局</h2>
+    <div class="portal-actions-inline" style="justify-content:flex-end; margin-bottom:10px;">
+      <button class="replay-button" id="history-prev-page">上一页</button>
+      <button class="replay-button" id="history-next-page">下一页</button>
+    </div>
+
     <div id="history-list"></div>
   </div>
 
   <script src="js/theme_manager.js?v=1771600400000"></script>
-  <script src="js/api_client.js?v=1771589027738"></script>
   <script src="js/mode_catalog.js?v=1771589027738"></script>
-  <script src="js/history_page.js?v=1771589027738"></script>
+  <script src="js/local_history_store.js?v=1771701000000"></script>
+  <script src="js/history_page.js?v=1771701000000"></script>
 </body>
 </html>
