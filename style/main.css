@@ -1896,20 +1896,11 @@ input[type=range]::-webkit-slider-runnable-track {
   width: 180px;
 }
 
-.portal-api-input {
-  width: 320px;
-  max-width: 100%;
-}
-
 .portal-actions-inline {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-}
-
-.portal-api-row label {
-  min-width: 68px;
 }
 
 .portal-inline-select {
