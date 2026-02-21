@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <title>2048</title>
 
-  <link href="style/main.css?v=1771701000000" rel="stylesheet" type="text/css">
+  <link href="style/main.css?v=1771715200000" rel="stylesheet" type="text/css">
   <link rel="shortcut icon" href="favicon.ico?v=42">
   <link rel="apple-touch-icon" href="meta/apple-touch-icon.png?v=42">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -34,27 +34,27 @@
         <a class="top-action-btn" id="top-export-replay-btn" title="导出回放">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
         </a>
-        <a class="top-action-btn" href="replay.html" title="高级回放">
+        <a class="top-action-btn" id="top-advanced-replay-btn" href="replay.html" title="高级回放">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
         </a>
-        <a class="top-action-btn" href="modes.html" title="模式选择">
+        <a class="top-action-btn" id="top-modes-btn" href="modes.html" title="模式选择">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
         </a>
-        <a class="top-action-btn" href="history.html" title="历史记录">
+        <a class="top-action-btn" id="top-history-btn" href="history.html" title="历史记录">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
         </a>
         <a class="top-action-btn" id="top-settings-btn" title="设置">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
         </a>
       </div>
-      <h1 class="title">2048</h1>
+      <h1 class="title"><a id="home-title-link" href="index.html">2048</a></h1>
       <div class="scores-container">
         <div class="score-container">0</div>
         <div class="best-container">0</div>
       </div>
       <div class="above-game" style="clear: both; padding-top: 15px;">
       <p class="game-intro">合并数字，合成 <strong>2048 方块！</strong> 本页为无撤回版。</p>
-      <a class="restart-button" title="新游戏">
+      <a class="restart-button" id="top-restart-btn" title="新游戏">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
       </a>
       </div>
@@ -163,7 +163,7 @@
     </p>
     <hr>
     <p>
-    项目由Gemini基于几个项目整合改版，原作者 <a href="http://gabrielecirulli.com" target="_blank">Gabriele Cirulli.</a> 基于 <a href="https://itunes.apple.com/us/app/1024!/id823499224" target="_blank">Veewo Studio 的 1024</a> 且概念受 <a href="http://asherv.com/threes/" target="_blank">Asher Vollmer 的 Threes</a> 启发。
+    项目由Gemini和Codex基于几个项目整合改版，原作者 <a href="http://gabrielecirulli.com" target="_blank">Gabriele Cirulli.</a> 基于 <a href="https://itunes.apple.com/us/app/1024!/id823499224" target="_blank">Veewo Studio 的 1024</a> 且概念受 <a href="http://asherv.com/threes/" target="_blank">Asher Vollmer 的 Threes</a> 启发。
     撤销 Mod 由 <a href="http://quaxio.com/">Alok Menghrajani</a> 制作，<a href="https://github.com/alokmenghrajani/2048">源代码</a>。项目改自<a href="https://github.com/alokmenghrajani/2048?tab=readme-ov-file">2048</a>。计时器参考<a href="https://github.com/neiunderscore/2048-timer?tab=readme-ov-file">2048-timer</a>。
     </p>
     <p>
@@ -243,7 +243,7 @@
   <script src="js/local_history_store.js?v=1771701000000"></script>
   <script src="js/game_manager.js?v=1771701000000"></script>
   <script src="js/application.js?v=1771589027738"></script>
-  <script src="js/index_ui.js?v=1771701000000"></script>
+  <script src="js/index_ui.js?v=1771717000000"></script>
 
 </body>
 </html>

@@ -45,6 +45,7 @@ window.openSettingsModal = function () {
   removeLegacyUndoSettingsUI();
   initThemeSettingsUI();
   initTimerModuleSettingsUI();
+  initHomeGuideSettingsUI();
 };
 
 window.closeSettingsModal = function () {
@@ -387,6 +388,335 @@ function initTimerModuleSettingsUI() {
   sync();
 }
 
+var HOME_GUIDE_SEEN_KEY = "home_guide_seen_v1";
+var HOME_GUIDE_STATE = {
+  active: false,
+  fromSettings: false,
+  index: 0,
+  steps: [],
+  target: null,
+  elevated: [],
+  panel: null,
+  overlay: null
+};
+
+function isHomePage() {
+  if (typeof window === "undefined" || !window.location) return false;
+  var path = String(window.location.pathname || "");
+  return path === "/" || /\/index\.html?$/.test(path) || path === "";
+}
+
+function getHomeGuideSteps() {
+  return [
+    { selector: "#home-title-link", title: "首页标题", desc: "点击 2048 标题可回到首页。" },
+    { selector: "#top-announcement-btn", title: "版本公告", desc: "查看版本更新内容，红点表示有未读公告。" },
+    { selector: "#stats-panel-toggle", title: "统计", desc: "打开统计汇总面板，查看步数和出数数据。" },
+    { selector: "#top-export-replay-btn", title: "导出回放", desc: "导出当前对局回放字符串，便于保存和复盘。" },
+    { selector: "#top-advanced-replay-btn", title: "高级回放", desc: "进入高级回放页，导入并控制回放进度。" },
+    { selector: "#top-modes-btn", title: "模式选择", desc: "进入模式页面，切换不同棋盘和玩法。" },
+    { selector: "#top-history-btn", title: "历史记录", desc: "查看本地历史记录，支持删除/导入/导出。" },
+    { selector: "#top-settings-btn", title: "设置", desc: "打开设置，调整主题、计时器显示与指引开关。" },
+    { selector: "#top-restart-btn", title: "新游戏", desc: "开始新的一局，会重置当前局面。" }
+  ];
+}
+
+function ensureHomeGuideDom() {
+  var overlay = document.getElementById("home-guide-overlay");
+  var panel = document.getElementById("home-guide-panel");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "home-guide-overlay";
+    overlay.className = "home-guide-overlay";
+    overlay.style.display = "none";
+    document.body.appendChild(overlay);
+  }
+  if (!panel) {
+    panel = document.createElement("div");
+    panel.id = "home-guide-panel";
+    panel.className = "home-guide-panel";
+    panel.style.display = "none";
+    panel.innerHTML =
+      "<div id='home-guide-step' class='home-guide-step'></div>" +
+      "<div id='home-guide-title' class='home-guide-title'></div>" +
+      "<div id='home-guide-desc' class='home-guide-desc'></div>" +
+      "<div class='home-guide-actions'>" +
+      "<button id='home-guide-prev' class='replay-button home-guide-btn'>上一步</button>" +
+      "<button id='home-guide-next' class='replay-button home-guide-btn'>下一步</button>" +
+      "<button id='home-guide-skip' class='replay-button home-guide-btn'>跳过</button>" +
+      "</div>";
+    document.body.appendChild(panel);
+  }
+  HOME_GUIDE_STATE.overlay = overlay;
+  HOME_GUIDE_STATE.panel = panel;
+  return { overlay: overlay, panel: panel };
+}
+
+function clearHomeGuideHighlight() {
+  if (HOME_GUIDE_STATE.target && HOME_GUIDE_STATE.target.classList) {
+    HOME_GUIDE_STATE.target.classList.remove("home-guide-highlight");
+  }
+  var scoped = document.querySelectorAll(".home-guide-scope");
+  for (var s = 0; s < scoped.length; s++) {
+    scoped[s].classList.remove("home-guide-scope");
+  }
+  if (Array.isArray(HOME_GUIDE_STATE.elevated)) {
+    for (var i = 0; i < HOME_GUIDE_STATE.elevated.length; i++) {
+      var node = HOME_GUIDE_STATE.elevated[i];
+      if (node && node.classList) node.classList.remove("home-guide-elevated");
+    }
+  }
+  HOME_GUIDE_STATE.elevated = [];
+  HOME_GUIDE_STATE.target = null;
+}
+
+function elevateHomeGuideTarget(target) {
+  if (!target || !target.closest) return;
+  var elevated = [];
+  var stackHost = target.closest(".top-action-buttons");
+  if (!stackHost) stackHost = target.closest(".heading");
+  if (stackHost && stackHost.classList) {
+    stackHost.classList.add("home-guide-elevated");
+    elevated.push(stackHost);
+  }
+  var topActionButtons = target.closest(".top-action-buttons");
+  if (topActionButtons && topActionButtons.classList) {
+    topActionButtons.classList.add("home-guide-scope");
+  }
+  HOME_GUIDE_STATE.elevated = elevated;
+}
+
+function positionHomeGuidePanel() {
+  var panel = HOME_GUIDE_STATE.panel;
+  var target = HOME_GUIDE_STATE.target;
+  if (!panel || !target) return;
+
+  var rect = target.getBoundingClientRect();
+  var margin = 12;
+  var panelWidth = Math.min(430, Math.max(280, window.innerWidth - margin * 2));
+  panel.style.maxWidth = panelWidth + "px";
+  panel.style.width = panelWidth + "px";
+
+  var panelHeight = panel.offsetHeight || 160;
+  var top = rect.bottom + margin;
+  if (top + panelHeight > window.innerHeight - margin) {
+    top = rect.top - panelHeight - margin;
+  }
+  if (top < margin) top = margin;
+
+  var left = rect.left + rect.width / 2 - panelWidth / 2;
+  if (left < margin) left = margin;
+  if (left + panelWidth > window.innerWidth - margin) {
+    left = window.innerWidth - panelWidth - margin;
+  }
+
+  panel.style.top = Math.round(top) + "px";
+  panel.style.left = Math.round(left) + "px";
+}
+
+function showHomeGuideDoneNotice() {
+  var toast = document.getElementById("home-guide-done-toast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "home-guide-done-toast";
+    toast.style.position = "fixed";
+    toast.style.left = "50%";
+    toast.style.bottom = "26px";
+    toast.style.transform = "translateX(-50%)";
+    toast.style.background = "rgba(46, 40, 34, 0.94)";
+    toast.style.color = "#f9f6f2";
+    toast.style.padding = "10px 14px";
+    toast.style.borderRadius = "8px";
+    toast.style.fontSize = "14px";
+    toast.style.fontWeight = "bold";
+    toast.style.zIndex = "3400";
+    toast.style.boxShadow = "0 6px 20px rgba(0,0,0,0.35)";
+    toast.style.opacity = "0";
+    toast.style.transition = "opacity 160ms ease";
+    document.body.appendChild(toast);
+  }
+  toast.textContent = "指引已完成，可在设置中重新打开新手指引。";
+  toast.style.opacity = "1";
+  if (toast.__hideTimer) clearTimeout(toast.__hideTimer);
+  toast.__hideTimer = setTimeout(function () {
+    toast.style.opacity = "0";
+  }, 2600);
+}
+
+function finishHomeGuide(markSeen, options) {
+  options = options || {};
+  clearHomeGuideHighlight();
+  HOME_GUIDE_STATE.active = false;
+  HOME_GUIDE_STATE.steps = [];
+  HOME_GUIDE_STATE.index = 0;
+  if (HOME_GUIDE_STATE.overlay) HOME_GUIDE_STATE.overlay.style.display = "none";
+  if (HOME_GUIDE_STATE.panel) HOME_GUIDE_STATE.panel.style.display = "none";
+  if (markSeen) {
+    try {
+      localStorage.setItem(HOME_GUIDE_SEEN_KEY, "1");
+    } catch (_err) {}
+  }
+  HOME_GUIDE_STATE.fromSettings = false;
+  if (typeof window.syncHomeGuideSettingsUI === "function") {
+    window.syncHomeGuideSettingsUI();
+  }
+  if (options.showDoneNotice) {
+    showHomeGuideDoneNotice();
+  }
+}
+
+function showHomeGuideStep(index) {
+  if (!HOME_GUIDE_STATE.active || !HOME_GUIDE_STATE.steps.length) return;
+  if (index < 0) index = 0;
+  if (index >= HOME_GUIDE_STATE.steps.length) {
+    finishHomeGuide(true, { showDoneNotice: true });
+    return;
+  }
+  HOME_GUIDE_STATE.index = index;
+  clearHomeGuideHighlight();
+
+  var step = HOME_GUIDE_STATE.steps[index];
+  var target = document.querySelector(step.selector);
+  if (!target) {
+    showHomeGuideStep(index + 1);
+    return;
+  }
+  HOME_GUIDE_STATE.target = target;
+  target.classList.add("home-guide-highlight");
+  elevateHomeGuideTarget(target);
+
+  var stepEl = document.getElementById("home-guide-step");
+  var titleEl = document.getElementById("home-guide-title");
+  var descEl = document.getElementById("home-guide-desc");
+  var prevBtn = document.getElementById("home-guide-prev");
+  var nextBtn = document.getElementById("home-guide-next");
+
+  if (stepEl) stepEl.textContent = "步骤 " + (index + 1) + " / " + HOME_GUIDE_STATE.steps.length;
+  if (titleEl) titleEl.textContent = step.title;
+  if (descEl) descEl.textContent = step.desc;
+  if (prevBtn) prevBtn.disabled = index <= 0;
+  if (nextBtn) nextBtn.textContent = index >= HOME_GUIDE_STATE.steps.length - 1 ? "完成" : "下一步";
+
+  window.requestAnimationFrame(positionHomeGuidePanel);
+}
+
+function startHomeGuide(options) {
+  options = options || {};
+  if (!isHomePage()) return;
+
+  var dom = ensureHomeGuideDom();
+  HOME_GUIDE_STATE.active = true;
+  HOME_GUIDE_STATE.fromSettings = !!options.fromSettings;
+  HOME_GUIDE_STATE.steps = getHomeGuideSteps();
+  HOME_GUIDE_STATE.index = 0;
+
+  dom.overlay.style.display = "block";
+  dom.panel.style.display = "block";
+
+  var prevBtn = document.getElementById("home-guide-prev");
+  var nextBtn = document.getElementById("home-guide-next");
+  var skipBtn = document.getElementById("home-guide-skip");
+
+  if (prevBtn && !prevBtn.__homeGuideBound) {
+    prevBtn.__homeGuideBound = true;
+    prevBtn.addEventListener("click", function () {
+      showHomeGuideStep(HOME_GUIDE_STATE.index - 1);
+    });
+  }
+  if (nextBtn && !nextBtn.__homeGuideBound) {
+    nextBtn.__homeGuideBound = true;
+    nextBtn.addEventListener("click", function () {
+      showHomeGuideStep(HOME_GUIDE_STATE.index + 1);
+    });
+  }
+  if (skipBtn && !skipBtn.__homeGuideBound) {
+    skipBtn.__homeGuideBound = true;
+    skipBtn.addEventListener("click", function () {
+      finishHomeGuide(true);
+    });
+  }
+
+  showHomeGuideStep(0);
+  if (typeof window.syncHomeGuideSettingsUI === "function") {
+    window.syncHomeGuideSettingsUI();
+  }
+}
+
+function ensureHomeGuideSettingsDom() {
+  var modal = document.getElementById("settings-modal");
+  if (!modal) return null;
+  if (document.getElementById("home-guide-toggle")) {
+    return document.getElementById("home-guide-toggle");
+  }
+  var content = modal.querySelector(".settings-modal-content");
+  if (!content) return null;
+
+  var row = document.createElement("div");
+  row.className = "settings-row";
+  row.innerHTML =
+    "<label for='home-guide-toggle'>新手指引</label>" +
+    "<label class='settings-switch-row'>" +
+    "<input id='home-guide-toggle' type='checkbox'>" +
+    "<span>重新播放首页功能指引</span>" +
+    "</label>" +
+    "<div id='home-guide-note' class='settings-note'></div>";
+
+  var actions = content.querySelector(".replay-modal-actions");
+  if (actions && actions.parentNode === content) {
+    content.insertBefore(row, actions);
+  } else {
+    content.appendChild(row);
+  }
+  return document.getElementById("home-guide-toggle");
+}
+
+function initHomeGuideSettingsUI() {
+  var toggle = ensureHomeGuideSettingsDom();
+  var note = document.getElementById("home-guide-note");
+  if (!toggle) return;
+
+  function sync() {
+    var home = isHomePage();
+    toggle.disabled = !home;
+    toggle.checked = !!(HOME_GUIDE_STATE.active && HOME_GUIDE_STATE.fromSettings);
+    if (note) {
+      note.textContent = home
+        ? "打开后将立即进入首页新手引导，完成后自动关闭。"
+        : "该功能仅在首页可用。";
+    }
+  }
+
+  window.syncHomeGuideSettingsUI = sync;
+
+  if (!toggle.__homeGuideBound) {
+    toggle.__homeGuideBound = true;
+    toggle.addEventListener("change", function () {
+      if (!this.checked) return;
+      if (!isHomePage()) {
+        sync();
+        return;
+      }
+      window.closeSettingsModal();
+      startHomeGuide({ fromSettings: true });
+    });
+  }
+
+  sync();
+}
+
+function autoStartHomeGuideIfNeeded() {
+  if (!isHomePage()) return;
+  var seen = "0";
+  try {
+    seen = localStorage.getItem(HOME_GUIDE_SEEN_KEY) || "0";
+  } catch (_err) {
+    seen = "0";
+  }
+  if (seen === "1") return;
+  setTimeout(function () {
+    startHomeGuide({ fromSettings: false });
+  }, 260);
+}
+
 // Initialize Event Listeners
 document.addEventListener('DOMContentLoaded', function() {
     // Undo Link
@@ -439,6 +769,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initThemeSettingsUI();
     removeLegacyUndoSettingsUI();
     initTimerModuleSettingsUI();
+    initHomeGuideSettingsUI();
+    autoStartHomeGuideIfNeeded();
 
     // Undo Button on Game Over Screen
     var undoBtnGameOver = document.getElementById('undo-btn-gameover');

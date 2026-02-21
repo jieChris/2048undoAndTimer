@@ -28,6 +28,11 @@ h1.title {
   float: left;
 }
 
+h1.title a {
+  color: inherit;
+  text-decoration: none;
+}
+
 .heading {
   width: 500px;
   float: left;
@@ -1395,6 +1400,80 @@ input[type=range]::-webkit-slider-runnable-track {
 
 .stats-panel-row:last-of-type {
   border-bottom: none;
+}
+
+.home-guide-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.58);
+  z-index: 3200;
+}
+
+.home-guide-panel {
+  position: fixed;
+  z-index: 3300;
+  background: #fffdf8;
+  border: 1px solid #d8d4d0;
+  border-radius: 10px;
+  padding: 16px;
+  box-sizing: border-box;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25);
+}
+
+.home-guide-step {
+  color: #8a8178;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.home-guide-title {
+  color: #5f544a;
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 6px;
+  line-height: 1.25;
+}
+
+.home-guide-desc {
+  color: #776e65;
+  font-size: 17px;
+  line-height: 1.55;
+  margin-top: 8px;
+}
+
+.home-guide-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+.home-guide-btn {
+  height: 38px;
+  line-height: 38px;
+  padding: 0 14px;
+  font-size: 15px;
+}
+
+.home-guide-highlight {
+  display: inline-block;
+  position: relative;
+  z-index: 3250 !important;
+  box-shadow: 0 0 0 4px #f0cf6a, 0 0 0 8px rgba(240, 207, 106, 0.45);
+  border-radius: 6px;
+}
+
+.home-guide-elevated {
+  position: relative;
+  z-index: 3240 !important;
+}
+
+.home-guide-scope .top-action-btn {
+  opacity: 0.32;
+}
+
+.home-guide-scope .top-action-btn.home-guide-highlight {
+  opacity: 1;
 }
 
 /* Settings modal */
