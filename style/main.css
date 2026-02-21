@@ -421,6 +421,10 @@ hr {
   display: none;
 }
 
+html[data-theme="classic"] .game-container .game-message a.retry-button {
+  color: #ffffff !important;
+}
+
 .game-container .game-message.game-won {
   background: rgba(237, 194, 46, 0.5);
   color: #f9f6f2;
