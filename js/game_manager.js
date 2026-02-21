@@ -1048,6 +1048,32 @@ GameManager.prototype.normalizeSpawnTable = function (spawnTable, ruleset) {
   return [{ value: 2, weight: 90 }, { value: 4, weight: 10 }];
 };
 
+GameManager.prototype.getTheoreticalMaxTile = function (width, height, ruleset) {
+  var w = Number(width);
+  var h = Number(height);
+  if (!Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0) return null;
+  var cells = Math.floor(w) * Math.floor(h);
+  if (!Number.isInteger(cells) || cells <= 0) return null;
+
+  if (ruleset === "fibonacci") {
+    // Fibonacci 4x4 theoretical max: 4181.
+    var targetIndex = cells + 2;
+    var a = 1;
+    var b = 2;
+    if (targetIndex <= 1) return 1;
+    if (targetIndex === 2) return 2;
+    for (var i = 3; i <= targetIndex; i++) {
+      var next = a + b;
+      a = b;
+      b = next;
+    }
+    return b;
+  }
+
+  // Pow2 4x4 theoretical max: 131072.
+  return Math.pow(2, cells + 1);
+};
+
 GameManager.prototype.normalizeModeConfig = function (modeKey, rawConfig) {
   var cfg = rawConfig ? this.clonePlain(rawConfig) : this.clonePlain(GameManager.DEFAULT_MODE_CONFIG);
   cfg.key = cfg.key || modeKey || GameManager.DEFAULT_MODE_KEY;
@@ -1055,7 +1081,11 @@ GameManager.prototype.normalizeModeConfig = function (modeKey, rawConfig) {
   cfg.board_height = Number.isInteger(cfg.board_height) && cfg.board_height > 0 ? cfg.board_height : cfg.board_width;
   cfg.ruleset = cfg.ruleset === "fibonacci" ? "fibonacci" : "pow2";
   cfg.undo_enabled = !!cfg.undo_enabled;
-  cfg.max_tile = Number.isInteger(cfg.max_tile) && cfg.max_tile > 0 ? cfg.max_tile : null;
+  if (Number.isInteger(cfg.max_tile) && cfg.max_tile > 0) {
+    cfg.max_tile = cfg.max_tile;
+  } else {
+    cfg.max_tile = this.getTheoreticalMaxTile(cfg.board_width, cfg.board_height, cfg.ruleset);
+  }
   cfg.spawn_table = this.normalizeSpawnTable(cfg.spawn_table, cfg.ruleset);
   cfg.ranked_bucket = cfg.ranked_bucket || "none";
   cfg.mode_family = cfg.mode_family || (cfg.ruleset === "fibonacci" ? "fibonacci" : "pow2");

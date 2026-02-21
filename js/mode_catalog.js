@@ -5,8 +5,38 @@
     return JSON.parse(JSON.stringify(value));
   }
 
+  function getTheoreticalMaxTile(width, height, ruleset) {
+    var w = Number(width);
+    var h = Number(height);
+    if (!Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0) return null;
+    var cells = Math.floor(w) * Math.floor(h);
+    if (!Number.isInteger(cells) || cells <= 0) return null;
+
+    if (ruleset === "fibonacci") {
+      // Fibonacci board uses 1,2 starts; 4x4 theoretical top is 4181.
+      var targetIndex = cells + 2;
+      var a = 1;
+      var b = 2;
+      if (targetIndex <= 1) return 1;
+      if (targetIndex === 2) return 2;
+      for (var i = 3; i <= targetIndex; i++) {
+        var next = a + b;
+        a = b;
+        b = next;
+      }
+      return b;
+    }
+
+    // Pow2 board theoretical top follows 2^(cells + 1). 4x4 => 131072.
+    return Math.pow(2, cells + 1);
+  }
+
   function createMode(options) {
     var ruleset = options.ruleset === "fibonacci" ? "fibonacci" : "pow2";
+    var explicitMaxTile = Number.isInteger(options.max_tile) && options.max_tile > 0
+      ? options.max_tile
+      : null;
+    var inferredMaxTile = getTheoreticalMaxTile(options.board_width, options.board_height, ruleset);
     return {
       key: options.key,
       label: options.label,
@@ -14,7 +44,7 @@
       board_height: options.board_height,
       ruleset: ruleset,
       undo_enabled: !!options.undo_enabled,
-      max_tile: Number.isInteger(options.max_tile) && options.max_tile > 0 ? options.max_tile : null,
+      max_tile: explicitMaxTile || inferredMaxTile,
       spawn_table: clone(options.spawn_table || (ruleset === "fibonacci"
         ? [{ value: 1, weight: 90 }, { value: 2, weight: 10 }]
         : [{ value: 2, weight: 90 }, { value: 4, weight: 10 }])),
