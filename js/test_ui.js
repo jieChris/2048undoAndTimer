@@ -4,13 +4,23 @@ document.addEventListener("DOMContentLoaded", function () {
   var gridContainer = document.getElementById("test-grid-container");
   var selectionGrid = document.getElementById("selection-grid");
   var selectedValue = 2;
-  var ZERO_CYCLE_VALUES = (function () {
+  var zeroCycleValues = [];
+  var currentSelectionRuleset = "pow2";
+  var POW2_ZERO_CYCLE_VALUES = (function () {
     var values = [0];
     for (var exp = 1; exp <= 16; exp++) {
       values.push(Math.pow(2, exp)); // 2..65536
     }
     return values;
   })();
+  var FIBONACCI_VALUES = (function () {
+    var values = [1, 2];
+    while (values.length < 16) {
+      values.push(values[values.length - 1] + values[values.length - 2]);
+    }
+    return values;
+  })();
+  var FIBONACCI_ZERO_CYCLE_VALUES = [0].concat(FIBONACCI_VALUES);
   var zeroCyclePhaseByCell = {};
 
   function cloneJsonSafe(value) {
@@ -31,9 +41,9 @@ document.addEventListener("DOMContentLoaded", function () {
       ? zeroCyclePhaseByCell[key]
       : -1;
     phase += 1;
-    if (phase >= ZERO_CYCLE_VALUES.length) phase = 0;
+    if (phase >= zeroCycleValues.length) phase = 0;
     zeroCyclePhaseByCell[key] = phase;
-    return ZERO_CYCLE_VALUES[phase];
+    return zeroCycleValues[phase];
   }
 
   function resetZeroCycleValue(x, y) {
@@ -109,10 +119,77 @@ document.addEventListener("DOMContentLoaded", function () {
   function stripPayloadFromUrl(token) {
     if (!window.history || typeof window.history.replaceState !== "function") return;
     var next = "Practice_board.html";
+    var ruleset = getPracticeRulesetParam();
     if (token) {
       next += "?practice_token=" + encodeURIComponent(token);
+      if (ruleset) next += "&practice_ruleset=" + encodeURIComponent(ruleset);
+    } else if (ruleset) {
+      next += "?practice_ruleset=" + encodeURIComponent(ruleset);
     }
     window.history.replaceState(null, "", next);
+  }
+
+  function getPracticeRulesetParam() {
+    try {
+      var params = new URLSearchParams(window.location.search || "");
+      var raw = params.get("practice_ruleset");
+      return raw === "fibonacci" ? "fibonacci" : "pow2";
+    } catch (_err) {
+      return "pow2";
+    }
+  }
+
+  function getCurrentRuleset() {
+    try {
+      if (window.game_manager && typeof window.game_manager.isFibonacciMode === "function") {
+        return window.game_manager.isFibonacciMode() ? "fibonacci" : "pow2";
+      }
+    } catch (_err) {}
+    try {
+      if (document.body && document.body.getAttribute("data-ruleset") === "fibonacci") return "fibonacci";
+    } catch (_err2) {}
+    return getPracticeRulesetParam();
+  }
+
+  function getSelectionValuesForRuleset(ruleset) {
+    if (ruleset === "fibonacci") return [0].concat(FIBONACCI_VALUES);
+    return [0, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768];
+  }
+
+  function renderSelectionGrid(values, defaultValue) {
+    if (!selectionGrid) return;
+    selectionGrid.innerHTML = "";
+    for (var i = 0; i < values.length; i++) {
+      var value = values[i];
+      var tile = document.createElement("div");
+      tile.className = value === 0 ? "selection-tile tile-0" : ("selection-tile tile tile-" + String(value));
+      tile.setAttribute("data-value", String(value));
+      if (value === defaultValue) tile.classList.add("selected");
+
+      var inner = document.createElement("div");
+      inner.className = "tile-inner";
+      inner.textContent = String(value);
+      tile.appendChild(inner);
+      selectionGrid.appendChild(tile);
+    }
+  }
+
+  function syncSelectionGridByRuleset() {
+    var ruleset = getCurrentRuleset();
+    currentSelectionRuleset = ruleset;
+    zeroCycleValues = ruleset === "fibonacci" ? FIBONACCI_ZERO_CYCLE_VALUES.slice() : POW2_ZERO_CYCLE_VALUES.slice();
+    var values = getSelectionValuesForRuleset(ruleset);
+    var defaultValue = ruleset === "fibonacci" ? 1 : 2;
+    selectedValue = defaultValue;
+    zeroCyclePhaseByCell = {};
+    renderSelectionGrid(values, defaultValue);
+  }
+
+  function getZeroModeGuideText() {
+    if (currentSelectionRuleset === "fibonacci") {
+      return "选中 0 后，点击同一格会按 0→1→2→3→5→… 循环。";
+    }
+    return "选中 0 后，点击同一格会按 0→2→4→…→65536 循环。";
   }
 
   function applyPracticeTransfer(retriesLeft) {
@@ -181,11 +258,14 @@ document.addEventListener("DOMContentLoaded", function () {
     try {
       window.game_manager.restartWithBoard(board, modeConfig, { setPracticeRestartBase: true });
       window.game_manager.isTestMode = true;
+      syncSelectionGridByRuleset();
     } catch (err) {
       console.error("Practice transfer restore failed:", err);
       alert("练习板载入盘面失败，请重试。");
     }
   }
+
+  syncSelectionGridByRuleset();
 
   // Guide Logic
   (function () {
@@ -276,7 +356,7 @@ document.addEventListener("DOMContentLoaded", function () {
       var steps = [
         {
           target: zeroTile,
-          text: "选中 0 后，点击同一格会按 0→2→4→…→65536 循环。"
+          text: getZeroModeGuideText()
         },
         {
           target: firstCell,

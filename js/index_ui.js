@@ -190,15 +190,18 @@ window.openPracticeBoardFromCurrent = function () {
   }
 
   var token = "p" + Date.now() + "_" + Math.random().toString(36).slice(2, 8);
+  var practiceModeConfig = buildPracticeModeConfigFromCurrent(gm);
+  var practiceRuleset = practiceModeConfig.ruleset === "fibonacci" ? "fibonacci" : "pow2";
   var payload = {
     token: token,
     created_at: Date.now(),
     board: cloneJsonSafe(board) || board,
-    mode_config: buildPracticeModeConfigFromCurrent(gm)
+    mode_config: practiceModeConfig
   };
 
   var payloadStr = JSON.stringify(payload);
   var baseUrl = "Practice_board.html?practice_token=" + encodeURIComponent(token);
+  baseUrl = appendQueryParam(baseUrl, "practice_ruleset", practiceRuleset);
   if (hasPracticeGuideSeen()) {
     baseUrl = appendQueryParam(baseUrl, "practice_guide_seen", "1");
   }
