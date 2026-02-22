@@ -74,8 +74,12 @@ var PRACTICE_TRANSFER_SESSION_KEY = "practice_board_transfer_session_v1";
 var PRACTICE_GUIDE_SHOWN_KEY = "practice_guide_shown_v2";
 var PRACTICE_GUIDE_SEEN_FLAG = "practice_guide_seen_v2=1";
 var MOBILE_TIMERBOX_COLLAPSED_KEY = "ui_timerbox_collapsed_mobile_v1";
+var MOBILE_UI_MAX_WIDTH = 760;
+var TIMERBOX_COLLAPSE_MAX_WIDTH = 980;
+var COMPACT_GAME_VIEWPORT_MAX_WIDTH = 980;
 var mobileRelayoutTimer = null;
 var mobileTopActionsState = null;
+var practiceTopActionsState = null;
 
 function isGamePageScope() {
   if (!document.body) return false;
@@ -88,9 +92,15 @@ function isTimerboxMobileScope() {
   return page === "game" || page === "practice";
 }
 
+function isPracticePageScope() {
+  if (!document.body) return false;
+  return document.body.getAttribute("data-page") === "practice";
+}
+
 function isMobileGameViewport() {
   if (typeof window === "undefined") return false;
-  var narrow = window.matchMedia ? window.matchMedia("(max-width: 768px)").matches : (window.innerWidth <= 768);
+  var narrowQuery = "(max-width: " + MOBILE_UI_MAX_WIDTH + "px)";
+  var narrow = window.matchMedia ? window.matchMedia(narrowQuery).matches : (window.innerWidth <= MOBILE_UI_MAX_WIDTH);
   if (!narrow) return false;
 
   var coarsePointer = false;
@@ -109,6 +119,18 @@ function isMobileGameViewport() {
   var mobileUa = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
 
   return coarsePointer || noHover || mobileUa;
+}
+
+function isCompactGameViewport() {
+  if (typeof window === "undefined") return false;
+  var query = "(max-width: " + COMPACT_GAME_VIEWPORT_MAX_WIDTH + "px)";
+  return window.matchMedia ? window.matchMedia(query).matches : (window.innerWidth <= COMPACT_GAME_VIEWPORT_MAX_WIDTH);
+}
+
+function isTimerboxCollapseViewport() {
+  if (typeof window === "undefined") return false;
+  var query = "(max-width: " + TIMERBOX_COLLAPSE_MAX_WIDTH + "px)";
+  return window.matchMedia ? window.matchMedia(query).matches : (window.innerWidth <= TIMERBOX_COLLAPSE_MAX_WIDTH);
 }
 
 function ensureMobileTopActionsState() {
@@ -135,17 +157,80 @@ function ensureMobileTopActionsState() {
   return mobileTopActionsState;
 }
 
+function ensurePracticeTopActionsState() {
+  if (!isPracticePageScope()) return null;
+  if (practiceTopActionsState) return practiceTopActionsState;
+
+  var topActionButtons = document.getElementById("practice-stats-actions");
+  var restartBtn = document.querySelector(".above-game .restart-button");
+  if (!topActionButtons || !restartBtn || !restartBtn.parentNode) return null;
+
+  var restartAnchor = document.createComment("practice-restart-anchor");
+  restartBtn.parentNode.insertBefore(restartAnchor, restartBtn);
+
+  practiceTopActionsState = {
+    topActionButtons: topActionButtons,
+    restartBtn: restartBtn,
+    restartAnchor: restartAnchor
+  };
+  return practiceTopActionsState;
+}
+
 function restoreNodeAfterAnchor(node, anchor) {
   if (!node || !anchor || !anchor.parentNode) return;
   anchor.parentNode.insertBefore(node, anchor.nextSibling);
+}
+
+function ensureMobileUndoTopButton() {
+  if (!isGamePageScope()) return null;
+  var host = document.querySelector(".top-action-buttons");
+  if (!host) return null;
+
+  var btn = document.getElementById("top-mobile-undo-btn");
+  if (!btn) {
+    btn = document.createElement("a");
+    btn.id = "top-mobile-undo-btn";
+    btn.className = "top-action-btn mobile-undo-top-btn";
+    btn.href = "#";
+    btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>';
+  }
+  if (btn.parentNode !== host || host.lastElementChild !== btn) {
+    host.appendChild(btn);
+  }
+  return btn;
+}
+
+function ensureMobileHintToggleButton() {
+  if (!isGamePageScope()) return null;
+  var host = document.querySelector(".top-action-buttons");
+  if (!host) return null;
+
+  var btn = document.getElementById("top-mobile-hint-btn");
+  if (!btn) {
+    btn = document.createElement("a");
+    btn.id = "top-mobile-hint-btn";
+    btn.className = "top-action-btn mobile-hint-toggle-btn";
+    btn.href = "#";
+    btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>';
+  }
+
+  var settingsBtn = document.getElementById("top-settings-btn");
+  if (settingsBtn && settingsBtn.parentNode === host) {
+    if (btn.parentNode !== host || btn.nextSibling !== settingsBtn) {
+      host.insertBefore(btn, settingsBtn);
+    }
+  } else if (btn.parentNode !== host) {
+    host.appendChild(btn);
+  }
+  return btn;
 }
 
 function syncMobileTopActionsPlacement() {
   var state = ensureMobileTopActionsState();
   if (!state) return;
 
-  var mobile = isMobileGameViewport();
-  if (mobile) {
+  var compact = isCompactGameViewport();
+  if (compact) {
     if (state.restartBtn.parentNode !== state.topActionButtons) {
       state.topActionButtons.appendChild(state.restartBtn);
     }
@@ -157,6 +242,364 @@ function syncMobileTopActionsPlacement() {
 
   restoreNodeAfterAnchor(state.restartBtn, state.restartAnchor);
   restoreNodeAfterAnchor(state.timerToggleBtn, state.timerToggleAnchor);
+}
+
+function syncPracticeTopActionsPlacement() {
+  var state = ensurePracticeTopActionsState();
+  if (!state) return;
+
+  var compact = isCompactGameViewport();
+  if (compact) {
+    if (state.restartBtn.parentNode !== state.topActionButtons) {
+      state.topActionButtons.appendChild(state.restartBtn);
+    }
+    return;
+  }
+
+  restoreNodeAfterAnchor(state.restartBtn, state.restartAnchor);
+}
+
+function isUndoCapableMode(gm) {
+  var modeId = "";
+  try {
+    if (document && document.body) {
+      modeId = String(document.body.getAttribute("data-mode-id") || "");
+    }
+  } catch (_err) {
+    modeId = "";
+  }
+  if (!modeId && gm && gm.mode) modeId = String(gm.mode);
+  if (!modeId && typeof window !== "undefined" && window.GAME_MODE_CONFIG && window.GAME_MODE_CONFIG.key) {
+    modeId = String(window.GAME_MODE_CONFIG.key);
+  }
+  modeId = modeId.toLowerCase();
+
+  if (modeId) {
+    if (modeId.indexOf("no_undo") !== -1 || modeId.indexOf("no-undo") !== -1) return false;
+    if (modeId === "capped" || modeId.indexOf("capped") !== -1) return false;
+    if (modeId.indexOf("undo_only") !== -1 || modeId.indexOf("undo-only") !== -1) return true;
+  }
+
+  var explicitUndo = null;
+  if (gm && gm.modeConfig && typeof gm.modeConfig.undo_enabled === "boolean") {
+    explicitUndo = gm.modeConfig.undo_enabled;
+  } else if (typeof window !== "undefined" && window.GAME_MODE_CONFIG && typeof window.GAME_MODE_CONFIG.undo_enabled === "boolean") {
+    explicitUndo = window.GAME_MODE_CONFIG.undo_enabled;
+  }
+  if (explicitUndo !== null) return !!explicitUndo;
+
+  if (!gm) return false;
+  try {
+    if (typeof gm.isUndoAllowedByMode === "function") {
+      return !!gm.isUndoAllowedByMode(modeId || gm.mode);
+    }
+  } catch (_err) {}
+  return !!gm.undoEnabled;
+}
+
+function syncMobileUndoTopButtonAvailability() {
+  if (!isGamePageScope()) return;
+  var btn = ensureMobileUndoTopButton();
+  if (!btn) return;
+
+  var compact = isCompactGameViewport();
+  var gm = window.game_manager;
+  var modeUndoCapable = isUndoCapableMode(gm);
+  var canUndoNow = !!(gm && gm.isUndoInteractionEnabled && gm.isUndoInteractionEnabled());
+  var shouldShow = compact && modeUndoCapable;
+
+  btn.style.display = shouldShow ? "inline-flex" : "none";
+  if (!shouldShow) {
+    btn.style.pointerEvents = "none";
+    btn.style.opacity = "0.45";
+    btn.setAttribute("aria-disabled", "true");
+    return;
+  }
+
+  btn.style.pointerEvents = canUndoNow ? "" : "none";
+  btn.style.opacity = canUndoNow ? "" : "0.45";
+  btn.setAttribute("aria-disabled", canUndoNow ? "false" : "true");
+  btn.setAttribute("aria-label", "撤回");
+  btn.setAttribute("title", "撤回");
+}
+
+function readHintTextForModal(selector) {
+  var el = document.querySelector(selector);
+  if (!el) return "";
+  var raw = typeof el.innerText === "string" ? el.innerText : el.textContent;
+  return String(raw || "")
+    .replace(/\u00a0/g, " ")
+    .replace(/[ \t]+/g, " ")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function extractHintNodeText(node) {
+  if (!node) return "";
+  if (node.nodeType === 3) {
+    return node.textContent || "";
+  }
+  if (node.nodeType !== 1) return "";
+
+  var tag = String(node.tagName || "").toLowerCase();
+  if (tag === "br") return "\n";
+  if (tag === "a") {
+    var anchorText = "";
+    for (var i = 0; i < node.childNodes.length; i++) {
+      anchorText += extractHintNodeText(node.childNodes[i]);
+    }
+    anchorText = String(anchorText || "").replace(/\s+/g, " ").trim();
+    var href = String(node.getAttribute("href") || "").trim();
+    if (!href) return anchorText;
+    if (!anchorText) return href;
+    return anchorText + "（" + href + "）";
+  }
+
+  var out = "";
+  for (var j = 0; j < node.childNodes.length; j++) {
+    out += extractHintNodeText(node.childNodes[j]);
+  }
+  return out;
+}
+
+function normalizeHintParagraphText(text) {
+  return String(text || "")
+    .replace(/\u00a0/g, " ")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\s+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function collectHintParagraphText(node) {
+  if (!node || node.nodeType !== 1) return "";
+  return normalizeHintParagraphText(extractHintNodeText(node));
+}
+
+function collectHintTextsFromMainContainer() {
+  if (!isGamePageScope()) return [];
+  var container = document.querySelector(".container");
+  if (!container) return [];
+  var lines = [];
+  var paragraphs = container.querySelectorAll("p");
+  for (var i = 0; i < paragraphs.length; i++) {
+    var p = paragraphs[i];
+    if (!p || p.nodeType !== 1) continue;
+    if (p.closest && p.closest(".above-game")) continue;
+    if (p.closest && p.closest(".game-container")) continue;
+    var text = collectHintParagraphText(p);
+    if (text) lines.push(text);
+  }
+
+  if (!lines.length) {
+    var gameContainer = container.querySelector(".game-container");
+    if (!gameContainer || gameContainer.parentNode !== container) return [];
+    var cursor = gameContainer.nextElementSibling;
+    while (cursor) {
+      var tag = String(cursor.tagName || "").toLowerCase();
+      if (tag === "p") {
+        var fallbackText = collectHintParagraphText(cursor);
+        if (fallbackText) lines.push(fallbackText);
+      }
+      cursor = cursor.nextElementSibling;
+    }
+  }
+  return lines;
+}
+
+function dedupeHintLines(lines) {
+  var out = [];
+  var seen = {};
+  for (var i = 0; i < lines.length; i++) {
+    var line = normalizeHintParagraphText(lines[i]);
+    if (!line) continue;
+    if (Object.prototype.hasOwnProperty.call(seen, line)) continue;
+    seen[line] = 1;
+    out.push(line);
+  }
+  return out;
+}
+
+function collectMobileHintTexts() {
+  var introText = collectHintParagraphText(document.querySelector(".above-game .game-intro"));
+  if (!introText) {
+    introText = readHintTextForModal(".above-game .game-intro");
+  }
+  var mainLines = collectHintTextsFromMainContainer();
+  var lines = [];
+  if (introText) lines.push(introText);
+  for (var i = 0; i < mainLines.length; i++) {
+    lines.push(mainLines[i]);
+  }
+  if (!lines.length) {
+    var explainText = readHintTextForModal(".game-explanation");
+    if (explainText) lines.push(explainText);
+  }
+  if (!lines.length) {
+    lines.push("合并数字，合成 2048 方块。");
+  }
+  return dedupeHintLines(lines);
+}
+
+function ensureMobileHintModalDom() {
+  if (!isGamePageScope()) return null;
+  var overlay = document.getElementById("mobile-hint-overlay");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "mobile-hint-overlay";
+    overlay.className = "replay-modal-overlay mobile-hint-overlay";
+    overlay.style.display = "none";
+    overlay.innerHTML =
+      "<div class='replay-modal-content mobile-hint-modal-content'>" +
+      "<h3>玩法提示</h3>" +
+      "<div id='mobile-hint-body' class='mobile-hint-body'></div>" +
+      "<div class='replay-modal-actions'>" +
+      "<button id='mobile-hint-close' class='replay-button'>关闭</button>" +
+      "</div>" +
+      "</div>";
+    document.body.appendChild(overlay);
+  }
+
+  if (!overlay.__mobileHintBound) {
+    overlay.__mobileHintBound = true;
+    overlay.addEventListener("click", function (e) {
+      if (e.target === overlay) {
+        overlay.style.display = "none";
+      }
+    });
+  }
+
+  var closeBtn = document.getElementById("mobile-hint-close");
+  if (closeBtn && !closeBtn.__mobileHintBound) {
+    closeBtn.__mobileHintBound = true;
+    closeBtn.addEventListener("click", function () {
+      overlay.style.display = "none";
+    });
+  }
+
+  return {
+    overlay: overlay,
+    body: document.getElementById("mobile-hint-body")
+  };
+}
+
+function openMobileHintModal() {
+  if (!isGamePageScope() || !isCompactGameViewport()) return;
+  var dom = ensureMobileHintModalDom();
+  if (!dom || !dom.overlay || !dom.body) return;
+
+  var lines = collectMobileHintTexts();
+  dom.body.innerHTML = "";
+  for (var i = 0; i < lines.length; i++) {
+    var p = document.createElement("p");
+    p.textContent = lines[i];
+    dom.body.appendChild(p);
+  }
+  dom.overlay.style.display = "flex";
+}
+
+function closeMobileHintModal() {
+  var overlay = document.getElementById("mobile-hint-overlay");
+  if (overlay) overlay.style.display = "none";
+}
+
+function syncMobileHintTextBlockVisibility(hidden) {
+  if (!isGamePageScope()) return;
+  var container = document.querySelector(".container");
+  if (!container) return;
+
+  var nodes = [];
+  var children = container.children || [];
+  var afterGameContainer = false;
+  for (var i = 0; i < children.length; i++) {
+    var child = children[i];
+    if (!child || child.nodeType !== 1) continue;
+    if (!afterGameContainer) {
+      if (child.classList && child.classList.contains("game-container")) {
+        afterGameContainer = true;
+      }
+      continue;
+    }
+    var tag = String(child.tagName || "").toLowerCase();
+    if (tag === "p" || tag === "hr") {
+      nodes.push(child);
+    }
+  }
+
+  for (var j = 0; j < nodes.length; j++) {
+    var node = nodes[j];
+    if (hidden) {
+      node.style.setProperty("display", "none", "important");
+      node.setAttribute("data-mobile-hint-collapsed", "1");
+    } else if (node.getAttribute("data-mobile-hint-collapsed") === "1") {
+      node.style.removeProperty("display");
+      node.removeAttribute("data-mobile-hint-collapsed");
+    }
+  }
+}
+
+function syncMobileHintUI(options) {
+  options = options || {};
+  if (!isGamePageScope()) return;
+
+  var body = document.body;
+  var intro = document.querySelector(".above-game .game-intro");
+  if (!body) return;
+
+  var compact = isCompactGameViewport();
+  syncMobileHintTextBlockVisibility(compact);
+  if (intro) {
+    intro.classList.toggle("mobile-hint-hidden", compact);
+  }
+
+  var btn = ensureMobileHintToggleButton();
+  if (!btn) return;
+
+  if (!compact) {
+    body.classList.remove("mobile-hint-collapsed-content");
+    btn.style.display = "none";
+    closeMobileHintModal();
+    return;
+  }
+
+  body.classList.add("mobile-hint-collapsed-content");
+  btn.style.display = "inline-flex";
+  var label = "查看提示文本";
+  btn.setAttribute("aria-label", label);
+  btn.setAttribute("title", label);
+  btn.setAttribute("aria-expanded", "false");
+}
+
+function initMobileHintToggle() {
+  if (!isGamePageScope()) return;
+  var btn = ensureMobileHintToggleButton();
+  if (!btn) return;
+
+  if (!btn.__mobileHintBound) {
+    btn.__mobileHintBound = true;
+    btn.addEventListener("click", function (e) {
+      if (e) e.preventDefault();
+      openMobileHintModal();
+    });
+  }
+  syncMobileHintUI();
+}
+
+function initMobileUndoTopButton() {
+  if (!isGamePageScope()) return;
+  var btn = ensureMobileUndoTopButton();
+  if (!btn) return;
+  if (!btn.__mobileUndoBound) {
+    btn.__mobileUndoBound = true;
+    btn.addEventListener("click", function (e) {
+      if (e) e.preventDefault();
+      if (window.game_manager && window.game_manager.isUndoInteractionEnabled && window.game_manager.isUndoInteractionEnabled()) {
+        window.game_manager.move(-1);
+      }
+    });
+  }
+  syncMobileUndoTopButtonAvailability();
 }
 
 function readMobileTimerboxCollapsed() {
@@ -188,8 +631,8 @@ function syncMobileTimerboxUI(options) {
   if (!timerBox || !toggleBtn) return;
 
   var timerModuleHidden = timerBox.classList.contains("timerbox-hidden-mode");
-  var mobile = isMobileGameViewport();
-  if (!mobile || timerModuleHidden) {
+  var collapsible = isTimerboxCollapseViewport();
+  if (!collapsible || timerModuleHidden) {
     toggleBtn.style.display = "none";
     toggleBtn.setAttribute("aria-expanded", "false");
     timerBox.classList.remove("is-mobile-expanded");
@@ -224,6 +667,8 @@ function initMobileTimerboxToggle() {
     });
   }
   syncMobileTopActionsPlacement();
+  syncPracticeTopActionsPlacement();
+  syncMobileUndoTopButtonAvailability();
   syncMobileTimerboxUI();
 }
 
@@ -231,7 +676,10 @@ function requestResponsiveGameRelayout() {
   if (!isTimerboxMobileScope()) return;
   if (mobileRelayoutTimer) clearTimeout(mobileRelayoutTimer);
   mobileRelayoutTimer = setTimeout(function () {
+    syncMobileHintUI();
     syncMobileTopActionsPlacement();
+    syncPracticeTopActionsPlacement();
+    syncMobileUndoTopButtonAvailability();
     syncMobileTimerboxUI();
     var gm = window.game_manager;
     if (gm && gm.actuator && typeof gm.actuator.invalidateLayoutCache === "function") {
@@ -244,6 +692,8 @@ function requestResponsiveGameRelayout() {
 }
 
 window.syncMobileTimerboxUI = syncMobileTimerboxUI;
+window.syncMobileHintUI = syncMobileHintUI;
+window.syncMobileUndoTopButtonAvailability = syncMobileUndoTopButtonAvailability;
 
 function getStorageByName(name) {
   try {
@@ -736,7 +1186,7 @@ function isHomePage() {
 }
 
 function getHomeGuideSteps() {
-  return [
+  var steps = [
     { selector: "#home-title-link", title: "首页标题", desc: "点击 2048 标题可回到首页。" },
     { selector: "#top-announcement-btn", title: "版本公告", desc: "查看版本更新内容，红点表示有未读公告。" },
     { selector: "#stats-panel-toggle", title: "统计", desc: "打开统计汇总面板，查看步数和出数数据。" },
@@ -748,6 +1198,14 @@ function getHomeGuideSteps() {
     { selector: "#top-settings-btn", title: "设置", desc: "打开设置，调整主题、计时器显示与指引开关。" },
     { selector: "#top-restart-btn", title: "新游戏", desc: "开始新的一局，会重置当前局面。" }
   ];
+  if (isCompactGameViewport()) {
+    steps.splice(9, 0, {
+      selector: "#top-mobile-hint-btn",
+      title: "提示文本",
+      desc: "移动端可用此按钮打开提示弹窗，集中查看玩法说明与项目说明。"
+    });
+  }
+  return steps;
 }
 
 function ensureHomeGuideDom() {
@@ -822,14 +1280,24 @@ function positionHomeGuidePanel() {
 
   var rect = target.getBoundingClientRect();
   var margin = 12;
-  var panelWidth = Math.min(430, Math.max(280, window.innerWidth - margin * 2));
+  var panelWidth;
+  if (window.innerWidth <= MOBILE_UI_MAX_WIDTH) {
+    panelWidth = Math.min(380, Math.max(240, window.innerWidth - margin * 2));
+  } else {
+    panelWidth = Math.min(430, Math.max(280, window.innerWidth - margin * 2));
+  }
   panel.style.maxWidth = panelWidth + "px";
   panel.style.width = panelWidth + "px";
 
   var panelHeight = panel.offsetHeight || 160;
-  var top = rect.bottom + margin;
-  if (top + panelHeight > window.innerHeight - margin) {
-    top = rect.top - panelHeight - margin;
+  var top;
+  if (window.innerWidth <= MOBILE_UI_MAX_WIDTH) {
+    top = window.innerHeight - panelHeight - margin;
+  } else {
+    top = rect.bottom + margin;
+    if (top + panelHeight > window.innerHeight - margin) {
+      top = rect.top - panelHeight - margin;
+    }
   }
   if (top < margin) top = margin;
 
@@ -841,6 +1309,21 @@ function positionHomeGuidePanel() {
 
   panel.style.top = Math.round(top) + "px";
   panel.style.left = Math.round(left) + "px";
+}
+
+function isElementVisibleForGuide(node) {
+  if (!node) return false;
+  if (node.getClientRects && node.getClientRects().length === 0) return false;
+  var style = null;
+  try {
+    style = window.getComputedStyle ? window.getComputedStyle(node) : null;
+  } catch (_err) {
+    style = null;
+  }
+  if (style && (style.display === "none" || style.visibility === "hidden" || style.opacity === "0")) {
+    return false;
+  }
+  return true;
 }
 
 function showHomeGuideDoneNotice() {
@@ -906,11 +1389,14 @@ function showHomeGuideStep(index) {
 
   var step = HOME_GUIDE_STATE.steps[index];
   var target = document.querySelector(step.selector);
-  if (!target) {
+  if (!target || !isElementVisibleForGuide(target)) {
     showHomeGuideStep(index + 1);
     return;
   }
   HOME_GUIDE_STATE.target = target;
+  if (window.innerWidth <= MOBILE_UI_MAX_WIDTH && target.scrollIntoView) {
+    target.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
+  }
   target.classList.add("home-guide-highlight");
   elevateHomeGuideTarget(target);
 
@@ -1077,6 +1563,16 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
 
+    var practiceMobileUndoBtn = document.getElementById("practice-mobile-undo-btn");
+    if (practiceMobileUndoBtn) {
+      practiceMobileUndoBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        if (window.game_manager && window.game_manager.isUndoInteractionEnabled && window.game_manager.isUndoInteractionEnabled()) {
+          window.game_manager.move(-1);
+        }
+      });
+    }
+
 
     // Settings Button (Top Bar)
     var settingsBtn = document.getElementById("top-settings-btn");
@@ -1107,6 +1603,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initThemeSettingsUI();
     removeLegacyUndoSettingsUI();
     initTimerModuleSettingsUI();
+    initMobileHintToggle();
+    initMobileUndoTopButton();
     initHomeGuideSettingsUI();
     autoStartHomeGuideIfNeeded();
 

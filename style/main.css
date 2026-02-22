@@ -1283,6 +1283,36 @@ input[type=range]::-webkit-slider-runnable-track {
   margin-top: 0;
 }
 
+.mobile-hint-modal-content {
+  max-width: 560px;
+  text-align: left;
+}
+
+.mobile-hint-modal-content h3 {
+  text-align: center;
+}
+
+.mobile-hint-body {
+  border: 1px solid #d8d4d0;
+  border-radius: 6px;
+  background: #fffdfa;
+  color: #776e65;
+  line-height: 1.6;
+  font-size: 15px;
+  padding: 10px 12px;
+  max-height: 58vh;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+
+.mobile-hint-body p {
+  margin: 0 0 10px;
+}
+
+.mobile-hint-body p:last-child {
+  margin-bottom: 0;
+}
+
 .mode-intro-desc {
   color: #776e65;
   line-height: 1.6;
@@ -2144,6 +2174,38 @@ input[type=range]::-webkit-slider-runnable-track {
   display: block;
 }
 
+.mobile-hint-toggle-btn {
+  display: none;
+}
+
+.mobile-undo-top-btn {
+  display: none;
+}
+
+.practice-mobile-undo-btn {
+  display: none;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #f59f6a 0%, #f07a4a 100%);
+  color: #fff;
+  box-shadow: 0 2px 0 rgba(156, 73, 39, 0.95);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+}
+
+.practice-mobile-undo-btn svg {
+  display: block;
+}
+
+.practice-mobile-undo-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 rgba(156, 73, 39, 0.95);
+}
+
+.practice-mobile-undo-btn[aria-disabled="true"] {
+  filter: grayscale(0.2);
+  box-shadow: none;
+}
+
 @media screen and (max-width: 980px) {
   body[data-page="game"] {
     margin: 18px 0;
@@ -2168,6 +2230,7 @@ input[type=range]::-webkit-slider-runnable-track {
     right: auto;
     margin: 0 0 10px;
     flex-wrap: wrap;
+    align-items: center;
     justify-content: flex-start;
   }
 
@@ -2231,6 +2294,7 @@ input[type=range]::-webkit-slider-runnable-track {
     width: auto;
     padding: 0 12px;
     margin: 0;
+    order: 90;
   }
 
   body[data-page="game"] .stats-left {
@@ -2333,7 +2397,7 @@ input[type=range]::-webkit-slider-runnable-track {
 
   body[data-page="practice"] {
     margin: 16px 0;
-    padding: 0 10px;
+    padding: 0 5px;
   }
 
   body[data-page="practice"] .container {
@@ -2364,6 +2428,7 @@ input[type=range]::-webkit-slider-runnable-track {
 
   body[data-page="practice"] #practice-stats-actions {
     flex-wrap: wrap;
+    align-items: center;
   }
 
   body[data-page="practice"] .selection-grid {
@@ -2375,6 +2440,159 @@ input[type=range]::-webkit-slider-runnable-track {
     width: 100% !important;
     max-width: 500px;
     margin: 12px auto 0;
+  }
+
+  body[data-page="game"] .timerbox-toggle-btn,
+  body[data-page="practice"] .timerbox-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 8px 0 0;
+  }
+
+  body[data-page="game"] .top-action-buttons .timerbox-toggle-btn,
+  body[data-page="practice"] #practice-stats-actions .timerbox-toggle-btn {
+    margin: 0;
+  }
+
+  body[data-page="practice"] #practice-stats-actions .practice-mobile-undo-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    order: 999;
+  }
+
+  body[data-page="practice"] .above-game .game-intro {
+    display: none !important;
+  }
+
+  body[data-page="practice"] .container > .game-container ~ hr,
+  body[data-page="practice"] .container > .game-container ~ p {
+    display: none !important;
+  }
+
+  /* Mobile fallback: always collapse intro/help copy into hint modal */
+  body[data-page="game"] .above-game .game-intro,
+  body[data-page="game"] .game-explanation,
+  body[data-page="game"] .container > hr,
+  body[data-page="game"] .container > p {
+    display: none !important;
+  }
+
+  /* Mobile fallback: never show undo entry in no-undo/capped modes */
+  body[data-page="game"][data-mode-id*="no_undo"] .mobile-undo-top-btn,
+  body[data-page="game"][data-mode-id*="no-undo"] .mobile-undo-top-btn,
+  body[data-page="game"][data-mode-id*="capped"] .mobile-undo-top-btn,
+  body[data-page="game"][data-mode-id*="no_undo"] #undo-link,
+  body[data-page="game"][data-mode-id*="no-undo"] #undo-link,
+  body[data-page="game"][data-mode-id*="capped"] #undo-link {
+    display: none !important;
+  }
+
+  body[data-page="practice"] #practice-stats-actions .restart-button {
+    float: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    height: 36px;
+    line-height: 36px;
+    width: auto;
+    padding: 0 12px;
+    margin: 0;
+    order: 93;
+  }
+
+  body[data-page="game"] .top-action-buttons .timerbox-toggle-btn {
+    order: 91;
+  }
+
+  body[data-page="game"] .mobile-hint-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 8px 0 0;
+  }
+
+  body[data-page="game"] .mobile-undo-top-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 8px 0 0;
+  }
+
+  body[data-page="game"] .top-action-buttons .mobile-hint-toggle-btn {
+    margin: 0;
+    order: 92;
+  }
+
+  body[data-page="game"] .top-action-buttons .mobile-undo-top-btn {
+    margin: 0;
+    order: 999;
+  }
+
+  body[data-page="game"] #timerbox,
+  body[data-page="practice"] #timerbox {
+    display: none;
+  }
+
+  body[data-page="game"] #timerbox.is-mobile-expanded,
+  body[data-page="practice"] #timerbox.is-mobile-expanded {
+    display: block;
+  }
+
+  body[data-page="game"] #timerbox.is-mobile-expanded,
+  body[data-page="practice"] #timerbox.is-mobile-expanded {
+    position: relative;
+    z-index: 2;
+    margin-top: 10px;
+    margin-bottom: 14px;
+    line-height: 0;
+  }
+
+  body[data-page="game"] #timerbox.is-mobile-expanded::after,
+  body[data-page="practice"] #timerbox.is-mobile-expanded::after {
+    content: "";
+    display: block;
+    clear: both;
+  }
+
+  body[data-page="game"] #timerbox.is-mobile-expanded #timer,
+  body[data-page="practice"] #timerbox.is-mobile-expanded #timer {
+    float: none;
+    display: block;
+    margin: 8px auto 10px;
+    width: calc(100% - 30px);
+    max-width: 250px;
+  }
+
+  body[data-page="game"] #timerbox.is-mobile-expanded .timertile,
+  body[data-page="practice"] #timerbox.is-mobile-expanded .timertile {
+    float: none;
+    display: inline-block;
+    vertical-align: top;
+    margin-top: 4px;
+  }
+
+  body[data-page="game"] #timerbox.is-mobile-expanded br,
+  body[data-page="practice"] #timerbox.is-mobile-expanded br {
+    line-height: 0;
+    font-size: 0;
+  }
+
+  body[data-page="game"] #timerbox.is-mobile-expanded + .game-container,
+  body[data-page="practice"] #timerbox.is-mobile-expanded + .game-container {
+    margin-top: 16px;
+  }
+
+  body[data-page="game"].mobile-hint-collapsed-content .container > hr,
+  body[data-page="game"].mobile-hint-collapsed-content .container > p {
+    display: none !important;
+  }
+
+  body[data-page="game"] .game-intro.mobile-hint-hidden {
+    display: none;
   }
 
   body[data-page="practice"] .heading {
@@ -2441,7 +2659,67 @@ input[type=range]::-webkit-slider-runnable-track {
   }
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 760px) {
+  body[data-page="game"] #corner-stats-4-rate,
+  body[data-page="game"] #corner-stats-ips {
+    font-size: 16px !important;
+    top: 6px !important;
+  }
+
+  body[data-page="game"] #corner-stats-4-rate {
+    left: 6px !important;
+  }
+
+  body[data-page="game"] #corner-stats-ips {
+    right: 6px !important;
+  }
+
+  .home-guide-panel {
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+
+  .home-guide-step {
+    font-size: 12px;
+  }
+
+  .home-guide-title {
+    font-size: 18px;
+    margin-top: 4px;
+  }
+
+  .home-guide-desc {
+    font-size: 14px;
+    line-height: 1.45;
+    margin-top: 6px;
+  }
+
+  .home-guide-actions {
+    margin-top: 10px;
+    gap: 6px;
+  }
+
+  .home-guide-btn {
+    height: 34px;
+    line-height: 34px;
+    font-size: 13px;
+    padding: 0 10px;
+  }
+
+  .mobile-hint-modal-content {
+    width: min(92vw, 520px);
+    padding: 14px;
+  }
+
+  .mobile-hint-body {
+    font-size: 14px;
+    max-height: 62vh;
+  }
+
+  body[data-page="game"] {
+    padding: 0 5px;
+  }
+
   .replay-modal-content,
   .settings-modal-content,
   .announcement-modal-content {
@@ -2457,73 +2735,6 @@ input[type=range]::-webkit-slider-runnable-track {
     margin-top: 8px;
   }
 
-  body[data-page="game"] .timerbox-toggle-btn,
-  body[data-page="practice"] .timerbox-toggle-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin: 8px 0 0;
-  }
-
-  body[data-page="game"] .top-action-buttons .timerbox-toggle-btn,
-  body[data-page="practice"] #practice-stats-actions .timerbox-toggle-btn {
-    margin: 0;
-  }
-
-  body[data-page="game"] #timerbox,
-  body[data-page="practice"] #timerbox {
-    display: none;
-  }
-
-  body[data-page="game"] #timerbox.is-mobile-expanded,
-  body[data-page="practice"] #timerbox.is-mobile-expanded {
-    display: block;
-  }
-
-  body[data-page="game"] #timerbox.is-mobile-expanded,
-  body[data-page="practice"] #timerbox.is-mobile-expanded {
-    position: relative;
-    z-index: 2;
-    margin-top: 10px;
-    margin-bottom: 14px;
-    line-height: 0;
-  }
-
-  body[data-page="game"] #timerbox.is-mobile-expanded::after,
-  body[data-page="practice"] #timerbox.is-mobile-expanded::after {
-    content: "";
-    display: block;
-    clear: both;
-  }
-
-  body[data-page="game"] #timerbox.is-mobile-expanded #timer,
-  body[data-page="practice"] #timerbox.is-mobile-expanded #timer {
-    float: none;
-    display: block;
-    margin: 8px auto 10px;
-    width: calc(100% - 30px);
-    max-width: 250px;
-  }
-
-  body[data-page="game"] #timerbox.is-mobile-expanded .timertile,
-  body[data-page="practice"] #timerbox.is-mobile-expanded .timertile {
-    float: none;
-    display: inline-block;
-    vertical-align: top;
-    margin-top: 4px;
-  }
-
-  body[data-page="game"] #timerbox.is-mobile-expanded br,
-  body[data-page="practice"] #timerbox.is-mobile-expanded br {
-    line-height: 0;
-    font-size: 0;
-  }
-
-  body[data-page="game"] #timerbox.is-mobile-expanded + .game-container,
-  body[data-page="practice"] #timerbox.is-mobile-expanded + .game-container {
-    margin-top: 16px;
-  }
-
   body[data-page="game"] .game-container,
   body[data-page="replay"] .game-container,
   body[data-page="practice"] .game-container {
@@ -2533,14 +2744,27 @@ input[type=range]::-webkit-slider-runnable-track {
     padding: 10px;
   }
 
+  body[data-page="game"] .game-container {
+    width: 100%;
+    max-width: none;
+  }
+
+  body[data-page="practice"] .game-container {
+    width: 100%;
+    max-width: none;
+  }
+
   body[data-page="history"] .portal-actions-inline {
     flex-wrap: wrap;
   }
 }
 
-@media screen and (hover: hover) and (pointer: fine) {
+@media screen and (min-width: 981px) {
+  body[data-page="game"] .mobile-undo-top-btn,
+  body[data-page="game"] .mobile-hint-toggle-btn,
   body[data-page="game"] .timerbox-toggle-btn,
-  body[data-page="practice"] .timerbox-toggle-btn {
+  body[data-page="practice"] .timerbox-toggle-btn,
+  body[data-page="practice"] .practice-mobile-undo-btn {
     display: none !important;
   }
 }
@@ -2552,6 +2776,14 @@ input[type=range]::-webkit-slider-runnable-track {
   body[data-page="modes"],
   body[data-page="history"] {
     padding: 0 8px;
+  }
+
+  body[data-page="game"] {
+    padding: 0 5px;
+  }
+
+  body[data-page="practice"] {
+    padding: 0 5px;
   }
 
   body[data-page="game"] h1.title,
@@ -2569,10 +2801,25 @@ input[type=range]::-webkit-slider-runnable-track {
     padding: 0 10px;
   }
 
-  body[data-page="game"] .game-container,
   body[data-page="replay"] .game-container,
   body[data-page="practice"] .game-container {
     width: min(100%, 320px);
+  }
+
+  body[data-page="game"] .game-container {
+    width: 100%;
+    max-width: none;
+  }
+
+  body[data-page="practice"] .game-container {
+    width: 100%;
+    max-width: none;
+  }
+
+  body[data-page="game"] #corner-stats-4-rate,
+  body[data-page="game"] #corner-stats-ips {
+    font-size: 14px !important;
+    top: 5px !important;
   }
 
   body[data-page="replay"] .replay-control-btn,
@@ -2611,6 +2858,12 @@ input[type=range]::-webkit-slider-runnable-track {
 }
 
 @media screen and (max-width: 390px) {
+  body[data-page="game"] #corner-stats-4-rate,
+  body[data-page="game"] #corner-stats-ips {
+    font-size: 12px !important;
+    top: 4px !important;
+  }
+
   body[data-page="game"] .top-action-buttons,
   body[data-page="practice"] #practice-stats-actions {
     gap: 6px;
@@ -2618,6 +2871,7 @@ input[type=range]::-webkit-slider-runnable-track {
 
   body[data-page="game"] .top-action-btn,
   body[data-page="game"] .timerbox-toggle-btn,
+  body[data-page="game"] .mobile-hint-toggle-btn,
   body[data-page="practice"] .top-action-btn,
   body[data-page="practice"] .timerbox-toggle-btn {
     font-size: 13px;
@@ -2637,8 +2891,17 @@ input[type=range]::-webkit-slider-runnable-track {
     padding: 0 6px;
   }
 
+  body[data-page="game"] {
+    padding: 0 5px;
+  }
+
+  body[data-page="practice"] {
+    padding: 0 5px;
+  }
+
   body[data-page="game"] .top-action-btn,
   body[data-page="game"] .timerbox-toggle-btn,
+  body[data-page="game"] .mobile-hint-toggle-btn,
   body[data-page="practice"] .top-action-btn,
   body[data-page="practice"] .timerbox-toggle-btn,
   body[data-page="replay"] .replay-control-btn,

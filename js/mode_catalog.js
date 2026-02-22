@@ -270,6 +270,17 @@
     rank_policy: "unranked"
   });
 
+  addPair({
+    key: "spawn_custom_4x4_pow2",
+    label: "4x4 自定义4率",
+    board_width: 4,
+    board_height: 4,
+    ruleset: "pow2",
+    spawn_table: [{ value: 2, weight: 90 }, { value: 4, weight: 10 }],
+    mode_family: "pow2",
+    rank_policy: "unranked"
+  });
+
   // Phase 1: spawn probabilities
   addPair({
     key: "spawn95_4x4_pow2",

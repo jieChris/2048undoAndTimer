@@ -1899,14 +1899,27 @@ GameManager.prototype.isUndoInteractionEnabled = function () {
 
 GameManager.prototype.updateUndoUiState = function () {
   var canUndo = this.isUndoInteractionEnabled();
+  var modeUndoCapable = this.isUndoAllowedByMode(this.mode);
   var undoLink = document.getElementById("undo-link");
   if (undoLink) {
-    undoLink.style.pointerEvents = canUndo ? "" : "none";
-    undoLink.style.opacity = canUndo ? "" : "0.45";
+    undoLink.style.display = modeUndoCapable ? "" : "none";
+    if (modeUndoCapable) {
+      undoLink.style.pointerEvents = canUndo ? "" : "none";
+      undoLink.style.opacity = canUndo ? "" : "0.45";
+    }
   }
   var undoBtn = document.getElementById("undo-btn-gameover");
   if (undoBtn) {
     undoBtn.style.display = canUndo ? "inline-block" : "none";
+  }
+  var practiceUndoBtn = document.getElementById("practice-mobile-undo-btn");
+  if (practiceUndoBtn) {
+    practiceUndoBtn.style.pointerEvents = canUndo ? "" : "none";
+    practiceUndoBtn.style.opacity = canUndo ? "" : "0.45";
+    practiceUndoBtn.setAttribute("aria-disabled", canUndo ? "false" : "true");
+  }
+  if (typeof window !== "undefined" && typeof window.syncMobileUndoTopButtonAvailability === "function") {
+    window.syncMobileUndoTopButtonAvailability();
   }
 };
 

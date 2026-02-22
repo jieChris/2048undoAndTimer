@@ -1,4 +1,11 @@
 (function () {
+  var CUSTOM_SPAWN_MODE_KEYS = {
+    spawn_custom_4x4_pow2_no_undo: true,
+    spawn_custom_4x4_pow2_undo: true
+  };
+  var CUSTOM_FOUR_RATE_PARAM = "four_rate";
+  var CUSTOM_FOUR_RATE_STORAGE_KEY = "custom_spawn_4x4_four_rate_v1";
+
   function parseModeKey() {
     var params = new URLSearchParams(window.location.search);
     var raw = params.get("mode_key");
@@ -25,6 +32,101 @@
       .replace(/Fibonacci/gi, "Fib")
       .replace(/（Legacy）/g, "")
       .replace(/\s+/g, "");
+  }
+
+  function isCustomSpawnModeKey(modeKey) {
+    return !!CUSTOM_SPAWN_MODE_KEYS[String(modeKey || "")];
+  }
+
+  function sanitizeCustomFourRate(raw) {
+    if (raw === null || typeof raw === "undefined") return null;
+    var text = String(raw).trim().replace(/%/g, "");
+    if (!text) return null;
+    var num = Number(text);
+    if (!Number.isFinite(num)) return null;
+    if (num < 0 || num > 100) return null;
+    return Math.round(num * 100) / 100;
+  }
+
+  function formatRatePercent(rate) {
+    var fixed = Number(rate).toFixed(2);
+    return fixed.replace(/\.?0+$/, "");
+  }
+
+  function inferFourRateFromModeConfig(modeConfig) {
+    if (!modeConfig || !Array.isArray(modeConfig.spawn_table)) return 10;
+    var totalWeight = 0;
+    var fourWeight = 0;
+    for (var i = 0; i < modeConfig.spawn_table.length; i++) {
+      var item = modeConfig.spawn_table[i];
+      if (!item || !Number.isFinite(item.weight) || item.weight <= 0) continue;
+      totalWeight += Number(item.weight);
+      if (Number(item.value) === 4) {
+        fourWeight += Number(item.weight);
+      }
+    }
+    if (totalWeight <= 0) return 10;
+    return Math.round((fourWeight / totalWeight) * 10000) / 100;
+  }
+
+  function readStoredCustomFourRate() {
+    try {
+      return sanitizeCustomFourRate(localStorage.getItem(CUSTOM_FOUR_RATE_STORAGE_KEY));
+    } catch (_err) {
+      return null;
+    }
+  }
+
+  function writeStoredCustomFourRate(rate) {
+    try {
+      localStorage.setItem(CUSTOM_FOUR_RATE_STORAGE_KEY, String(formatRatePercent(rate)));
+    } catch (_err) {}
+  }
+
+  function promptCustomFourRate(defaultRate) {
+    while (true) {
+      var raw = window.prompt("请输入 4 率（0-100，可输入小数）", String(formatRatePercent(defaultRate)));
+      if (raw === null) return null;
+      var parsed = sanitizeCustomFourRate(raw);
+      if (parsed !== null) return parsed;
+      window.alert("输入无效，请输入 0 到 100 的数字。");
+    }
+  }
+
+  function resolveCustomSpawnModeConfig(modeKey, modeConfig) {
+    if (!isCustomSpawnModeKey(modeKey) || !modeConfig) return modeConfig;
+
+    var params = new URLSearchParams(window.location.search);
+    var parsedRate = sanitizeCustomFourRate(params.get(CUSTOM_FOUR_RATE_PARAM));
+    if (parsedRate === null) {
+      var remembered = readStoredCustomFourRate();
+      var defaultRate = remembered !== null ? remembered : inferFourRateFromModeConfig(modeConfig);
+      parsedRate = promptCustomFourRate(defaultRate);
+      if (parsedRate === null) return null;
+      params.set("mode_key", modeKey);
+      params.set(CUSTOM_FOUR_RATE_PARAM, formatRatePercent(parsedRate));
+      var nextUrl = window.location.pathname + "?" + params.toString() + (window.location.hash || "");
+      try {
+        window.history.replaceState(null, "", nextUrl);
+      } catch (_err) {}
+    }
+
+    writeStoredCustomFourRate(parsedRate);
+
+    var nextConfig = JSON.parse(JSON.stringify(modeConfig));
+    var twoRate = Math.round((100 - parsedRate) * 100) / 100;
+    var spawnTable = [];
+    if (twoRate > 0) spawnTable.push({ value: 2, weight: twoRate });
+    if (parsedRate > 0) spawnTable.push({ value: 4, weight: parsedRate });
+    if (!spawnTable.length) spawnTable.push({ value: 2, weight: 100 });
+
+    nextConfig.spawn_table = spawnTable;
+    nextConfig.special_rules = (nextConfig.special_rules && typeof nextConfig.special_rules === "object")
+      ? nextConfig.special_rules
+      : {};
+    nextConfig.special_rules.custom_spawn_four_rate = parsedRate;
+    nextConfig.label = modeConfig.label + "（4率 " + formatRatePercent(parsedRate) + "%）";
+    return nextConfig;
   }
 
   function setupChallengeModeIntro(modeConfig) {
@@ -114,6 +216,12 @@
     if (!modeConfig) {
       alert("无效模式，已回退到标准模式");
       window.location.href = "play.html?mode_key=standard_4x4_pow2_no_undo";
+      return;
+    }
+
+    modeConfig = resolveCustomSpawnModeConfig(modeKey, modeConfig);
+    if (!modeConfig) {
+      window.location.href = "modes.html";
       return;
     }
 
