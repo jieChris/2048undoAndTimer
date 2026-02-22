@@ -2123,3 +2123,528 @@ input[type=range]::-webkit-slider-runnable-track {
     grid-template-columns: 1fr;
   }
 }
+
+/* Responsive V2 (mobile-first compatibility layer) */
+.timerbox-toggle-btn {
+  display: none;
+  border: none;
+  background: #8f7a66;
+  color: #f9f6f2;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 14px;
+  min-height: 36px;
+  line-height: 36px;
+  padding: 0 14px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.timerbox-toggle-btn svg {
+  display: block;
+}
+
+@media screen and (max-width: 980px) {
+  body[data-page="game"] {
+    margin: 18px 0;
+    padding: 0 10px;
+  }
+
+  body[data-page="game"] .container {
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  body[data-page="game"] .heading {
+    float: none;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  body[data-page="game"] .top-action-buttons {
+    position: static;
+    top: auto;
+    right: auto;
+    margin: 0 0 10px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  body[data-page="game"] .top-action-btn {
+    min-height: 36px;
+    height: 36px;
+    line-height: 36px;
+    padding: 0 12px;
+  }
+
+  body[data-page="game"] .scores-container {
+    float: none;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  body[data-page="game"] .score-container,
+  body[data-page="game"] .best-container {
+    margin-top: 0;
+  }
+
+  body[data-page="game"] .above-game {
+    float: none;
+    width: 100%;
+    padding-top: 10px !important;
+  }
+
+  body[data-page="game"] .game-intro {
+    float: none;
+    width: 100%;
+    margin-bottom: 8px;
+    line-height: 1.45;
+  }
+
+  body[data-page="game"] #play-mode-intro {
+    max-width: none;
+  }
+
+  body[data-page="game"] .restart-button {
+    float: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    height: 36px;
+    line-height: 36px;
+    width: auto;
+    padding: 0 12px;
+    margin-top: 0;
+  }
+
+  body[data-page="game"] .top-action-buttons .restart-button {
+    float: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    height: 36px;
+    line-height: 36px;
+    width: auto;
+    padding: 0 12px;
+    margin: 0;
+  }
+
+  body[data-page="game"] .stats-left {
+    float: none;
+    margin: 0 0 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+  }
+
+  body[data-page="game"] .stats-left > div {
+    margin: 0;
+  }
+
+  body[data-page="game"] .stats-right {
+    float: none;
+    text-align: right;
+    margin: 0 0 8px;
+  }
+
+  body[data-page="game"] #timerbox {
+    float: none;
+    width: 100%;
+    max-width: 500px;
+    margin: 12px auto 0;
+    text-align: center;
+  }
+
+  body[data-page="game"] .game-container {
+    float: none;
+    margin: 12px auto 0;
+  }
+
+  body[data-page="game"] .game-explanation,
+  body[data-page="game"] hr {
+    max-width: 100%;
+  }
+
+  body[data-page="replay"] {
+    margin: 16px 0;
+    padding: 0 10px;
+  }
+
+  body[data-page="replay"] .container {
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  body[data-page="replay"] .heading {
+    float: none !important;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  body[data-page="replay"] .heading .title {
+    float: none;
+    margin-bottom: 8px;
+  }
+
+  body[data-page="replay"] .scores-container {
+    float: none;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  body[data-page="replay"] .game-container.game-container-replay {
+    margin: 12px auto 0 !important;
+  }
+
+  body[data-page="replay"] .replay-controls-panel {
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  body[data-page="replay"] .replay-buttons-row {
+    display: flex !important;
+    flex-wrap: wrap;
+    justify-content: center !important;
+    gap: 8px !important;
+  }
+
+  body[data-page="replay"] .replay-control-btn {
+    min-height: 36px;
+    line-height: 36px;
+    padding: 0 12px;
+  }
+
+  body[data-page="replay"] #replay-speed {
+    min-height: 36px;
+    margin-left: 0 !important;
+  }
+
+  body[data-page="replay"] .import-replay-button {
+    min-height: 36px;
+    line-height: 36px;
+    padding: 0 16px !important;
+  }
+
+  body[data-page="practice"] {
+    margin: 16px 0;
+    padding: 0 10px;
+  }
+
+  body[data-page="practice"] .container {
+    width: 100% !important;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  body[data-page="practice"] .dashboard-container {
+    flex-direction: column !important;
+    gap: 10px;
+    margin-bottom: 12px !important;
+  }
+
+  body[data-page="practice"] .dashboard-stats,
+  body[data-page="practice"] .dashboard-controls {
+    width: 100% !important;
+  }
+
+  body[data-page="practice"] .dashboard-box {
+    min-height: 0 !important;
+  }
+
+  body[data-page="practice"] .dashboard-controls {
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
+  }
+
+  body[data-page="practice"] #practice-stats-actions {
+    flex-wrap: wrap;
+  }
+
+  body[data-page="practice"] .selection-grid {
+    justify-content: flex-start !important;
+  }
+
+  body[data-page="practice"] #timerbox {
+    float: none;
+    width: 100% !important;
+    max-width: 500px;
+    margin: 12px auto 0;
+  }
+
+  body[data-page="practice"] .heading {
+    float: none;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  body[data-page="practice"] .game-container {
+    float: none;
+    margin: 12px auto 0;
+  }
+
+  body[data-page="modes"] {
+    margin: 16px 0;
+    padding: 0 10px;
+  }
+
+  body[data-page="modes"] .container {
+    width: 100%;
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  body[data-page="modes"] .heading {
+    float: none !important;
+    width: 100% !important;
+    margin-bottom: 8px !important;
+  }
+
+  body[data-page="modes"] .heading .title {
+    float: none !important;
+  }
+
+  body[data-page="modes"] .mode-hub {
+    margin-top: 12px !important;
+    padding: 14px !important;
+  }
+
+  body[data-page="modes"] .mode-major-title {
+    font-size: 22px !important;
+  }
+
+  body[data-page="modes"] .mode-hub-actions {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  body[data-page="modes"] .mode-hub-btn {
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box;
+  }
+
+  body[data-page="history"] {
+    margin: 16px 0;
+    padding: 0 8px;
+  }
+
+  body[data-page="history"] .container.portal-container {
+    width: 100% !important;
+    max-width: 980px;
+    margin: 0 auto;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .replay-modal-content,
+  .settings-modal-content,
+  .announcement-modal-content {
+    max-height: 82vh;
+    overflow-y: auto;
+  }
+
+  body[data-page="game"] h1.title,
+  body[data-page="replay"] h1.title,
+  body[data-page="practice"] h1.title,
+  body[data-page="modes"] h1.title {
+    font-size: 38px;
+    margin-top: 8px;
+  }
+
+  body[data-page="game"] .timerbox-toggle-btn,
+  body[data-page="practice"] .timerbox-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 8px 0 0;
+  }
+
+  body[data-page="game"] .top-action-buttons .timerbox-toggle-btn,
+  body[data-page="practice"] #practice-stats-actions .timerbox-toggle-btn {
+    margin: 0;
+  }
+
+  body[data-page="game"] #timerbox,
+  body[data-page="practice"] #timerbox {
+    display: none;
+  }
+
+  body[data-page="game"] #timerbox.is-mobile-expanded,
+  body[data-page="practice"] #timerbox.is-mobile-expanded {
+    display: block;
+  }
+
+  body[data-page="game"] #timerbox.is-mobile-expanded,
+  body[data-page="practice"] #timerbox.is-mobile-expanded {
+    position: relative;
+    z-index: 2;
+    margin-top: 10px;
+    margin-bottom: 14px;
+    line-height: 0;
+  }
+
+  body[data-page="game"] #timerbox.is-mobile-expanded::after,
+  body[data-page="practice"] #timerbox.is-mobile-expanded::after {
+    content: "";
+    display: block;
+    clear: both;
+  }
+
+  body[data-page="game"] #timerbox.is-mobile-expanded #timer,
+  body[data-page="practice"] #timerbox.is-mobile-expanded #timer {
+    float: none;
+    display: block;
+    margin: 8px auto 10px;
+    width: calc(100% - 30px);
+    max-width: 250px;
+  }
+
+  body[data-page="game"] #timerbox.is-mobile-expanded .timertile,
+  body[data-page="practice"] #timerbox.is-mobile-expanded .timertile {
+    float: none;
+    display: inline-block;
+    vertical-align: top;
+    margin-top: 4px;
+  }
+
+  body[data-page="game"] #timerbox.is-mobile-expanded br,
+  body[data-page="practice"] #timerbox.is-mobile-expanded br {
+    line-height: 0;
+    font-size: 0;
+  }
+
+  body[data-page="game"] #timerbox.is-mobile-expanded + .game-container,
+  body[data-page="practice"] #timerbox.is-mobile-expanded + .game-container {
+    margin-top: 16px;
+  }
+
+  body[data-page="game"] .game-container,
+  body[data-page="replay"] .game-container,
+  body[data-page="practice"] .game-container {
+    width: min(100%, 500px);
+    height: auto;
+    aspect-ratio: 1 / 1;
+    padding: 10px;
+  }
+
+  body[data-page="history"] .portal-actions-inline {
+    flex-wrap: wrap;
+  }
+}
+
+@media screen and (hover: hover) and (pointer: fine) {
+  body[data-page="game"] .timerbox-toggle-btn,
+  body[data-page="practice"] .timerbox-toggle-btn {
+    display: none !important;
+  }
+}
+
+@media screen and (max-width: 520px) {
+  body[data-page="game"],
+  body[data-page="replay"],
+  body[data-page="practice"],
+  body[data-page="modes"],
+  body[data-page="history"] {
+    padding: 0 8px;
+  }
+
+  body[data-page="game"] h1.title,
+  body[data-page="replay"] h1.title,
+  body[data-page="practice"] h1.title,
+  body[data-page="modes"] h1.title {
+    font-size: 30px;
+  }
+
+  body[data-page="game"] .top-action-btn,
+  body[data-page="practice"] .top-action-btn {
+    min-height: 36px;
+    height: 36px;
+    line-height: 36px;
+    padding: 0 10px;
+  }
+
+  body[data-page="game"] .game-container,
+  body[data-page="replay"] .game-container,
+  body[data-page="practice"] .game-container {
+    width: min(100%, 320px);
+  }
+
+  body[data-page="replay"] .replay-control-btn,
+  body[data-page="replay"] #replay-speed,
+  body[data-page="replay"] .import-replay-button {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  body[data-page="practice"] .selection-tile {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  body[data-page="practice"] .selection-tile .tile-inner {
+    line-height: 42px !important;
+    font-size: 16px !important;
+  }
+
+  body[data-page="history"] .portal-inline-input,
+  body[data-page="history"] .portal-inline-select,
+  body[data-page="history"] .portal-actions-inline .replay-button {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  body[data-page="history"] #history-prev-page,
+  body[data-page="history"] #history-next-page {
+    width: 100%;
+  }
+
+  body[data-page="history"] .history-item {
+    overflow-x: auto;
+  }
+}
+
+@media screen and (max-width: 390px) {
+  body[data-page="game"] .top-action-buttons,
+  body[data-page="practice"] #practice-stats-actions {
+    gap: 6px;
+  }
+
+  body[data-page="game"] .top-action-btn,
+  body[data-page="game"] .timerbox-toggle-btn,
+  body[data-page="practice"] .top-action-btn,
+  body[data-page="practice"] .timerbox-toggle-btn {
+    font-size: 13px;
+  }
+
+  body[data-page="modes"] .mode-major-title {
+    font-size: 20px !important;
+  }
+}
+
+@media screen and (max-width: 320px) {
+  body[data-page="game"],
+  body[data-page="replay"],
+  body[data-page="practice"],
+  body[data-page="modes"],
+  body[data-page="history"] {
+    padding: 0 6px;
+  }
+
+  body[data-page="game"] .top-action-btn,
+  body[data-page="game"] .timerbox-toggle-btn,
+  body[data-page="practice"] .top-action-btn,
+  body[data-page="practice"] .timerbox-toggle-btn,
+  body[data-page="replay"] .replay-control-btn,
+  body[data-page="history"] .replay-button {
+    font-size: 12px;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}

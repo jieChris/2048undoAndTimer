@@ -3,6 +3,7 @@
 // Guide Logic
 (function() {
     var guideKey = 'replay_guide_shown_v1';
+    var guideResizeTimer = null;
     if (!localStorage.getItem(guideKey)) {
         // Wait for DOMContentLoaded is handled by script load order or event, but let's be safe inside the main listener or check if body exists
         // Since replay_ui.js is loaded at end of body, elements should exist.
@@ -11,6 +12,19 @@
         var titleLink = document.querySelector('.title a');
         
         if (overlay && titleLink && message) {
+            function positionGuideMessage() {
+                var rect = titleLink.getBoundingClientRect();
+                var top = rect.bottom + 15;
+                var left = rect.left + 20;
+                var maxLeft = Math.max(8, window.innerWidth - (message.offsetWidth || 260) - 8);
+                if (left > maxLeft) left = maxLeft;
+                if (top > window.innerHeight - 90) {
+                    top = Math.max(8, rect.top - 70);
+                }
+                message.style.top = top + 'px';
+                message.style.left = left + 'px';
+            }
+
             // Show overlay
             overlay.style.display = 'block';
             
@@ -18,10 +32,7 @@
             titleLink.classList.add('guide-highlight');
             
             // Position Message
-            var rect = titleLink.getBoundingClientRect();
-            // Position below the title roughly
-            message.style.top = (rect.bottom + 15) + 'px';
-            message.style.left = (rect.left + 20) + 'px';
+            positionGuideMessage();
             
             // Dismiss Function
             function dismiss() {
@@ -34,6 +45,17 @@
             overlay.addEventListener('click', dismiss);
             titleLink.addEventListener('click', function() {
                 dismiss();
+            });
+
+            window.addEventListener("resize", function () {
+                if (overlay.style.display !== 'block') return;
+                if (guideResizeTimer) clearTimeout(guideResizeTimer);
+                guideResizeTimer = setTimeout(positionGuideMessage, 100);
+            });
+            window.addEventListener("orientationchange", function () {
+                if (overlay.style.display !== 'block') return;
+                if (guideResizeTimer) clearTimeout(guideResizeTimer);
+                guideResizeTimer = setTimeout(positionGuideMessage, 120);
             });
         }
     }
@@ -86,6 +108,7 @@ window.pauseReplay = function() {
 };
 
 var isScrubbing = false;
+var replayRelayoutTimer = null;
 
 window.toggleReplayPause = function() {
     if(window.game_manager) {
@@ -134,6 +157,20 @@ function updateReplayUI() {
         var percent = total > 0 ? (current / total) * 100 : 0;
         progress.value = percent;
     }
+}
+
+function requestReplayRelayout() {
+    if (replayRelayoutTimer) clearTimeout(replayRelayoutTimer);
+    replayRelayoutTimer = setTimeout(function () {
+        var gm = window.game_manager;
+        if (!gm) return;
+        if (gm.actuator && typeof gm.actuator.invalidateLayoutCache === "function") {
+            gm.actuator.invalidateLayoutCache();
+        }
+        if (typeof gm.actuate === "function") {
+            gm.actuate();
+        }
+    }, 120);
 }
 
 async function loadReplayFromSessionId() {
@@ -233,4 +270,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeReplayModal);
 
     loadReplayFromSessionId();
+
+    if (!window.__replayRelayoutBound) {
+        window.__replayRelayoutBound = true;
+        window.addEventListener("resize", requestReplayRelayout);
+        window.addEventListener("orientationchange", requestReplayRelayout);
+    }
+    requestReplayRelayout();
 });

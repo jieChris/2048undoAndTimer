@@ -131,6 +131,10 @@ HTMLActuator.prototype.ensureGridLayout = function (grid, metadata) {
   }
 };
 
+HTMLActuator.prototype.invalidateLayoutCache = function () {
+  this.gridMeta = null;
+};
+
 HTMLActuator.prototype.applyContainerFrameSize = function (cols, rows, gridHeight) {
   if (!this.gameContainer || typeof window === "undefined") return;
 

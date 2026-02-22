@@ -37,6 +37,7 @@
       ? options.max_tile
       : null;
     var inferredMaxTile = getTheoreticalMaxTile(options.board_width, options.board_height, ruleset);
+    var defaultMaxTile = ruleset === "fibonacci" ? null : inferredMaxTile;
     return {
       key: options.key,
       label: options.label,
@@ -44,7 +45,7 @@
       board_height: options.board_height,
       ruleset: ruleset,
       undo_enabled: !!options.undo_enabled,
-      max_tile: explicitMaxTile || inferredMaxTile,
+      max_tile: explicitMaxTile || defaultMaxTile,
       spawn_table: clone(options.spawn_table || (ruleset === "fibonacci"
         ? [{ value: 1, weight: 90 }, { value: 2, weight: 10 }]
         : [{ value: 2, weight: 90 }, { value: 4, weight: 10 }])),

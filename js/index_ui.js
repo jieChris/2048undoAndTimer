@@ -73,6 +73,177 @@ var PRACTICE_TRANSFER_KEY = "practice_board_transfer_v1";
 var PRACTICE_TRANSFER_SESSION_KEY = "practice_board_transfer_session_v1";
 var PRACTICE_GUIDE_SHOWN_KEY = "practice_guide_shown_v2";
 var PRACTICE_GUIDE_SEEN_FLAG = "practice_guide_seen_v2=1";
+var MOBILE_TIMERBOX_COLLAPSED_KEY = "ui_timerbox_collapsed_mobile_v1";
+var mobileRelayoutTimer = null;
+var mobileTopActionsState = null;
+
+function isGamePageScope() {
+  if (!document.body) return false;
+  return document.body.getAttribute("data-page") === "game";
+}
+
+function isTimerboxMobileScope() {
+  if (!document.body) return false;
+  var page = document.body.getAttribute("data-page");
+  return page === "game" || page === "practice";
+}
+
+function isMobileGameViewport() {
+  if (typeof window === "undefined") return false;
+  var narrow = window.matchMedia ? window.matchMedia("(max-width: 768px)").matches : (window.innerWidth <= 768);
+  if (!narrow) return false;
+
+  var coarsePointer = false;
+  var noHover = false;
+  try {
+    coarsePointer = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+    noHover = !!(window.matchMedia && window.matchMedia("(hover: none)").matches);
+  } catch (_err) {}
+
+  var ua = "";
+  try {
+    ua = (navigator && navigator.userAgent) ? String(navigator.userAgent) : "";
+  } catch (_err) {
+    ua = "";
+  }
+  var mobileUa = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+
+  return coarsePointer || noHover || mobileUa;
+}
+
+function ensureMobileTopActionsState() {
+  if (!isGamePageScope()) return null;
+  if (mobileTopActionsState) return mobileTopActionsState;
+
+  var topActionButtons = document.querySelector(".top-action-buttons");
+  var restartBtn = document.querySelector(".above-game .restart-button");
+  var timerToggleBtn = document.getElementById("timerbox-toggle-btn");
+  if (!topActionButtons || !restartBtn || !timerToggleBtn) return null;
+
+  var restartAnchor = document.createComment("mobile-restart-anchor");
+  var timerToggleAnchor = document.createComment("mobile-timer-toggle-anchor");
+  restartBtn.parentNode.insertBefore(restartAnchor, restartBtn);
+  timerToggleBtn.parentNode.insertBefore(timerToggleAnchor, timerToggleBtn);
+
+  mobileTopActionsState = {
+    topActionButtons: topActionButtons,
+    restartBtn: restartBtn,
+    timerToggleBtn: timerToggleBtn,
+    restartAnchor: restartAnchor,
+    timerToggleAnchor: timerToggleAnchor
+  };
+  return mobileTopActionsState;
+}
+
+function restoreNodeAfterAnchor(node, anchor) {
+  if (!node || !anchor || !anchor.parentNode) return;
+  anchor.parentNode.insertBefore(node, anchor.nextSibling);
+}
+
+function syncMobileTopActionsPlacement() {
+  var state = ensureMobileTopActionsState();
+  if (!state) return;
+
+  var mobile = isMobileGameViewport();
+  if (mobile) {
+    if (state.restartBtn.parentNode !== state.topActionButtons) {
+      state.topActionButtons.appendChild(state.restartBtn);
+    }
+    if (state.timerToggleBtn.parentNode !== state.topActionButtons) {
+      state.topActionButtons.appendChild(state.timerToggleBtn);
+    }
+    return;
+  }
+
+  restoreNodeAfterAnchor(state.restartBtn, state.restartAnchor);
+  restoreNodeAfterAnchor(state.timerToggleBtn, state.timerToggleAnchor);
+}
+
+function readMobileTimerboxCollapsed() {
+  var storage = getStorageByName("localStorage");
+  if (!storage) return true;
+  var raw = safeReadStorageItem(storage, MOBILE_TIMERBOX_COLLAPSED_KEY);
+  return raw !== "0";
+}
+
+function writeMobileTimerboxCollapsed(collapsed) {
+  var storage = getStorageByName("localStorage");
+  if (!storage) return;
+  safeSetStorageItem(storage, MOBILE_TIMERBOX_COLLAPSED_KEY, collapsed ? "1" : "0");
+}
+
+function getTimerboxToggleIconSvg(collapsed) {
+  if (collapsed) {
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+  }
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 15 12 9 18 15"></polyline></svg>';
+}
+
+function syncMobileTimerboxUI(options) {
+  options = options || {};
+  if (!isTimerboxMobileScope()) return;
+
+  var timerBox = document.getElementById("timerbox");
+  var toggleBtn = document.getElementById("timerbox-toggle-btn");
+  if (!timerBox || !toggleBtn) return;
+
+  var timerModuleHidden = timerBox.classList.contains("timerbox-hidden-mode");
+  var mobile = isMobileGameViewport();
+  if (!mobile || timerModuleHidden) {
+    toggleBtn.style.display = "none";
+    toggleBtn.setAttribute("aria-expanded", "false");
+    timerBox.classList.remove("is-mobile-expanded");
+    return;
+  }
+
+  toggleBtn.style.display = "inline-flex";
+  var collapsed = (typeof options.collapsed === "boolean") ? options.collapsed : readMobileTimerboxCollapsed();
+  timerBox.classList.toggle("is-mobile-expanded", !collapsed);
+  var label = collapsed ? "展开计时器" : "收起计时器";
+  toggleBtn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+  toggleBtn.setAttribute("aria-label", label);
+  toggleBtn.setAttribute("title", label);
+  toggleBtn.innerHTML = getTimerboxToggleIconSvg(collapsed);
+  if (options.persist) {
+    writeMobileTimerboxCollapsed(collapsed);
+  }
+}
+
+function initMobileTimerboxToggle() {
+  if (!isTimerboxMobileScope()) return;
+  var toggleBtn = document.getElementById("timerbox-toggle-btn");
+  var timerBox = document.getElementById("timerbox");
+  if (!toggleBtn || !timerBox) return;
+  if (!toggleBtn.__mobileTimerboxBound) {
+    toggleBtn.__mobileTimerboxBound = true;
+    toggleBtn.addEventListener("click", function (e) {
+      if (e) e.preventDefault();
+      var collapsed = timerBox.classList.contains("is-mobile-expanded");
+      syncMobileTimerboxUI({ collapsed: collapsed, persist: true });
+      requestResponsiveGameRelayout();
+    });
+  }
+  syncMobileTopActionsPlacement();
+  syncMobileTimerboxUI();
+}
+
+function requestResponsiveGameRelayout() {
+  if (!isTimerboxMobileScope()) return;
+  if (mobileRelayoutTimer) clearTimeout(mobileRelayoutTimer);
+  mobileRelayoutTimer = setTimeout(function () {
+    syncMobileTopActionsPlacement();
+    syncMobileTimerboxUI();
+    var gm = window.game_manager;
+    if (gm && gm.actuator && typeof gm.actuator.invalidateLayoutCache === "function") {
+      gm.actuator.invalidateLayoutCache();
+    }
+    if (gm && typeof gm.actuate === "function") {
+      gm.actuate();
+    }
+  }, 120);
+}
+
+window.syncMobileTimerboxUI = syncMobileTimerboxUI;
 
 function getStorageByName(name) {
   try {
@@ -528,6 +699,9 @@ function initTimerModuleSettingsUI() {
     if (note) {
       note.textContent = "关闭后仅隐藏右侧计时器栏，不影响棋盘和回放。";
     }
+    if (typeof window.syncMobileTimerboxUI === "function") {
+      window.syncMobileTimerboxUI();
+    }
   }
   window.syncTimerModuleSettingsUI = sync;
 
@@ -946,7 +1120,15 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+
+    initMobileTimerboxToggle();
+    requestResponsiveGameRelayout();
+
+    if (!window.__responsiveGameRelayoutBound) {
+      window.__responsiveGameRelayoutBound = true;
+      window.addEventListener("resize", requestResponsiveGameRelayout);
+      window.addEventListener("orientationchange", requestResponsiveGameRelayout);
+    }
 
 
 });
