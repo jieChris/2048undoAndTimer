@@ -757,6 +757,9 @@ GameManager.prototype.tryRestoreSavedGameState = function () {
   this.initialSeed = Number.isFinite(saved.initial_seed) ? Number(saved.initial_seed) : this.initialSeed;
   this.seed = Number.isFinite(saved.seed) ? Number(saved.seed) : this.initialSeed;
   this.moveHistory = Array.isArray(saved.move_history) ? saved.move_history.slice() : [];
+  this.ipsInputCount = Number.isInteger(saved.ips_input_count) && saved.ips_input_count >= 0
+    ? saved.ips_input_count
+    : this.moveHistory.length;
   this.undoStack = Array.isArray(saved.undo_stack) ? saved.undo_stack.slice() : [];
   this.replayCompactLog = typeof saved.replay_compact_log === "string" ? saved.replay_compact_log : "";
   this.sessionReplayV3 = saved.session_replay_v3 && typeof saved.session_replay_v3 === "object"
@@ -842,6 +845,7 @@ GameManager.prototype.saveGameState = function (options) {
     initial_seed: this.initialSeed,
     seed: this.seed,
     move_history: this.moveHistory ? this.moveHistory.slice() : [],
+    ips_input_count: Number.isInteger(this.ipsInputCount) && this.ipsInputCount >= 0 ? this.ipsInputCount : 0,
     undo_stack: this.undoStack ? this.safeClonePlain(this.undoStack, []) : [],
     replay_compact_log: this.replayCompactLog || "",
     session_replay_v3: this.sessionReplayV3 ? this.safeClonePlain(this.sessionReplayV3, null) : null,
@@ -990,6 +994,9 @@ GameManager.prototype.buildLiteSavedGameStatePayload = function (payload) {
     keep_playing: !!payload.keep_playing,
     initial_seed: Number.isFinite(payload.initial_seed) ? Number(payload.initial_seed) : this.initialSeed,
     seed: Number.isFinite(payload.seed) ? Number(payload.seed) : this.seed,
+    ips_input_count: Number.isInteger(payload.ips_input_count) && payload.ips_input_count >= 0
+      ? payload.ips_input_count
+      : 0,
     timer_status: payload.timer_status === 1 ? 1 : 0,
     duration_ms: Number.isFinite(payload.duration_ms) ? Math.floor(payload.duration_ms) : this.getDurationMs(),
     has_game_started: !!payload.has_game_started,
@@ -2033,6 +2040,37 @@ GameManager.prototype.computeStepStats = function () {
   };
 };
 
+GameManager.prototype.getIpsInputCount = function () {
+  if (this.replayMode) {
+    return Number.isInteger(this.replayIndex) && this.replayIndex > 0 ? this.replayIndex : 0;
+  }
+  return Number.isInteger(this.ipsInputCount) && this.ipsInputCount >= 0 ? this.ipsInputCount : 0;
+};
+
+GameManager.prototype.recordIpsInput = function () {
+  if (this.replayMode) return;
+  if (!Number.isInteger(this.ipsInputCount) || this.ipsInputCount < 0) {
+    this.ipsInputCount = 0;
+  }
+  this.ipsInputCount += 1;
+};
+
+GameManager.prototype.refreshIpsDisplay = function (durationMs) {
+  var ipsEl = document.getElementById("stats-ips");
+  if (!ipsEl && !this.cornerIpsEl) return;
+
+  var ms = Number(durationMs);
+  if (!Number.isFinite(ms) || ms < 0) ms = this.getDurationMs();
+  var seconds = ms / 1000;
+  var avgIps = 0;
+  if (seconds > 0) {
+    avgIps = (this.getIpsInputCount() / seconds).toFixed(2);
+  }
+  var ipsText = "IPS: " + avgIps;
+  if (ipsEl) ipsEl.textContent = ipsText;
+  if (this.cornerIpsEl) this.cornerIpsEl.textContent = ipsText;
+};
+
 // Restart the game
 GameManager.prototype.restart = function () {
   if (confirm("是否确认开始新游戏?")) {
@@ -2168,6 +2206,7 @@ GameManager.prototype.setup = function (inputSeed, options) {
   this.configureTimerMilestones();
   this.comboStreak = 0;
   this.successfulMoveCount = 0;
+  this.ipsInputCount = 0;
   this.undoUsed = 0;
   this.lockConsumedAtMoveCount = -1;
   this.lockedDirectionTurn = null;
@@ -2320,18 +2359,7 @@ GameManager.prototype.actuate = function () {
     }
     this.timerContainer.textContent = this.pretty(time);
     
-    // Update Average IPS (Total Steps / Time in seconds)
-    var ipsEl = document.getElementById("stats-ips");
-    if (ipsEl) {
-        var seconds = time / 1000;
-        var avgIps = 0;
-        if (seconds > 0) {
-            avgIps = (totalSteps / seconds).toFixed(2);
-        }
-        var ipsText = "IPS: " + avgIps;
-        ipsEl.textContent = ipsText;
-        if (this.cornerIpsEl) this.cornerIpsEl.textContent = ipsText;
-    }
+    this.refreshIpsDisplay(time);
   }
 
   if (this.isSessionTerminated() && this.modeKey !== "practice_legacy") {
@@ -2445,6 +2473,7 @@ GameManager.prototype.move = function (direction) {
     if (this.undoLimit !== null && this.undoUsed >= this.undoLimit) {
       return;
     }
+    this.recordIpsInput();
     if (this.undoStack.length > 0) {
       var prev = this.undoStack.pop();
 
@@ -2492,6 +2521,7 @@ GameManager.prototype.move = function (direction) {
   }
 
   if (this.isGameTerminated()) return; // Don't do anything if the game's over
+  this.recordIpsInput();
 
   var lockedDirection = this.getLockedDirection();
   if (lockedDirection !== null) {
@@ -2794,19 +2824,7 @@ GameManager.prototype.updateTimer = function() {
   var timerEl = document.getElementById("timer");
   if (timerEl) timerEl.textContent = this.pretty(time);
   
-  // Update IPS in real-time (Total Steps / Time)
-  var ipsEl = document.getElementById("stats-ips");
-  if (ipsEl) {
-      var seconds = time / 1000;
-      var steps = this.replayMode ? this.replayIndex : this.moveHistory.length;
-      var avgIps = 0;
-      if (seconds > 0) {
-          avgIps = (steps / seconds).toFixed(2);
-      }
-      var ipsText = "IPS: " + avgIps;
-      ipsEl.textContent = ipsText;
-      if (this.cornerIpsEl) this.cornerIpsEl.textContent = ipsText;
-  }
+  this.refreshIpsDisplay(time);
   if (this.isStatsPanelOpen()) {
     if (!this.lastStatsPanelUpdateAt || (time - this.lastStatsPanelUpdateAt) >= 100) {
       this.updateStatsPanel();
