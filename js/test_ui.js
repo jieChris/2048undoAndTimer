@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var selectedValue = 2;
   var zeroCycleValues = [];
   var currentSelectionRuleset = "pow2";
+  var practiceRelayoutTimer = null;
   var POW2_ZERO_CYCLE_VALUES = (function () {
     var values = [0];
     for (var exp = 1; exp <= 16; exp++) {
@@ -190,6 +191,20 @@ document.addEventListener("DOMContentLoaded", function () {
       return "选中 0 后，点击同一格会按 0→1→2→3→5→… 循环。";
     }
     return "选中 0 后，点击同一格会按 0→2→4→…→65536 循环。";
+  }
+
+  function requestPracticeRelayout() {
+    if (practiceRelayoutTimer) clearTimeout(practiceRelayoutTimer);
+    practiceRelayoutTimer = setTimeout(function () {
+      var gm = window.game_manager;
+      if (!gm) return;
+      if (gm.actuator && typeof gm.actuator.invalidateLayoutCache === "function") {
+        gm.actuator.invalidateLayoutCache();
+      }
+      if (typeof gm.actuate === "function") {
+        gm.actuate();
+      }
+    }, 120);
   }
 
   function applyPracticeTransfer(retriesLeft) {
@@ -490,4 +505,11 @@ document.addEventListener("DOMContentLoaded", function () {
       window.game_manager.isTestMode = true;
     }
   }, 100);
+
+  if (!window.__practiceRelayoutBound) {
+    window.__practiceRelayoutBound = true;
+    window.addEventListener("resize", requestPracticeRelayout);
+    window.addEventListener("orientationchange", requestPracticeRelayout);
+  }
+  requestPracticeRelayout();
 });

@@ -1,6 +1,14 @@
 (function () {
   window.ANNOUNCEMENT_RECORDS = [
     {
+      id: "2026-02-22-v1.9",
+      version: "v1.9",
+      date: "2026-02-22",
+      title: "移动端适配与斐波那契修复",
+      content:
+        "本版本完成了移动端适配，整体提升了移动端体验；同时修复了斐波那契模式中的一些问题。"
+    },
+    {
       id: "2026-02-21-v1.81",
       version: "v1.81",
       date: "2026-02-21",

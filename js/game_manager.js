@@ -1090,7 +1090,13 @@ GameManager.prototype.normalizeModeConfig = function (modeKey, rawConfig) {
   cfg.board_height = Number.isInteger(cfg.board_height) && cfg.board_height > 0 ? cfg.board_height : cfg.board_width;
   cfg.ruleset = cfg.ruleset === "fibonacci" ? "fibonacci" : "pow2";
   cfg.undo_enabled = !!cfg.undo_enabled;
-  if (Number.isInteger(cfg.max_tile) && cfg.max_tile > 0) {
+  var hasNumericMaxTile = Number.isInteger(cfg.max_tile) && cfg.max_tile > 0;
+  var isCappedKey = typeof cfg.key === "string" && cfg.key.indexOf("capped") !== -1;
+  var forceMaxTile = !!(cfg.special_rules && cfg.special_rules.enforce_max_tile);
+  if (cfg.ruleset === "fibonacci") {
+    // Fibonacci modes are uncapped by default; only explicit capped modes should enforce max_tile.
+    cfg.max_tile = (hasNumericMaxTile && (isCappedKey || forceMaxTile)) ? cfg.max_tile : null;
+  } else if (hasNumericMaxTile) {
     cfg.max_tile = cfg.max_tile;
   } else {
     cfg.max_tile = this.getTheoreticalMaxTile(cfg.board_width, cfg.board_height, cfg.ruleset);
@@ -2473,7 +2479,6 @@ GameManager.prototype.move = function (direction) {
     if (this.undoLimit !== null && this.undoUsed >= this.undoLimit) {
       return;
     }
-    this.recordIpsInput();
     if (this.undoStack.length > 0) {
       var prev = this.undoStack.pop();
 
@@ -2521,7 +2526,6 @@ GameManager.prototype.move = function (direction) {
   }
 
   if (this.isGameTerminated()) return; // Don't do anything if the game's over
-  this.recordIpsInput();
 
   var lockedDirection = this.getLockedDirection();
   if (lockedDirection !== null) {
@@ -2636,6 +2640,9 @@ GameManager.prototype.move = function (direction) {
   });
 
   if (moved) {
+    // IPS counts only effective move inputs (invalid directions are excluded).
+    this.recordIpsInput();
+
     var mergeGain = this.score - scoreBeforeMove;
     if (mergeGain > 0) {
       this.comboStreak += 1;
