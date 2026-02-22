@@ -702,7 +702,9 @@ GameManager.prototype.tryRestoreSavedGameState = function () {
     var item = candidates[c];
     if (!item || typeof item !== "object") continue;
     var at = Number(item.saved_at) || 0;
-    if (at >= bestAt) {
+    // Keep the first candidate when timestamps are equal (full > lite > window).
+    // This avoids downgrading to lite/window snapshots that may omit replay history.
+    if (at > bestAt) {
       bestAt = at;
       saved = item;
     }

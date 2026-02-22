@@ -1574,7 +1574,7 @@
     
     css += pageCss(theme);
     if (theme.id === "classic") {
-      css += ".restart-button,.top-action-btn,.replay-button,.replay-modal-actions .replay-button,.replay-control-btn,.game-container .game-message a,.game-container .game-message a.export-replay-button,.game-container .game-message a.import-replay-button,.game-container .game-message a.undo-button,.mode-hub-btn,.timer-scroll-btn,.home-guide-btn{color:#ffffff !important;}\n";
+      css += ".restart-button,.top-action-btn,.replay-button,.replay-modal-actions .replay-button,.replay-control-btn,.import-replay-button,.game-container .game-message a,.game-container .game-message a.export-replay-button,.game-container .game-message a.import-replay-button,.game-container .game-message a.undo-button,.mode-hub-btn,.timer-scroll-btn,.home-guide-btn{color:#ffffff !important;}\n";
       css += ".top-action-btn svg,.restart-button svg{stroke:#ffffff !important;}\n";
     }
 
