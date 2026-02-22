@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var zeroCycleValues = [];
   var currentSelectionRuleset = "pow2";
   var practiceRelayoutTimer = null;
+  var lastGridTouchAt = 0;
   var POW2_ZERO_CYCLE_VALUES = (function () {
     var values = [0];
     for (var exp = 1; exp <= 16; exp++) {
@@ -463,9 +464,10 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   if (selectionGrid) {
-    selectionGrid.addEventListener("click", function (e) {
+    function handleSelectionInteraction(e) {
       var target = e.target.closest(".selection-tile");
       if (target) {
+        if (e && e.cancelable) e.preventDefault();
         selectedValue = parseInt(target.getAttribute("data-value"), 10);
         var tiles = selectionGrid.querySelectorAll(".selection-tile");
         for (var i = 0; i < tiles.length; i++) {
@@ -473,29 +475,67 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         target.classList.add("selected");
       }
-    });
+    }
+
+    selectionGrid.addEventListener("click", handleSelectionInteraction);
+    selectionGrid.addEventListener("touchend", handleSelectionInteraction, { passive: false });
   }
 
   if (gridContainer) {
-    gridContainer.addEventListener("click", function (e) {
+    function resolveGridCellFromEvent(e) {
+      var cell = e && e.target && e.target.closest ? e.target.closest(".grid-cell") : null;
+      if (cell) return cell;
+
+      var touch = null;
+      if (e && e.changedTouches && e.changedTouches.length > 0) {
+        touch = e.changedTouches[0];
+      } else if (e && e.touches && e.touches.length > 0) {
+        touch = e.touches[0];
+      }
+      if (!touch || typeof document === "undefined" || !document.elementFromPoint) return null;
+
+      var hit = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (!hit || !hit.closest) return null;
+      return hit.closest(".grid-cell");
+    }
+
+    function applyCustomTileToCell(cell) {
+      if (!cell) return;
+      var x = parseInt(cell.getAttribute("data-x"), 10);
+      var y = parseInt(cell.getAttribute("data-y"), 10);
+      if (!window.game_manager) return;
+
+      if (selectedValue === 0) {
+        var cycleValue = getNextZeroCycleValue(x, y);
+        window.game_manager.insertCustomTile(x, y, cycleValue);
+      } else {
+        resetZeroCycleValue(x, y);
+        window.game_manager.insertCustomTile(x, y, selectedValue);
+      }
+    }
+
+    function handleGridInteraction(e, fromTouch) {
+      if (fromTouch) {
+        lastGridTouchAt = Date.now();
+      } else if (Date.now() - lastGridTouchAt < 450) {
+        // Ignore synthetic click immediately following touchend.
+        return;
+      }
+
       var tileContainer = document.querySelector(".tile-container");
       if (tileContainer) tileContainer.style.pointerEvents = "none";
+      if (e && e.cancelable) e.preventDefault();
 
-      var target = e.target;
-      if (target.classList.contains("grid-cell")) {
-        var x = parseInt(target.getAttribute("data-x"), 10);
-        var y = parseInt(target.getAttribute("data-y"), 10);
-        if (window.game_manager) {
-          if (selectedValue === 0) {
-            var cycleValue = getNextZeroCycleValue(x, y);
-            window.game_manager.insertCustomTile(x, y, cycleValue);
-          } else {
-            resetZeroCycleValue(x, y);
-            window.game_manager.insertCustomTile(x, y, selectedValue);
-          }
-        }
-      }
+      var cell = resolveGridCellFromEvent(e);
+      applyCustomTileToCell(cell);
+    }
+
+    gridContainer.addEventListener("click", function (e) {
+      handleGridInteraction(e, false);
     });
+    gridContainer.addEventListener("touchend", function (e) {
+      handleGridInteraction(e, true);
+    }, { passive: false });
   }
 
   applyPracticeTransfer(30);
