@@ -685,6 +685,9 @@ function requestResponsiveGameRelayout() {
     if (gm && gm.actuator && typeof gm.actuator.invalidateLayoutCache === "function") {
       gm.actuator.invalidateLayoutCache();
     }
+    if (gm && typeof gm.clearTransientTileVisualState === "function") {
+      gm.clearTransientTileVisualState();
+    }
     if (gm && typeof gm.actuate === "function") {
       gm.actuate();
     }
@@ -1611,12 +1614,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // Undo Button on Game Over Screen
     var undoBtnGameOver = document.getElementById('undo-btn-gameover');
     if (undoBtnGameOver) {
-        undoBtnGameOver.addEventListener('click', function(e) {
+        var lastUndoTouchAt = 0;
+        var handleGameOverUndo = function (e, fromTouch) {
             e.preventDefault();
+            if (!fromTouch && (Date.now() - lastUndoTouchAt) < 450) return;
+            if (fromTouch) lastUndoTouchAt = Date.now();
             if (window.game_manager && window.game_manager.isUndoInteractionEnabled && window.game_manager.isUndoInteractionEnabled()) {
                 window.game_manager.move(-1);
             }
+        };
+        undoBtnGameOver.addEventListener('click', function (e) {
+            handleGameOverUndo(e, false);
         });
+        undoBtnGameOver.addEventListener('touchend', function (e) {
+            handleGameOverUndo(e, true);
+        }, { passive: false });
     }
 
     initMobileTimerboxToggle();

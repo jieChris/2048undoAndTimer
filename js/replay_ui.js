@@ -167,6 +167,9 @@ function requestReplayRelayout() {
         if (gm.actuator && typeof gm.actuator.invalidateLayoutCache === "function") {
             gm.actuator.invalidateLayoutCache();
         }
+        if (typeof gm.clearTransientTileVisualState === "function") {
+            gm.clearTransientTileVisualState();
+        }
         if (typeof gm.actuate === "function") {
             gm.actuate();
         }

@@ -3,11 +3,15 @@ document.addEventListener("DOMContentLoaded", function () {
   var PRACTICE_TRANSFER_SESSION_KEY = "practice_board_transfer_session_v1";
   var gridContainer = document.getElementById("test-grid-container");
   var selectionGrid = document.getElementById("selection-grid");
-  var selectedValue = 2;
+  var selectedValue = null;
   var zeroCycleValues = [];
   var currentSelectionRuleset = "pow2";
   var practiceRelayoutTimer = null;
   var lastGridTouchAt = 0;
+  var gridTouchStartX = 0;
+  var gridTouchStartY = 0;
+  var gridTouchMoved = false;
+  var TOUCH_TAP_MAX_DISTANCE = 12;
   var POW2_ZERO_CYCLE_VALUES = (function () {
     var values = [0];
     for (var exp = 1; exp <= 16; exp++) {
@@ -158,15 +162,48 @@ document.addEventListener("DOMContentLoaded", function () {
     return [0, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768];
   }
 
+  function isPracticeMobileViewport() {
+    if (typeof window !== "undefined" && typeof window.isCompactGameViewport === "function") {
+      return !!window.isCompactGameViewport();
+    }
+    return typeof window !== "undefined" ? window.innerWidth <= 980 : false;
+  }
+
+  function syncPracticeGestureEntryUi() {
+    var scores = document.querySelector(".scores-container");
+    if (!scores) return;
+    var enabled = isPracticeMobileViewport();
+    scores.classList.toggle("practice-gesture-entry", enabled);
+    scores.classList.toggle("practice-gesture-active", enabled && selectedValue === null);
+    if (enabled) {
+      scores.setAttribute("title", "点击切换手势模式（不放置砖块）");
+    } else {
+      scores.removeAttribute("title");
+    }
+  }
+
+  function setSelectedValue(value) {
+    selectedValue = value;
+    if (selectionGrid) {
+      var tiles = selectionGrid.querySelectorAll(".selection-tile");
+      for (var i = 0; i < tiles.length; i++) {
+        var tile = tiles[i];
+        var shouldSelect = (parseInt(tile.getAttribute("data-value"), 10) === value);
+        tile.classList.toggle("selected", !!shouldSelect);
+      }
+    }
+    syncPracticeGestureEntryUi();
+  }
+
   function renderSelectionGrid(values, defaultValue) {
     if (!selectionGrid) return;
     selectionGrid.innerHTML = "";
+
     for (var i = 0; i < values.length; i++) {
       var value = values[i];
       var tile = document.createElement("div");
       tile.className = value === 0 ? "selection-tile tile-0" : ("selection-tile tile tile-" + String(value));
       tile.setAttribute("data-value", String(value));
-      if (value === defaultValue) tile.classList.add("selected");
 
       var inner = document.createElement("div");
       inner.className = "tile-inner";
@@ -174,6 +211,7 @@ document.addEventListener("DOMContentLoaded", function () {
       tile.appendChild(inner);
       selectionGrid.appendChild(tile);
     }
+    setSelectedValue(defaultValue);
   }
 
   function syncSelectionGridByRuleset() {
@@ -182,7 +220,6 @@ document.addEventListener("DOMContentLoaded", function () {
     zeroCycleValues = ruleset === "fibonacci" ? FIBONACCI_ZERO_CYCLE_VALUES.slice() : POW2_ZERO_CYCLE_VALUES.slice();
     var values = getSelectionValuesForRuleset(ruleset);
     var defaultValue = ruleset === "fibonacci" ? 1 : 2;
-    selectedValue = defaultValue;
     zeroCyclePhaseByCell = {};
     renderSelectionGrid(values, defaultValue);
   }
@@ -197,10 +234,14 @@ document.addEventListener("DOMContentLoaded", function () {
   function requestPracticeRelayout() {
     if (practiceRelayoutTimer) clearTimeout(practiceRelayoutTimer);
     practiceRelayoutTimer = setTimeout(function () {
+      syncPracticeGestureEntryUi();
       var gm = window.game_manager;
       if (!gm) return;
       if (gm.actuator && typeof gm.actuator.invalidateLayoutCache === "function") {
         gm.actuator.invalidateLayoutCache();
+      }
+      if (typeof gm.clearTransientTileVisualState === "function") {
+        gm.clearTransientTileVisualState();
       }
       if (typeof gm.actuate === "function") {
         gm.actuate();
@@ -272,7 +313,10 @@ document.addEventListener("DOMContentLoaded", function () {
       : null;
 
     try {
-      window.game_manager.restartWithBoard(board, modeConfig, { setPracticeRestartBase: true });
+      window.game_manager.restartWithBoard(board, modeConfig, {
+        setPracticeRestartBase: true,
+        asReplay: false
+      });
       window.game_manager.isTestMode = true;
       syncSelectionGridByRuleset();
     } catch (err) {
@@ -285,8 +329,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Guide Logic
   (function () {
-    var guideKey = "practice_guide_shown_v2";
-    var guideSeenFlagName = "practice_guide_seen_v2";
+    var mobileGuide = isPracticeMobileViewport();
+    var guideKey = mobileGuide ? "practice_guide_mobile_shown_v1" : "practice_guide_shown_v2";
+    var guideSeenFlagName = mobileGuide ? "practice_guide_mobile_seen_v1" : "practice_guide_seen_v2";
     var guideSeenUrlParam = "practice_guide_seen";
 
     function hasWindowNameGuideFlag() {
@@ -367,18 +412,24 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!guideShown) {
       var overlay = document.getElementById("guide-overlay");
       var message = document.getElementById("guide-message");
+      var scoreBox = document.querySelector(".scores-container");
       var zeroTile = document.querySelector(".selection-tile.tile-0");
       var firstCell = document.querySelector(".grid-cell[data-x='0'][data-y='0']") || document.querySelector(".grid-cell");
-      var steps = [
-        {
-          target: zeroTile,
-          text: getZeroModeGuideText()
-        },
-        {
-          target: firstCell,
-          text: "点击状态按“每个格子”单独记录，一个格子的循环不影响其他格子。"
-        }
-      ];
+      var steps = [];
+      if (mobileGuide && scoreBox) {
+        steps.push({
+          target: scoreBox,
+          text: "移动端：点击分数栏即可切换为置空手势，随后点击棋盘不会放置砖块。"
+        });
+      }
+      steps.push({
+        target: zeroTile,
+        text: getZeroModeGuideText()
+      });
+      steps.push({
+        target: firstCell,
+        text: "点击状态按“每个格子”单独记录，一个格子的循环不影响其他格子。"
+      });
 
       function positionMessageByTarget(targetEl) {
         if (!targetEl || !message) return;
@@ -435,18 +486,13 @@ document.addEventListener("DOMContentLoaded", function () {
         overlay.addEventListener("click", function () {
           nextStep();
         });
-        if (zeroTile) {
-          zeroTile.addEventListener("click", function (e) {
+        for (var si = 0; si < steps.length; si++) {
+          var stepTarget = steps[si].target;
+          if (!stepTarget || !stepTarget.addEventListener) continue;
+          stepTarget.addEventListener("click", function (e) {
             if (overlay.style.display !== "block") return;
             if (e) e.preventDefault();
             nextStep();
-          });
-        }
-        if (firstCell) {
-          firstCell.addEventListener("click", function (e) {
-            if (overlay.style.display !== "block") return;
-            if (e) e.preventDefault();
-            dismissGuide();
           });
         }
         window.addEventListener("resize", function () {
@@ -468,17 +514,25 @@ document.addEventListener("DOMContentLoaded", function () {
       var target = e.target.closest(".selection-tile");
       if (target) {
         if (e && e.cancelable) e.preventDefault();
-        selectedValue = parseInt(target.getAttribute("data-value"), 10);
-        var tiles = selectionGrid.querySelectorAll(".selection-tile");
-        for (var i = 0; i < tiles.length; i++) {
-          tiles[i].classList.remove("selected");
-        }
-        target.classList.add("selected");
+        var value = parseInt(target.getAttribute("data-value"), 10);
+        if (!Number.isFinite(value)) return;
+        setSelectedValue(value);
       }
     }
 
     selectionGrid.addEventListener("click", handleSelectionInteraction);
     selectionGrid.addEventListener("touchend", handleSelectionInteraction, { passive: false });
+  }
+
+  var scoreContainer = document.querySelector(".scores-container");
+  if (scoreContainer) {
+    var setGestureMode = function (e) {
+      if (!isPracticeMobileViewport()) return;
+      if (e && e.cancelable) e.preventDefault();
+      setSelectedValue(null);
+    };
+    scoreContainer.addEventListener("click", setGestureMode);
+    scoreContainer.addEventListener("touchend", setGestureMode, { passive: false });
   }
 
   if (gridContainer) {
@@ -504,6 +558,7 @@ document.addEventListener("DOMContentLoaded", function () {
       var x = parseInt(cell.getAttribute("data-x"), 10);
       var y = parseInt(cell.getAttribute("data-y"), 10);
       if (!window.game_manager) return;
+      if (selectedValue === null) return;
 
       if (selectedValue === 0) {
         var cycleValue = getNextZeroCycleValue(x, y);
@@ -514,9 +569,10 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     }
 
-    function handleGridInteraction(e, fromTouch) {
+    function handleGridInteraction(e, fromTouch, touchCanPlace) {
       if (fromTouch) {
         lastGridTouchAt = Date.now();
+        if (!touchCanPlace) return;
       } else if (Date.now() - lastGridTouchAt < 450) {
         // Ignore synthetic click immediately following touchend.
         return;
@@ -531,10 +587,25 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     gridContainer.addEventListener("click", function (e) {
-      handleGridInteraction(e, false);
+      handleGridInteraction(e, false, true);
+    });
+    gridContainer.addEventListener("touchstart", function (e) {
+      if (!e || !e.touches || !e.touches.length) return;
+      gridTouchMoved = false;
+      gridTouchStartX = e.touches[0].clientX;
+      gridTouchStartY = e.touches[0].clientY;
+    }, { passive: true });
+    gridContainer.addEventListener("touchmove", function (e) {
+      if (!e || !e.touches || !e.touches.length) return;
+      var dx = Math.abs(e.touches[0].clientX - gridTouchStartX);
+      var dy = Math.abs(e.touches[0].clientY - gridTouchStartY);
+      if (dx > TOUCH_TAP_MAX_DISTANCE || dy > TOUCH_TAP_MAX_DISTANCE) {
+        gridTouchMoved = true;
+      }
     });
     gridContainer.addEventListener("touchend", function (e) {
-      handleGridInteraction(e, true);
+      handleGridInteraction(e, true, !gridTouchMoved);
+      gridTouchMoved = false;
     }, { passive: false });
   }
 
@@ -551,5 +622,6 @@ document.addEventListener("DOMContentLoaded", function () {
     window.addEventListener("resize", requestPracticeRelayout);
     window.addEventListener("orientationchange", requestPracticeRelayout);
   }
+  syncPracticeGestureEntryUi();
   requestPracticeRelayout();
 });
