@@ -1089,10 +1089,11 @@ GameManager.prototype.normalizeModeConfig = function (modeKey, rawConfig) {
   cfg.board_width = Number.isInteger(cfg.board_width) && cfg.board_width > 0 ? cfg.board_width : 4;
   cfg.board_height = Number.isInteger(cfg.board_height) && cfg.board_height > 0 ? cfg.board_height : cfg.board_width;
   cfg.ruleset = cfg.ruleset === "fibonacci" ? "fibonacci" : "pow2";
+  cfg.special_rules = this.normalizeSpecialRules(cfg.special_rules);
   cfg.undo_enabled = !!cfg.undo_enabled;
   var hasNumericMaxTile = Number.isInteger(cfg.max_tile) && cfg.max_tile > 0;
   var isCappedKey = typeof cfg.key === "string" && cfg.key.indexOf("capped") !== -1;
-  var forceMaxTile = !!(cfg.special_rules && cfg.special_rules.enforce_max_tile);
+  var forceMaxTile = !!cfg.special_rules.enforce_max_tile;
   if (cfg.ruleset === "fibonacci") {
     // Fibonacci modes are uncapped by default; only explicit capped modes should enforce max_tile.
     cfg.max_tile = (hasNumericMaxTile && (isCappedKey || forceMaxTile)) ? cfg.max_tile : null;
@@ -1101,10 +1102,25 @@ GameManager.prototype.normalizeModeConfig = function (modeKey, rawConfig) {
   } else {
     cfg.max_tile = this.getTheoreticalMaxTile(cfg.board_width, cfg.board_height, cfg.ruleset);
   }
-  cfg.spawn_table = this.normalizeSpawnTable(cfg.spawn_table, cfg.ruleset);
+
+  var customFourRate = Number(cfg.special_rules.custom_spawn_four_rate);
+  if (cfg.ruleset === "pow2" && Number.isFinite(customFourRate)) {
+    if (customFourRate < 0) customFourRate = 0;
+    if (customFourRate > 100) customFourRate = 100;
+    customFourRate = Math.round(customFourRate * 100) / 100;
+    var twoRate = Math.round((100 - customFourRate) * 100) / 100;
+    var strictTable = [];
+    if (twoRate > 0) strictTable.push({ value: 2, weight: twoRate });
+    if (customFourRate > 0) strictTable.push({ value: 4, weight: customFourRate });
+    if (!strictTable.length) strictTable.push({ value: 2, weight: 100 });
+    cfg.spawn_table = strictTable;
+    cfg.special_rules.custom_spawn_four_rate = customFourRate;
+  } else {
+    cfg.spawn_table = this.normalizeSpawnTable(cfg.spawn_table, cfg.ruleset);
+  }
+
   cfg.ranked_bucket = cfg.ranked_bucket || "none";
   cfg.mode_family = cfg.mode_family || (cfg.ruleset === "fibonacci" ? "fibonacci" : "pow2");
-  cfg.special_rules = this.normalizeSpecialRules(cfg.special_rules);
   cfg.rank_policy = cfg.rank_policy || (cfg.ranked_bucket !== "none" ? "ranked" : "unranked");
   return cfg;
 };
@@ -2123,8 +2139,10 @@ GameManager.prototype.setPracticeRestartBase = function (board, modeConfig) {
 GameManager.prototype.restartWithBoard = function (board, modeConfig, options) {
   options = options || {};
   this.actuator.continue();
-  // Seed is irrelevant here; replay spawns are driven by encoded log.
-  this.setup(0, { skipStartTiles: true, modeConfig: modeConfig, disableStateRestore: true });
+  // Non-replay board restores must keep undo enabled; replay restores keep replay mode.
+  var asReplay = !!options.asReplay;
+  var setupSeed = asReplay ? 0 : undefined;
+  this.setup(setupSeed, { skipStartTiles: true, modeConfig: modeConfig, disableStateRestore: true });
   this.setBoardFromMatrix(board);
   this.initialBoardMatrix = this.getFinalBoardMatrix();
   this.replayStartBoardMatrix = this.cloneBoardMatrix(this.initialBoardMatrix);
@@ -2138,6 +2156,15 @@ GameManager.prototype.restartWithBoard = function (board, modeConfig, options) {
 GameManager.prototype.keepPlaying = function () {
   this.keepPlaying = true;
   this.actuator.continue();
+};
+
+GameManager.prototype.clearTransientTileVisualState = function () {
+  if (!this.grid || typeof this.grid.eachCell !== "function") return;
+  this.grid.eachCell(function (_x, _y, tile) {
+    if (!tile) return;
+    tile.previousPosition = null;
+    tile.mergedFrom = null;
+  });
 };
 
 GameManager.prototype.isGameTerminated = function () {
@@ -2898,6 +2925,7 @@ GameManager.prototype.insertCustomTile = function(x, y, value) {
             this.sessionReplayV3.actions.push(["p", x, y, value]);
             this.appendCompactPracticeAction(x, y, value);
         }
+        this.clearTransientTileVisualState();
         this.actuate();
         return;
     }
@@ -2932,6 +2960,7 @@ GameManager.prototype.insertCustomTile = function(x, y, value) {
     }
     
     // Refresh
+    this.clearTransientTileVisualState();
     this.actuate();
 
     if (!this.replayMode && this.sessionReplayV3 && this.modeKey === "practice_legacy") {
@@ -3243,7 +3272,7 @@ GameManager.prototype.import = function (replayString) {
       }
 
       this.disableSessionSync = true;
-      this.restartWithBoard(initialBoard, replayModeConfigV4);
+      this.restartWithBoard(initialBoard, replayModeConfigV4, { asReplay: true });
       this.setUndoEnabled(this.loadUndoSettingForMode(this.modeKey), true, true);
       startReplay();
       return;
@@ -3407,7 +3436,7 @@ GameManager.prototype.seek = function (targetIndex) {
     if (targetIndex < this.replayIndex) {
         // Rewind implies restart
         if (this.replayStartBoardMatrix) {
-            this.restartWithBoard(this.replayStartBoardMatrix, this.modeConfig);
+            this.restartWithBoard(this.replayStartBoardMatrix, this.modeConfig, { asReplay: true });
         } else {
             this.restartWithSeed(this.initialSeed, this.modeConfig);
         }

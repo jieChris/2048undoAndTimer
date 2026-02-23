@@ -2398,12 +2398,14 @@ input[type=range]::-webkit-slider-runnable-track {
   body[data-page="practice"] {
     margin: 16px 0;
     padding: 0 5px;
+    overflow-x: hidden;
   }
 
   body[data-page="practice"] .container {
     width: 100% !important;
     max-width: 760px;
     margin: 0 auto;
+    overflow-x: hidden;
   }
 
   body[data-page="practice"] .dashboard-container {
@@ -2604,6 +2606,8 @@ input[type=range]::-webkit-slider-runnable-track {
   body[data-page="practice"] .game-container {
     float: none;
     margin: 12px auto 0;
+    width: calc(100% - 10px);
+    max-width: none;
   }
 
   body[data-page="modes"] {
@@ -2750,7 +2754,7 @@ input[type=range]::-webkit-slider-runnable-track {
   }
 
   body[data-page="practice"] .game-container {
-    width: 100%;
+    width: calc(100% - 10px);
     max-width: none;
   }
 
@@ -2812,7 +2816,7 @@ input[type=range]::-webkit-slider-runnable-track {
   }
 
   body[data-page="practice"] .game-container {
-    width: 100%;
+    width: calc(100% - 10px);
     max-width: none;
   }
 
