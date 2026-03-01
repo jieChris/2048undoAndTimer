@@ -2125,9 +2125,9 @@ GameManager.prototype.restart = function () {
   }
 };
 
-GameManager.prototype.restartWithSeed = function (seed, modeConfig) {
+GameManager.prototype.restartWithSeed = function (seed, modeConfig, replayVersion) {
   this.actuator.continue();
-  this.setup(seed, { modeConfig: modeConfig, disableStateRestore: true }); // Force setup with specific seed
+  this.setup(seed, { modeConfig: modeConfig, disableStateRestore: true, replayVersion: replayVersion }); // Force setup with specific seed
 };
 
 GameManager.prototype.setPracticeRestartBase = function (board, modeConfig) {
@@ -2142,7 +2142,7 @@ GameManager.prototype.restartWithBoard = function (board, modeConfig, options) {
   // Non-replay board restores must keep undo enabled; replay restores keep replay mode.
   var asReplay = !!options.asReplay;
   var setupSeed = asReplay ? 0 : undefined;
-  this.setup(setupSeed, { skipStartTiles: true, modeConfig: modeConfig, disableStateRestore: true });
+  this.setup(setupSeed, { skipStartTiles: true, modeConfig: modeConfig, disableStateRestore: true, replayVersion: options.replayVersion });
   this.setBoardFromMatrix(board);
   this.initialBoardMatrix = this.getFinalBoardMatrix();
   this.replayStartBoardMatrix = this.cloneBoardMatrix(this.initialBoardMatrix);
@@ -2209,8 +2209,9 @@ GameManager.prototype.setup = function (inputSeed, options) {
     this.disableSessionSync = false;
   }
   this.sessionSubmitDone = false;
+  this.replayVersion = options.replayVersion || 4;
   this.sessionReplayV3 = {
-    v: 3,
+    v: this.replayVersion,
     mode: this.getServerMode(this.modeKey),
     mode_key: this.modeKey,
     board_width: this.width,
@@ -2324,12 +2325,12 @@ GameManager.prototype.setup = function (inputSeed, options) {
 // Set up the initial tiles to start the game with
 GameManager.prototype.addStartTiles = function () {
   for (var i = 0; i < this.startTiles; i++) {
-    this.addRandomTile();
+    this.addRandomTile(true, i);
   }
 };
 
 // Adds a tile in a random position
-GameManager.prototype.addRandomTile = function () {
+GameManager.prototype.addRandomTile = function (isStart, startIndex) {
   // Replay v2 Logic: Use forced spawn if available
   if (this.replayMode && this.forcedSpawn) {
       if (this.grid.cellAvailable(this.forcedSpawn) && !this.isBlockedCell(this.forcedSpawn.x, this.forcedSpawn.y)) {
@@ -2343,14 +2344,20 @@ GameManager.prototype.addRandomTile = function () {
   // Normal Logic
   var available = this.getAvailableCells();
   if (available.length > 0) {
-    Math.seedrandom(this.seed);
-    
-    // Fix: Use move history length (or replay index) instead of score to determine RNG state.
-    // This ensures that Undo -> Move results in a DIFFERENT random tile (because history length increased),
-    // while maintaining determinism for Replay.
-    var steps = this.replayMode ? this.replayIndex : this.moveHistory.length;
-    for (var i=0; i<steps; i++) {
-      Math.random();
+    if (this.replayVersion <= 3) {
+      // Legacy buggy RNG logic for Replay v3
+      Math.seedrandom(this.seed);
+      var steps = this.replayMode ? this.replayIndex : this.moveHistory.length;
+      for (var i=0; i<steps; i++) {
+        Math.random();
+      }
+    } else {
+      // V4 Fixed RNG Logic
+      var steps = this.replayMode ? this.replayIndex : this.moveHistory.length;
+      var seedPayload = this.seed + ":" + steps;
+      if (isStart) seedPayload += ":start:" + (startIndex || 0);
+      else seedPayload += ":move";
+      Math.seedrandom(seedPayload);
     }
     
     var value = this.pickSpawnValue();
@@ -3037,7 +3044,7 @@ GameManager.prototype.getDurationMs = function () {
 
 GameManager.prototype.serializeV3 = function () {
   var replay = this.sessionReplayV3 || {
-    v: 3,
+    v: 4,
     mode: this.getServerMode(this.modeKey),
     mode_key: this.modeKey,
     board_width: this.width,
@@ -3051,7 +3058,7 @@ GameManager.prototype.serializeV3 = function () {
     actions: []
   };
   return {
-    v: 3,
+    v: 4,
     mode: this.getServerMode(replay.mode_key || replay.mode || this.modeKey),
     mode_key: replay.mode_key || this.modeKey,
     board_width: replay.board_width || this.width,
@@ -3194,8 +3201,8 @@ GameManager.prototype.import = function (replayString) {
 
     if (trimmed.charAt(0) === "{") {
       var replayObj = JSON.parse(trimmed);
-      if (replayObj.v === 3) {
-        if (!Array.isArray(replayObj.actions)) throw "Invalid v3 actions";
+      if (replayObj.v === 3 || replayObj.v === 4) {
+        if (!Array.isArray(replayObj.actions)) throw "Invalid v3/v4 actions";
         var replayModeKey = replayObj.mode_key || replayObj.mode || this.modeKey || this.mode;
         var replayModeConfig = this.resolveModeConfig(replayModeKey);
         if (replayObj.special_rules_snapshot && typeof replayObj.special_rules_snapshot === "object") {
@@ -3213,7 +3220,7 @@ GameManager.prototype.import = function (replayString) {
         this.replayMoves = replayObj.actions;
         this.replaySpawns = null;
         this.disableSessionSync = true;
-        this.restartWithSeed(replayObj.seed, replayModeConfig);
+        this.restartWithSeed(replayObj.seed, replayModeConfig, replayObj.v);
         this.setUndoEnabled(this.loadUndoSettingForMode(this.modeKey), true, true);
         startReplay();
         return;
@@ -3436,9 +3443,9 @@ GameManager.prototype.seek = function (targetIndex) {
     if (targetIndex < this.replayIndex) {
         // Rewind implies restart
         if (this.replayStartBoardMatrix) {
-            this.restartWithBoard(this.replayStartBoardMatrix, this.modeConfig, { asReplay: true });
+            this.restartWithBoard(this.replayStartBoardMatrix, this.modeConfig, { asReplay: true, replayVersion: this.replayVersion });
         } else {
-            this.restartWithSeed(this.initialSeed, this.modeConfig);
+            this.restartWithSeed(this.initialSeed, this.modeConfig, this.replayVersion);
         }
         this.replayIndex = 0;
     }
