@@ -2084,6 +2084,9 @@ GameManager.prototype.getIpsInputCount = function () {
 
 GameManager.prototype.recordIpsInput = function () {
   if (this.replayMode) return;
+  if (!this.ipsTimestamps) this.ipsTimestamps = [];
+  this.ipsTimestamps.push(Date.now());
+  
   if (!Number.isInteger(this.ipsInputCount) || this.ipsInputCount < 0) {
     this.ipsInputCount = 0;
   }
@@ -2094,14 +2097,25 @@ GameManager.prototype.refreshIpsDisplay = function (durationMs) {
   var ipsEl = document.getElementById("stats-ips");
   if (!ipsEl && !this.cornerIpsEl) return;
 
-  var ms = Number(durationMs);
-  if (!Number.isFinite(ms) || ms < 0) ms = this.getDurationMs();
-  var seconds = ms / 1000;
-  var avgIps = 0;
-  if (seconds > 0) {
-    avgIps = (this.getIpsInputCount() / seconds).toFixed(2);
+  var ipsStr = "0";
+  if (this.replayMode) {
+      var ms = Number(durationMs);
+      if (!Number.isFinite(ms) || ms < 0) ms = this.getDurationMs();
+      var seconds = ms / 1000;
+      if (seconds > 0) {
+          var count = Number.isInteger(this.replayIndex) && this.replayIndex > 0 ? this.replayIndex : 0;
+          ipsStr = Math.round(count / seconds).toString();
+      }
+  } else {
+      if (!this.ipsTimestamps) this.ipsTimestamps = [];
+      var now = Date.now();
+      while (this.ipsTimestamps.length > 0 && now - this.ipsTimestamps[0] > 1000) {
+          this.ipsTimestamps.shift();
+      }
+      ipsStr = this.ipsTimestamps.length.toString();
   }
-  var ipsText = "IPS: " + avgIps;
+
+  var ipsText = "IPS: " + ipsStr;
   if (ipsEl) ipsEl.textContent = ipsText;
   if (this.cornerIpsEl) this.cornerIpsEl.textContent = ipsText;
 };
@@ -2253,6 +2267,7 @@ GameManager.prototype.setup = function (inputSeed, options) {
   this.configureTimerMilestones();
   this.comboStreak = 0;
   this.successfulMoveCount = 0;
+  this.ipsTimestamps = [];
   this.ipsInputCount = 0;
   this.undoUsed = 0;
   this.lockConsumedAtMoveCount = -1;
@@ -2266,6 +2281,12 @@ GameManager.prototype.setup = function (inputSeed, options) {
   this.undoEnabled = this.loadUndoSettingForMode(this.mode);
   var preferredTimerModuleView = this.loadTimerModuleViewForMode(this.mode);
   if (this.ipsInterval) clearInterval(this.ipsInterval);
+  var self = this;
+  this.ipsInterval = setInterval(function() {
+      if (self.timerStatus === 1 && !self.replayMode) {
+          self.refreshIpsDisplay();
+      }
+  }, 200);
 
   var legacyTotalEl = document.getElementById("stats-total");
   if (legacyTotalEl) legacyTotalEl.style.visibility = "hidden";
